@@ -78,7 +78,7 @@ def download_models(asr_config):
     
     # 未设置模型路径时，下载到默认路径（~/.swarmclone/asr/）
     if not asr_config.MODELPATH:
-        asr_config.MODEPATHL = "~/.swarmclone/asr/"
+        asr_config.MODELPATH = "~/.swarmclone/asr/"
         print(f"MODELPATH not set, using default {asr_config.MODELPATH}")
     
     if asr_config.MODEL == "paraformer":
