@@ -2,17 +2,6 @@ import sys
 from pathlib import Path
 import sounddevice as sd
 import os
-
-# try:
-#     import sounddevice as sd
-# except ImportError:
-#     print("Please install sounddevice first. You can use")
-#     print()
-#     print("  pip install sounddevice")
-#     print()
-#     print("to install it")
-#     sys.exit(-1)
-
 import sherpa_onnx
 
 def assert_file_exists(filename: str):
@@ -70,9 +59,6 @@ def download_models(asr_config):
     """
     下载模型、解压模型
     """
-    model_path = Path(os.path.expanduser(asr_config.MODELPATH))
-    model_path.mkdir(parents=True, exist_ok=True)
-
     if not asr_config.MODEL:
         raise ValueError("Please set MODEL in asr_config to select the model")
     
@@ -80,7 +66,11 @@ def download_models(asr_config):
     if not asr_config.MODELPATH:
         asr_config.MODELPATH = "~/.swarmclone/asr/"
         print(f"MODELPATH not set, using default {asr_config.MODELPATH}")
-    
+
+    # 使用expanduser将～转换为绝对路径
+    model_path = Path(os.path.expanduser(asr_config.MODELPATH))
+    model_path.mkdir(parents=True, exist_ok=True)
+
     if asr_config.MODEL == "paraformer":
         model_url = "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-streaming-paraformer-bilingual-zh-en.tar.bz2"
         model_file = model_path / "sherpa-onnx-streaming-paraformer-bilingual-zh-en.tar.bz2"
