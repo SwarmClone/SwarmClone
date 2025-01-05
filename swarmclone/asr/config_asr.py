@@ -5,7 +5,7 @@ class ASRConfig:
     # 语音识别模型选择(paraformer)
     MODEL: str = "paraformer"
     # 语音模型路径
-    MODELPATH="~/.swarmclone/asr/"
+    MODELPATH: str = "~/.swarmclone/asr/"
     # token.txt路径
     # 解码方法（greedy_search, modified_beam_search）
     DECODING_METHOD: str = "greedy_search"
