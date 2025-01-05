@@ -76,6 +76,8 @@ if __name__ == '__main__':
                 if s is None:
                     break
                 print(s)
+                if not s or s.isspace():
+                    continue
                 outputs = model.synthesize(
                     s.strip(),
                     xtts_config,
