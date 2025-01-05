@@ -4,6 +4,8 @@ from dataclasses import dataclass
 class ASRConfig:
     # 语音识别模型选择(paraformer)
     MODEL: str = "paraformer"
+    # 量化模型选择（fp32, int8）
+    QUANTIZED: str = "int8"
     # 语音模型路径
     MODELPATH: str = "~/.swarmclone/asr/"
     # token.txt路径

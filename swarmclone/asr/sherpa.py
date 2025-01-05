@@ -19,8 +19,14 @@ def create_recognizer(asr_config):
         raise NotImplementedError(f"Model {asr_config.MODEL} not supported")
 
     tokens = str(model_path / "tokens.txt")
-    encoder = str(model_path / "encoder.onnx")
-    decoder = str(model_path / "decoder.onnx")
+    if asr_config.QUANTIZED == "int8":
+        encoder = str(model_path / "encoder.int8.onnx")
+        decoder = str(model_path / "decoder.int8.onnx")
+    elif asr_config.QUANTIZED == "fp32":
+        encoder = str(model_path / "encoder.onnx")
+        decoder = str(model_path / "decoder.onnx")
+    else:
+        raise ValueError(f"QUANTIZED should be 'int8' or 'fp32', but got {asr_config.QUANTIZED}")
 
     print(f"Loading model from {model_path}")
     assert_file_exists(encoder)
