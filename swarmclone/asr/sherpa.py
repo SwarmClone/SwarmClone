@@ -14,39 +14,80 @@ def assert_file_exists(filename: str):
 def create_recognizer(asr_config):
     if asr_config.MODEL == "paraformer":
         model_path = Path(os.path.expanduser(asr_config.MODELPATH)) / "sherpa-onnx-streaming-paraformer-bilingual-zh-en"
+        tokens = str(model_path / "tokens.txt")
+        if asr_config.QUANTIZED == "int8":
+            encoder = str(model_path / "encoder.int8.onnx")
+            decoder = str(model_path / "decoder.int8.onnx")
+        elif asr_config.QUANTIZED == "fp32":
+            encoder = str(model_path / "encoder.onnx")
+            decoder = str(model_path / "decoder.onnx")
+        else:
+            raise ValueError(f"QUANTIZED should be 'int8' or 'fp32', but got {asr_config.QUANTIZED}")
+
+        print(f"Loading model from {model_path}")
+
+        assert_file_exists(encoder)
+        assert_file_exists(decoder)
+        assert_file_exists(tokens)
+
+        recognizer = sherpa_onnx.OnlineRecognizer.from_paraformer(
+            tokens=tokens,
+            encoder=encoder,
+            decoder=decoder,
+            num_threads=1,
+            sample_rate=16000,
+            feature_dim=80,
+            enable_endpoint_detection=True,
+            rule1_min_trailing_silence=2.4,
+            rule2_min_trailing_silence=1.2,
+            rule3_min_utterance_length=300,  # it essentially disables this rule
+        )
+    
+    elif asr_config.MODEL == "zipformer":
+        model_path = Path(os.path.expanduser(asr_config.MODELPATH)) / "sherpa-onnx-streaming-zipformer-bilingual-zh-en-2023-02-20"
+        tokens = str(model_path / "tokens.txt")
+        if asr_config.QUANTIZED == "int8":
+            encoder = str(model_path / "encoder-epoch-99-avg-1.int8.onnx")
+            decoder = str(model_path / "decoder-epoch-99-avg-1.int8.onnx")
+            joiner = str(model_path / "joiner-epoch-99-avg-1.int8.onnx")
+        elif asr_config.QUANTIZED == "fp32":
+            encoder = str(model_path / "encoder-epoch-99-avg-1.onnx")
+            decoder = str(model_path / "decoder-epoch-99-avg-1.onnx")
+            joiner = str(model_path / "joiner-epoch-99-avg-1.onnx")
+        else:
+            raise ValueError(f"QUANTIZED should be 'int8' or 'fp32', but got {asr_config.QUANTIZED}")
+        
+        print(f"Loading model from {model_path}")
+
+        assert_file_exists(encoder)
+        assert_file_exists(decoder)
+        assert_file_exists(joiner)
+        assert_file_exists(tokens)
+        
+        recognizer = sherpa_onnx.OnlineRecognizer.from_transducer(
+            tokens=tokens,
+            encoder=encoder,
+            decoder=decoder,
+            joiner=joiner,
+            num_threads=1,
+            sample_rate=16000,
+            feature_dim=80,
+            enable_endpoint_detection=True,
+            rule1_min_trailing_silence=2.4,
+            rule2_min_trailing_silence=1.2,
+            rule3_min_utterance_length=300,  # it essentially disables this rule
+            decoding_method=asr_config.DECODING_METHOD,
+            provider=asr_config.PROVIDER,
+            hotwords_file=asr_config.HOTWORDS_FILE,
+            hotwords_score=asr_config.HOTWORDS_SCORE,
+            blank_penalty=asr_config.BLANK_PENALTY,
+        )
+
     else:
         # print(f"Model {asr_config.MODEL} not supported")
         raise NotImplementedError(f"Model {asr_config.MODEL} not supported")
 
-    tokens = str(model_path / "tokens.txt")
-    if asr_config.QUANTIZED == "int8":
-        encoder = str(model_path / "encoder.int8.onnx")
-        decoder = str(model_path / "decoder.int8.onnx")
-    elif asr_config.QUANTIZED == "fp32":
-        encoder = str(model_path / "encoder.onnx")
-        decoder = str(model_path / "decoder.onnx")
-    else:
-        raise ValueError(f"QUANTIZED should be 'int8' or 'fp32', but got {asr_config.QUANTIZED}")
-
-    print(f"Loading model from {model_path}")
-    assert_file_exists(encoder)
-    assert_file_exists(decoder)
-    assert_file_exists(tokens)
-    # Please replace the model files if needed.
-    # See https://k2-fsa.github.io/sherpa/onnx/pretrained_models/index.html
-    # for download links.
-    recognizer = sherpa_onnx.OnlineRecognizer.from_paraformer(
-        tokens=tokens,
-        encoder=encoder,
-        decoder=decoder,
-        num_threads=1,
-        sample_rate=16000,
-        feature_dim=80,
-        enable_endpoint_detection=True,
-        rule1_min_trailing_silence=2.4,
-        rule2_min_trailing_silence=1.2,
-        rule3_min_utterance_length=300,  # it essentially disables this rule
-    )
+    
     return recognizer
 
 def asr_init(asr_config):
@@ -80,6 +121,9 @@ def download_models(asr_config):
     if asr_config.MODEL == "paraformer":
         model_url = "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-streaming-paraformer-bilingual-zh-en.tar.bz2"
         model_file = model_path / "sherpa-onnx-streaming-paraformer-bilingual-zh-en.tar.bz2"
+    elif asr_config.MODEL == "zipformer":
+        model_url = "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-streaming-zipformer-bilingual-zh-en-2023-02-20.tar.bz2"
+        model_file = model_path / "sherpa-onnx-streaming-zipformer-bilingual-zh-en-2023-02-20.tar.bz2"
     else:
         print(f"Model {asr_config.MODEL} not supported")
         raise NotImplementedError
@@ -96,6 +140,7 @@ def download_models(asr_config):
 
 if __name__ == '__main__':
     from .config_asr import ASRConfig
+    print("Testing download_models")
     asr_config = ASRConfig()
     # test
     download_models(asr_config)

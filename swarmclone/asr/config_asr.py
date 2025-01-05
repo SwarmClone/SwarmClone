@@ -2,10 +2,10 @@ from dataclasses import dataclass
 
 @dataclass
 class ASRConfig:
-    # 语音识别模型选择(paraformer)
-    MODEL: str = "paraformer"
+    # 语音识别模型选择(paraformer, zipformer)
+    MODEL: str = "zipformer"
     # 量化模型选择（fp32, int8）
-    QUANTIZED: str = "int8"
+    QUANTIZED: str = "fp32"
     # 语音模型路径
     MODELPATH: str = "~/.swarmclone/asr/"
     # token.txt路径
