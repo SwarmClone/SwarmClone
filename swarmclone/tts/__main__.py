@@ -38,7 +38,7 @@ def get_data(sock: socket.socket, q: Queue[Optional[str]]):
                             q.put(split + sep)
                     s = splits[-1]
                     break
-            if len(s) >= 50:
+            if not s.isascii() and len(s) >= 50:
                 q.put(s)
                 s = ""
     q.put(None)

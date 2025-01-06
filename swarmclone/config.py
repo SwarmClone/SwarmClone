@@ -15,3 +15,10 @@ class Config:
     PANEL_FROM_LLM: int = 8003
     PANEL_FROM_ASR: int = 8004
     PANEL_FROM_CHAT: int = 8005
+
+    # 模块配置
+    START_ASR_COMMAND: list[str] = field(default_factory=lambda: ["python", "-m", "swarmclone.asr"])
+    START_TTS_COMMAND: list[str] = field(default_factory=lambda: ["python", "-m", "swarmclone.tts"])
+    START_LLM_COMMAND: list[str] = field(default_factory=lambda: ["python", "-m", "swarmclone.model_qwen"])
+    START_FRONTEND_COMMAND: list[str] = field(default_factory=lambda: ["python", "-m", "swarmclone.frontend_dummy"])
+    START_PANEL_COMMAND: list[str] = field(default_factory=lambda: ["python", "-m", "swarmclone.panel_dummy"])

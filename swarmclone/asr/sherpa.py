@@ -42,7 +42,6 @@ def create_recognizer(asr_config):
             rule2_min_trailing_silence=1.2,
             rule3_min_utterance_length=300,  # it essentially disables this rule
         )
-    
     elif asr_config.MODEL == "zipformer":
         model_path = Path(os.path.expanduser(asr_config.MODELPATH)) / "sherpa-onnx-streaming-zipformer-bilingual-zh-en-2023-02-20"
         tokens = str(model_path / "tokens.txt")
@@ -82,12 +81,10 @@ def create_recognizer(asr_config):
             hotwords_score=asr_config.HOTWORDS_SCORE,
             blank_penalty=asr_config.BLANK_PENALTY,
         )
-
     else:
         # print(f"Model {asr_config.MODEL} not supported")
         raise NotImplementedError(f"Model {asr_config.MODEL} not supported")
 
-    
     return recognizer
 
 def asr_init(asr_config):
