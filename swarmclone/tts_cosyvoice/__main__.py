@@ -9,14 +9,14 @@ import threading
 
 from time import time
 from queue import Queue
-from typing import Optional
+from typing import Optional, List
 
 import playsound
 import torchaudio
 
 from . import config, tts_config
 from cosyvoice.cli.cosyvoice import CosyVoice, CosyVoice2
-from cosyvoice.utils.file_utils import load_wav
+from .align import download_model_and_dict, init_mfa_models, align
 
 def get_data(sock: socket.socket, q: Queue[Optional[str]]):
     s = ""
@@ -50,20 +50,28 @@ def get_data(sock: socket.socket, q: Queue[Optional[str]]):
                 s = ""
     q.put(None)
 
-def play_sound(q_fname: Queue[Optional[str]]):
+def play_sound(q_fname: Queue[List[str]]):
     while True:
-        fname = q_fname.get()
-        if fname is None:
+        names = q_fname.get()
+        if names is None:
             break
-        playsound.playsound(os.path.abspath(fname))
-        os.remove(fname)
+        # audio_name    : 音频文件
+        # txt_name      : 生成文本
+        # align_name    : 对齐文件
+        audio_name, txt_name, align_name = names
+        playsound.playsound(audio_name)
+        
+        os.remove(audio_name)
+        os.remove(txt_name)
+        os.remove(align_name)
 
 if __name__ == "__main__":
     warnings.filterwarnings("ignore", message=".*LoRACompatibleLinear.*")
-    warnings.filterwarnings("ignore", message=".*torch.nn.utils.weight_norm is deprecated.*")
+    warnings.filterwarnings("ignore", message=".*torch.nn.utils.weight_norm.*")
     warnings.filterwarnings("ignore", category=FutureWarning, message=r".*weights_only=False.*")
     warnings.filterwarnings("ignore", category=FutureWarning, message=r".*weights_norm.*")
-    
+
+    # TTS MODEL
     temp_dir = tempfile.gettempdir()
     try:
         model_path = os.path.expanduser(os.path.join(tts_config.MODELPATH, tts_config.MODEL))
@@ -80,9 +88,19 @@ if __name__ == "__main__":
                 raise
         else:
             raise
+    
+    # MFA MODEL
+    mfa_dir = os.path.expanduser(os.path.join(tts_config.MODELPATH, "mfa"))
+    if not (os.path.exists(mfa_dir) and
+            os.path.exists(os.path.join(mfa_dir, "mandarin_china_mfa.dict")) and
+            os.path.exists(os.path.join(mfa_dir, "mandarin_mfa.zip"))):
+        print(" * SwarmClone 使用 Montreal Forced Aligner 进行对齐，开始下载: ")
+        download_model_and_dict(tts_config)
+    acoustic_model, lexicon_compiler, tokenizer, pretrained_aligner = init_mfa_models(tts_config)
         
+
     q: Queue[Optional[str]] = Queue()
-    q_fname: Queue[Optional[str]] = Queue()
+    q_fname: Queue[List[str]] = Queue()
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.connect((config.PANEL_HOST, config.PANEL_TO_TTS))
         get_data_thread = threading.Thread(target=get_data, args=(sock, q))
@@ -97,9 +115,16 @@ if __name__ == "__main__":
                 if not s or s.isspace():
                     continue
                 outputs = list(cosyvoice.inference_sft(s, '中文女', stream=False))[0]["tts_speech"]
-                fname = os.path.join(temp_dir, f"voice{time()}.mp3")
-                torchaudio.save(fname, outputs, 22050)
-                q_fname.put(fname)
+                # 音频文件
+                audio_name = os.path.join(temp_dir, f"voice{time()}.mp3")
+                torchaudio.save(audio_name, outputs, 22050)
+                # 字幕文件
+                txt_name = audio_name.replace(".mp3", ".txt")
+                open(txt_name, "w", encoding="utf-8").write(s)
+                # 对齐文件
+                align(audio_name, txt_name, acoustic_model, lexicon_compiler, tokenizer, pretrained_aligner)
+                align_name = audio_name.replace(".mp3", ".TextGrid")
+                q_fname.put([audio_name, txt_name, align_name])
         sock.close()
         q_fname.put(None)
         get_data_thread.join()

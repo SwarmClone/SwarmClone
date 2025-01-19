@@ -1,3 +1,0 @@
-http://pixelstonelab.com:5005/sc_cosyvoice-0.1.0-py3-none-any.whl
-http://pixelstonelab.com:5005/ttsfrd-0.4.2-cp310-cp310-linux_x86_64.whl; sys_platform == 'linux'
-http://pixelstonelab.com:5005/ttsfrd_dependency-0.1-py3-none-any.whl; sys_platform == 'linux'
