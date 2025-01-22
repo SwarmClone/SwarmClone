@@ -3,9 +3,10 @@ import socket
 import json
 import subprocess
 from . import config
-from ..request_parser import parse_request
+from ..request_parser import loads, dumps
 
 class Iota:
+    """枚举整数"""
     def __init__(self):
         self.count = 0
     
@@ -34,7 +35,7 @@ CONN_TABLE: dict[int, tuple[list[int], list[int]]] = {
     ASR:  ([LLM, TTS, FRONTEND], [LLM,      FRONTEND]),
     TTS:  ([LLM,      FRONTEND], [LLM,      FRONTEND]),
     CHAT: ([                  ], [LLM,      FRONTEND])
-}
+} # 数据包转发表
 CONNECTIONS: list[socket.socket | None] = [None for _ in range(iota.count)]
 
 def handle_submodule(submodule: int, sock: socket.socket) -> None:
@@ -50,8 +51,9 @@ def handle_submodule(submodule: int, sock: socket.socket) -> None:
         if not data:
             running = False
             break
-        for request in parse_request(data.decode()):
-            request_bytes = (json.dumps(request) + config.REQUESTS_SEPARATOR).encode()
+        # 逐个解析请求并将其转发给相应的模块
+        for request in loads(data.decode()):
+            request_bytes = dumps([request]).encode()
             for receiver in CONN_TABLE[submodule][request["type"] == "data"]:
                 if CONNECTIONS[receiver]:
                     CONNECTIONS[receiver].sendall(request_bytes) # type: ignore
@@ -62,6 +64,7 @@ def handle_submodule(submodule: int, sock: socket.socket) -> None:
 if __name__ == '__main__':
     running = False
 
+    # 创建套接字并监听
     sockets: list[socket.socket] = [
         socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         for _ in range(iota.count)
@@ -70,6 +73,7 @@ if __name__ == '__main__':
         sock.bind((config.PANEL_HOST, PORTS[i]))
         sock.listen(1)
 
+    # 分别启动处理各个模块的子线程
     threads: list[threading.Thread] = [
         threading.Thread(target=handle_submodule, args=t)
         for t in enumerate(sockets)
@@ -81,9 +85,9 @@ if __name__ == '__main__':
     while not all([CONNECTIONS[LLM], CONNECTIONS[TTS], CONNECTIONS[FRONTEND]]):...
     
     running = True
-
     for t in threads:
         t.join()
 
+    # 所有子线程都已退出
     for s in sockets:
         s.close()
