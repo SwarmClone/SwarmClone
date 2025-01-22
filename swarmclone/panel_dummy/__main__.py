@@ -37,10 +37,10 @@ CONN_TABLE: dict[int, tuple[list[int], list[int]]] = {
 }
 CONNECTIONS: list[socket.socket | None] = [None for _ in range(iota.count)]
 
-def handle_submodule(submodule: int) -> None:
+def handle_submodule(submodule: int, sock: socket.socket) -> None:
     global CONNECTIONS, running
     print(f"Waiting for {SUBMODULE_NAMES[submodule]}...")
-    CONNECTIONS[submodule], _ = sockets[submodule].accept() # 不需要知道连接的地址所以直接丢弃
+    CONNECTIONS[submodule], _ = sock.accept() # 不需要知道连接的地址所以直接丢弃
     print(f"{SUBMODULE_NAMES[submodule]} is online.")
     while not running:...
 
@@ -66,13 +66,13 @@ if __name__ == '__main__':
         socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         for _ in range(iota.count)
     ]
-    for i in range(5):
-        sockets[i].bind((config.PANEL_HOST, PORTS[i]))
-        sockets[i].listen(1)
+    for i, sock in enumerate(sockets):
+        sock.bind((config.PANEL_HOST, PORTS[i]))
+        sock.listen(1)
 
     threads: list[threading.Thread] = [
-        threading.Thread(target=handle_submodule, args=(i,))
-        for i in range(iota.count)
+        threading.Thread(target=handle_submodule, args=t)
+        for t in enumerate(sockets)
     ]
     for t in threads:
         t.start()
