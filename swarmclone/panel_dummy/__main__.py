@@ -3,72 +3,87 @@ import socket
 import json
 import subprocess
 from . import config
+from ..request_parser import parse_request
 
-def to_llm(from_asr_conn: socket.socket, to_llm_conn: socket.socket, to_frontend_conn: socket.socket):
-    while True:
-        data = from_asr_conn.recv(4096)
-        if not data:
-            break
-        to_llm_conn.sendall(data)
-        to_frontend_conn.sendall(data)
-        try:
-            if json.loads(data.decode())['from'] == "stop":
-                break
-        except:
-            pass
+class Iota:
+    def __init__(self):
+        self.count = 0
+    
+    def __call__(self) -> int:
+        self.count += 1
+        return self.count - 1
 
-def from_llm(from_llm_conn: socket.socket, to_tts_conn: socket.socket, to_frontend_conn: socket.socket):
-    while True:
-        data = from_llm_conn.recv(4096)
+iota = Iota()
+
+SUBMODULE_NAMES = ["LLM", "ASR", "TTS", "FRONTEND", "CHAT"]
+PORTS = [
+    config.LLM_PORT,
+    config.ASR_PORT,
+    config.TTS_PORT,
+    config.FRONTEND_PORT, 
+    config.CHAT_PORT
+]
+LLM = iota()
+ASR = iota()
+TTS = iota()
+FRONTEND = iota()
+CHAT = iota()
+CONN_TABLE: dict[int, tuple[list[int], list[int]]] = {
+#  发送方       信号接受方               数据接受方
+    LLM:  ([     TTS, FRONTEND], [     TTS, FRONTEND]),
+    ASR:  ([LLM, TTS, FRONTEND], [LLM,      FRONTEND]),
+    TTS:  ([LLM,      FRONTEND], [LLM,      FRONTEND]),
+    CHAT: ([                  ], [LLM,      FRONTEND])
+}
+CONNECTIONS: list[socket.socket | None] = [None for _ in range(iota.count)]
+
+def handle_submodule(submodule: int) -> None:
+    global CONNECTIONS, running
+    print(f"Waiting for {SUBMODULE_NAMES[submodule]}...")
+    CONNECTIONS[submodule], _ = sockets[submodule].accept() # 不需要知道连接的地址所以直接丢弃
+    print(f"{SUBMODULE_NAMES[submodule]} is online.")
+    while not running:...
+
+    while running:
+        # CONNECTIONS[submodule]必然不会是None
+        data = CONNECTIONS[submodule].recv(1024) # type: ignore
         if not data:
+            running = False
             break
-        to_tts_conn.sendall(data)
-        to_frontend_conn.sendall(data)
-        try:
-            if json.loads(data.decode())['from'] == "stop":
-                break
-        except:
-            pass
+        for request in parse_request(data.decode()):
+            request_bytes = (json.dumps(request) + config.REQUESTS_SEPARATOR).encode()
+            for receiver in CONN_TABLE[submodule][request["type"] == "data"]:
+                if CONNECTIONS[receiver]:
+                    CONNECTIONS[receiver].sendall(request_bytes) # type: ignore
+
+    CONNECTIONS[submodule].close() # type: ignore
+    CONNECTIONS[submodule] = None
 
 if __name__ == '__main__':
-    with (  socket.socket(socket.AF_INET, socket.SOCK_STREAM) as from_asr_sock, 
-            socket.socket(socket.AF_INET, socket.SOCK_STREAM) as to_llm_sock,
-            socket.socket(socket.AF_INET, socket.SOCK_STREAM) as from_llm_sock,
-            socket.socket(socket.AF_INET, socket.SOCK_STREAM) as to_tts_sock,
-            socket.socket(socket.AF_INET, socket.SOCK_STREAM) as to_frontend_sock):
-        from_asr_sock.bind((config.PANEL_HOST, config.PANEL_FROM_ASR))
-        from_asr_sock.listen(1)
-        to_llm_sock.bind((config.PANEL_HOST, config.PANEL_TO_LLM))
-        to_llm_sock.listen(1)
-        from_llm_sock.bind((config.PANEL_HOST, config.PANEL_FROM_LLM))
-        from_llm_sock.listen(1)
-        to_tts_sock.bind((config.PANEL_HOST, config.PANEL_TO_TTS))
-        to_tts_sock.listen(1)
-        to_frontend_sock.bind((config.PANEL_HOST, config.PANEL_TO_FRONTEND))
-        to_frontend_sock.listen(1)
+    running = False
 
-        from_asr_conn, from_asr_addr = from_asr_sock.accept()
-        print(f"ASR connected from {from_asr_addr}")
-        to_llm_conn, to_llm_addr = to_llm_sock.accept()
-        print(f"LLM INPUT connected from {to_llm_addr}")
-        from_llm_conn, from_llm_addr = from_llm_sock.accept()
-        print(f"LLM OUTPUT connected from {from_llm_addr}")
-        to_tts_conn, to_tts_addr = to_tts_sock.accept()
-        print(f"TTS connected from {to_tts_addr}")
-        to_frontend_conn, to_frontend_addr = to_frontend_sock.accept()
-        print(f"FRONTEND connected from {to_frontend_addr}")
+    sockets: list[socket.socket] = [
+        socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        for _ in range(iota.count)
+    ]
+    for i in range(5):
+        sockets[i].bind((config.PANEL_HOST, PORTS[i]))
+        sockets[i].listen(1)
 
-        try:
-            to_llm_thread = threading.Thread(target=to_llm, args=(from_asr_conn, to_llm_conn, to_frontend_conn))
-            to_llm_thread.start()
-            from_llm_thread = threading.Thread(target=from_llm, args=(from_llm_conn, to_tts_conn, to_frontend_conn))
-            from_llm_thread.start()
-            to_llm_thread.join()
-            from_llm_thread.join()
-        except KeyboardInterrupt:
-            pass
-        finally:
-            from_asr_conn.close()
-            to_llm_conn.close()
-            from_asr_sock.close()
-            to_llm_sock.close()
+    threads: list[threading.Thread] = [
+        threading.Thread(target=handle_submodule, args=(i,))
+        for i in range(iota.count)
+    ]
+    for t in threads:
+        t.start()
+
+    # 只需要LLM、TTS和FRONTEND上线即可开始运行，ASR和CHAT不必需
+    while not all([CONNECTIONS[LLM], CONNECTIONS[TTS], CONNECTIONS[FRONTEND]]):...
+    
+    running = True
+
+    for t in threads:
+        t.join()
+
+    for s in sockets:
+        s.close()

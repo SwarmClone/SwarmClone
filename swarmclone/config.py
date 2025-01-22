@@ -10,13 +10,13 @@ class Config:
 
     # 网络配置
     PANEL_HOST: str = "localhost"
-    CONTROLLER_PORT: int = 8080
-    PANEL_TO_LLM: int = 8000
-    PANEL_TO_TTS: int = 8001
-    PANEL_TO_FRONTEND: int = 8002
-    PANEL_FROM_LLM: int = 8003
-    PANEL_FROM_ASR: int = 8004
-    PANEL_FROM_CHAT: int = 8005
+    LLM_PORT: int = 8000
+    ASR_PORT: int = 8001
+    TTS_PORT: int = 8002
+    FRONTEND_PORT: int = 8003
+    CHAT_PORT: int = 8004
+    PANEL_PORT: int = 80
+    REQUESTS_SEPARATOR: str = "%SEP%"
 
     # 模块配置
     START_ASR_COMMAND: list[str] = field(default_factory=lambda: ["python", "-m", "swarmclone.asr"])
