@@ -71,7 +71,7 @@ LLM生成文本示例：
     "type": "data",
     "payload": {
         "content": "this is an llm test.",
-        "id": <此处为生成完成时的时间戳>
+        "id": <UUID>
     }
 }%SEP%
 TTS生成完毕信号示例：
