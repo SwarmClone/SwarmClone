@@ -180,7 +180,7 @@ if __name__ == '__main__':
                         stop_generation.set()
                         if generation_thread is not None and generation_thread.is_alive():
                             generation_thread.join()
-                        while not q_generate.empty:
+                        while not q_generate.empty():
                             q_generate.get()
                         # 处理剩余的文本
                         if text.strip():
