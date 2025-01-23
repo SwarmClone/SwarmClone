@@ -223,6 +223,7 @@ if __name__ == '__main__':
             if message is not None and message['type'] == 'signal' and message['payload'] == 'exit':
                 stop_generation.set()
                 stop_module.set()
+                break
         t_recv.join()
         t_send.join()
         if generation_thread is not None and generation_thread.is_alive():

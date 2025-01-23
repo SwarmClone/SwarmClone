@@ -82,7 +82,7 @@ if __name__ == '__main__':
     q_fname: Queue[Optional[str]] = Queue()
     abs_reference_wav_path = os.path.join(abs_model_path, tts_config.REFERENCE_WAV_PATH)
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.connect((config.PANEL_HOST, config.PANEL_TO_TTS))
+        sock.connect((config.PANEL_HOST, config.TTS_PORT))
         get_data_thread = threading.Thread(target=get_data, args=(sock, q))
         get_data_thread.start()
         play_sound_thread = threading.Thread(target=play_sound, args=(q_fname,))
