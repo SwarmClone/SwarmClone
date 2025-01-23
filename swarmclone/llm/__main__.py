@@ -6,21 +6,34 @@ import os
 import re
 import uuid
 import time
-from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer, StoppingCriteria # type: ignore
-from . import config, qwen2_config
+import torch
+import torch.nn.functional as F
+from tokenizers import Tokenizer # type: ignore
+from . import config, llm_config
 from ..request_parser import *
+from .model import LLM
 
-class CustomStoppingCriteria(StoppingCriteria):
-    def __init__(self, stop_event: threading.Event, eos_token_id: int):
-        self.stop_event = stop_event
-        self.eos_token_id = eos_token_id
+def build_context(history: list[tuple[str, str]], tokenizer: Tokenizer,
+                max_length: int) -> torch.Tensor:
+    ids = []
+    human_prefix_ids = tokenizer.encode(llm_config.HUMAN_PREFIX).ids
+    ai_prefix_ids = tokenizer.encode(llm_config.AI_PREFIX).ids
+    separator_ids = tokenizer.encode("\n" * 3).ids
+    for i in range(len(history)):
+        turn = history[i]
+        ids += human_prefix_ids + tokenizer.encode(turn[0]).ids + separator_ids
+        ids += ai_prefix_ids + tokenizer.encode(turn[1]).ids
+        if i < len(history) - 1:
+            ids += separator_ids
+    ids = ids[-max_length:]
+    return torch.LongTensor(ids).unsqueeze(0)
 
-    def __call__(self, input_ids, scores) -> bool: # input_ids和scores因为不想为了类型单独导入torch所以没有类型提示
-        if self.stop_event.is_set(): # 在需要时可以直接停止生成
-            return True
-        if input_ids[0][-1] == self.eos_token_id:
-            return True
-        return False
+def append_history(history: list[tuple[str, str]], role: str, text: str) -> list[tuple[str, str]]:
+    if role == "human":
+        history.append((text, ""))
+    else:
+        history[-1] = (history[-1][0], text)
+    return history
 
 def split_text(text: str, separators: list[str]) -> list[str]:
     return [part for part in re.split("|".join(separators), text) if part.strip()]
@@ -42,19 +55,29 @@ def send_msg(sock: socket.socket, q: queue.Queue[RequestType], stop_module: thre
         data = dumps([message]).encode()
         sock.sendall(data)
 
-def generate(model: AutoModelForCausalLM, text_inputs: list[dict[str, str]], streamer: TextIteratorStreamer):
-    try:
-        text = tokenizer.apply_chat_template(text_inputs, tokenizer=False, add_generation_prompt=True)
-        model_inputs = tokenizer(text, return_tensors="pt").to(model.device)
-        model.generate(
-            model_inputs,
-            max_new_tokens=512,
-            streamer=streamer,
-            stopping_criteria=CustomStoppingCriteria(stop_generation, tokenizer.eos_token_id)
-        )
-    except Exception as e:
-        print(e)
-        stop_generation.set()
+q_generate: queue.Queue[str] = queue.Queue()
+def generate(model: LLM, tokenizer: Tokenizer, model_config: dict,
+            text_inputs: list[tuple[str, str]], q: queue.Queue[str], stop_generation: threading.Event):
+    with torch.no_grad():
+        n_blank_lines = 0
+        while not stop_generation.is_set():
+            input_ids = build_context(text_inputs, tokenizer, model_config['max_length'])
+            output = model(input_ids)
+            logits = F.softmax(output[0][-1] / model_config['temperature'], dim=-1)
+            probs, indices = logits.topk(round(tokenizer.get_vocab_size() * model_config['top_p']))
+            sample = torch.multinomial(probs, 1)
+            token_id = indices[sample]
+            input_ids = torch.cat([input_ids, token_id.unsqueeze(0)], dim=-1)[:, -model_config['max_length']:]
+            token = tokenizer.id_to_token(token_id.item())
+            if token == "\n":
+                n_blank_lines += 1
+                if n_blank_lines >= 3:
+                    q_generate.put("<eos>")
+                    break
+            else:
+                n_blank_lines = 0
+                q_generate.put(token)
+
 
 # 状态
 STANDBY = 0
@@ -68,23 +91,31 @@ stop_module = threading.Event()
 
 if __name__ == '__main__':
     successful = False
-    abs_model_path = os.path.expanduser(qwen2_config.MODEL_PATH)
+    abs_model_path = os.path.expanduser(llm_config.MODEL_PATH)
     while not successful:
         try:
-            model = AutoModelForCausalLM.from_pretrained(abs_model_path, torch_dtype="auto", device_map="auto")
-            tokenizer = AutoTokenizer.from_pretrained(abs_model_path, padding_side="left")
+            model_config = json.load(open(abs_model_path))
+            config_dir = os.path.dirname(abs_model_path)
+            tokenizer = Tokenizer.from_file(os.path.join(config_dir, model_config['tokenizer_path']))
+            vocab_size = tokenizer.get_vocab_size()
+            model = LLM(
+                vocab_size=vocab_size,
+                dim=model_config['model_dim'],
+                max_length=model_config['max_length'],
+                n_heads=model_config['num_heads'],
+                n_blocks=model_config['num_layers'],
+                dropout=0 # 推理时不使用dropout
+            )
+            if model_config['checkpoint_file']:
+                checkpoint_path = os.path.join(config_dir, model_config['checkpoint_file'])
+                model.load_state_dict(torch.load(checkpoint_path, weights_only=True))
+            model.to(config.DEVICE)
+            model.eval()
+            successful = True
         except:
-            choice = input("加载模型失败，是否下载模型？(Y/n)")
-            if choice.lower() != "n":
-                import huggingface_hub # type: ignore
-                huggingface_hub.snapshot_download(
-                    repo_id=qwen2_config.MODEL_ID,
-                    repo_type="model",
-                    local_dir=abs_model_path,
-                    endpoint="https://hf-mirror.com"
-                )
+            choice = input("加载模型失败，请检查是否将MiniLM2模型放置于对应位置！")
+            exit(1)
     
-    streamer = TextIteratorStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.connect((config.PANEL_HOST, config.LLM_PORT))
         t_recv = threading.Thread(target=recv_msg, args=(sock, q_recv, stop_module))
@@ -93,7 +124,7 @@ if __name__ == '__main__':
         t_send.start()
         generation_thread: threading.Thread | None = None # 在没有生成任务前没有值
 
-        history: list[dict[str, str]] = []
+        history: list[tuple[str, str]] = []
         state = STANDBY
         text = "" # 尚未发送的文本
         full_text = "" # 一轮生成中的所有文本
@@ -120,12 +151,20 @@ if __name__ == '__main__':
                 case STANDBY:
                     if time.time() - standby_time > 5:
                         stop_generation.clear()
-                        history.append({'role': 'user', 'content': '请随便说点什么吧！'})
-                        kwargs = {"model": model, "text_inputs": history, "streamer": streamer}
+                        history = append_history(history, "human", "请随便说点什么吧！")
+                        kwargs = {
+                            'model': model,
+                            'tokenizer': tokenizer,
+                            'model_config': model_config,
+                            'text_inputs': history,
+                            'q': q_generate,
+                            'stop_generation': stop_generation
+                        }
                         generation_thread = threading.Thread(target=generate, kwargs=kwargs)
                         generation_thread.start()
                         state = GENERATE
                         text = ""
+                        full_text = ""
                         continue
                     if message == ASR_ACTIVATE:
                         state = WAIT_FOR_ASR
@@ -133,12 +172,16 @@ if __name__ == '__main__':
 
                 case GENERATE:
                     try:
-                        text += next(streamer)
-                    except StopIteration: # 生成完毕
-                        # 停止生成
+                        token = q_generate.get(False)
+                    except queue.Empty:
+                        continue
+                    if token == "<eos>": # 生成完毕
+                        # 停止生成并清空队列
                         stop_generation.set()
                         if generation_thread is not None and generation_thread.is_alive():
                             generation_thread.join()
+                        while not q_generate.empty:
+                            q_generate.get()
                         # 处理剩余的文本
                         if text.strip():
                             q_send.put({
@@ -151,24 +194,29 @@ if __name__ == '__main__':
                             })
                         full_text += text
                         # 将这轮的生成文本加入历史记录
-                        history.append({'role': 'llm', 'content': full_text})
-                        # 发出信号并等待TTS
-                        q_send.put(LLM_EOS)
+                        history = append_history(history, "ai", full_text)
+                        # 发送信号并等待TTS
                         state = WAIT_FOR_TTS
+                        q_send.put(LLM_EOS)
                         text = ""
                         full_text = ""
                         continue
+                    text += token
                     if message == ASR_ACTIVATE:
-                        # 停止生成
+                        # 停止生成并清空队列
                         stop_generation.set()
                         if generation_thread is not None and generation_thread.is_alive():
                             generation_thread.join()
-                        for _ in streamer:... # 跳过剩余的文本
-                        # 将这轮的生成文本加入历史记录
-                        history.append({'role': 'llm', 'content': full_text})
-                        # 发出信号并等待ASR
                         q_send.put(LLM_EOS)
+                        while not q_generate.empty:
+                            q_generate.get()
+                        # 处理剩余的文本，被打断时的文本直接加入历史记录不需要发出
+                        full_text += text
+                        # 将这轮的生成文本加入历史记录
+                        history = append_history(history, "ai", full_text)
+                        # 发送信号并等待ASR
                         state = WAIT_FOR_ASR
+                        q_send.put(LLM_EOS)
                         text = ""
                         full_text = ""
                         continue
@@ -187,12 +235,20 @@ if __name__ == '__main__':
                 case WAIT_FOR_ASR:
                     if message is not None and message['from'] == 'asr' and message['type'] == 'data':
                         stop_generation.clear()
-                        history.append({'role': 'user', 'content': message['payload']['content']})
-                        kwargs = {"model": model, "text_inputs": history, "streamer": streamer}
+                        history = append_history(history, "ai", message['payload']['content'])
+                        kwargs = {
+                            'model': model,
+                            'tokenizer': tokenizer,
+                            'model_config': model_config,
+                            'text_inputs': history,
+                            'q': q_generate,
+                            'stop_generation': stop_generation
+                        }
                         generation_thread = threading.Thread(target=generate, kwargs=kwargs)
                         generation_thread.start()
                         state = GENERATE
                         text = ""
+                        full_text = ""
                         continue
 
                 case WAIT_FOR_TTS:
