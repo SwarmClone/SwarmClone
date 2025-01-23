@@ -33,7 +33,7 @@ mouths = "wo"
 
 if __name__ == "__main__":
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.connect((config.PANEL_HOST, config.PANEL_TO_FRONTEND))
+        s.connect((config.PANEL_HOST, config.FRONTEND_PORT))
         q_llm: Queue[Optional[str]] = Queue()
         q_asr: Queue[Optional[str]] = Queue()
         t = threading.Thread(target=get_data, args=(s, q_llm, q_asr))
