@@ -7,7 +7,7 @@ import re
 import uuid
 import time
 from enum import Enum
-from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer, StoppingCriteria # type: ignore
+from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer, StoppingCriteriaList, StoppingCriteria # type: ignore
 from . import config, qwen2_config
 from ..request_parser import *
 
@@ -23,8 +23,8 @@ class CustomStoppingCriteria(StoppingCriteria):
             return True
         return False
 
-def split_text(text: str, separators: list[str]) -> list[str]:
-    return [part for part in re.split("|".join(separators), text) if part.strip()]
+def split_text(text: str) -> list[str]:
+    return [part for part in re.split(r"\.|\?|!|。|？|！|…", text) if part.strip()]
 
 q_recv: queue.Queue[RequestType] = queue.Queue()
 def recv_msg(sock: socket.socket, q: queue.Queue[RequestType], stop_module: threading.Event):
@@ -45,13 +45,15 @@ def send_msg(sock: socket.socket, q: queue.Queue[RequestType], stop_module: thre
 
 def generate(model: AutoModelForCausalLM, text_inputs: list[dict[str, str]], streamer: TextIteratorStreamer):
     try:
-        text = tokenizer.apply_chat_template(text_inputs, tokenizer=False, add_generation_prompt=True)
-        model_inputs = tokenizer(text, return_tensors="pt").to(model.device)
+        text = tokenizer.apply_chat_template(text_inputs, tokenize=False, add_generation_prompt=True)
+        model_inputs = tokenizer([text], return_tensors="pt").to(model.device)
         model.generate(
-            model_inputs,
+            **model_inputs,
             max_new_tokens=512,
             streamer=streamer,
-            stopping_criteria=CustomStoppingCriteria(stop_generation, tokenizer.eos_token_id)
+            stopping_criteria=StoppingCriteriaList(
+                [CustomStoppingCriteria(stop_generation, tokenizer.eos_token_id)]
+            )
         )
     except Exception as e:
         print(e)
@@ -177,7 +179,7 @@ if __name__ == '__main__':
                         text = ""
                         full_text = ""
                         continue
-                    *sentences, text = split_text(text, ['.', '!', '?', '。', '？', '！', '…', '\n', '\r']) # 将所有完整的句子发送
+                    *sentences, text = split_text(text) # 将所有完整的句子发送
                     for i, sentence in enumerate(sentences):
                         q_send.put({
                             'from': 'llm',
