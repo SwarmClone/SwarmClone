@@ -5,6 +5,7 @@ import sounddevice as sd # type: ignore
 from .sherpa_asr import asr_init, create_recognizer
 from .sherpa_vad import vad_init, create_detector
 from . import config, asr_config
+from ..request_parser import *
 
 if __name__ == '__main__':
 
@@ -26,7 +27,7 @@ if __name__ == '__main__':
         socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock,
         sd.InputStream(channels=1, dtype="float32", samplerate=sample_rate) as s
     ):
-        sock.connect((config.PANEL_HOST, config.PANEL_FROM_ASR))
+        sock.connect((config.PANEL_HOST, config.ASR_PORT))
         last_result = ""
         segment_id = 0
         print("Started! Please speak")
@@ -50,12 +51,7 @@ if __name__ == '__main__':
 
                 if vad.is_speech_detected():
                     if not speech_started:
-                        data = {
-                            "from": "asr",
-                            "type": "signal",
-                            "payload": "activate"
-                        }
-                        sock.sendall((json.dumps(data)+"%SEP%").encode())
+                        sock.sendall(dumps([ASR_ACTIVATE]).encode())
                         speech_started = True
                 else:
                     speech_started = False
@@ -66,7 +62,7 @@ if __name__ == '__main__':
 
                 is_endpoint = recognizer.is_endpoint(stream)
 
-                result = recognizer.get_result(stream)
+                result: str = recognizer.get_result(stream)
                 
                 if result and (last_result != result):
                     last_result = result
@@ -74,7 +70,7 @@ if __name__ == '__main__':
                 if is_endpoint:
                     if result:
                         print("\r{}:{}".format(segment_id, result), flush=True)
-                        data = {
+                        data: RequestType = {
                             "from": "asr",
                             "type": "data",
                             "payload": {
@@ -82,7 +78,7 @@ if __name__ == '__main__':
                                 "content": result
                             }
                         }
-                        sock.sendall((json.dumps(data)+"%SEP%").encode())
+                        sock.sendall(dumps([data]).encode())
                         segment_id += 1
                     recognizer.reset(stream)
             except KeyboardInterrupt:
