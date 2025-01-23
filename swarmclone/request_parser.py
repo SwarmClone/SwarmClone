@@ -5,7 +5,7 @@ from typing import Literal
 
 config = Config()
 PayloadType = dict[str, str | float | int]
-RequestType = dict[Literal["from"] | Literal["type"] | Literal["payload"], str | PayloadType]
+RequestType = dict[Literal["from", "type", "payload"], str | PayloadType]
 
 def loads(request_str: str) -> list[RequestType]:
     request_strings = request_str.split(config.REQUESTS_SEPARATOR)
