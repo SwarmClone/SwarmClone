@@ -13,42 +13,36 @@ from typing import Optional, List
 
 import playsound
 import torchaudio
+import textgrid
 
 from . import config, tts_config
 from cosyvoice.cli.cosyvoice import CosyVoice, CosyVoice2
-from .align import download_model_and_dict, init_mfa_models, align
+from .align import *
+from ..request_parser import loads, dumps
 
-def get_data(sock: socket.socket, q: Queue[Optional[str]]):
+def get_data(sock: socket.socket, q: Queue[Optional[str], Optional[str]]):
     s = ""
     while True:
         msg = sock.recv(1024)
         if not msg:
             break
         try:
-            data = json.loads(msg.decode('utf-8'))
-        except:
+            data = loads(msg.decode())[0]
+        except Exception as e:
+            print(e)
             continue
         if data['from'] == "stop":
             break
-        if data['from'] == "LLM":
-            token = data['token']
-            if token == "<eos>":
-                q.put(s)
-                s = ""
-                continue
-            s += data['token']
-            for sep in ".!?。？！…\n\r":
-                if sep in token:
-                    splits = s.split(sep)
-                    for split in splits[:-1]:
-                        if len(split.strip()) > 1:
-                            q.put(split + sep)
-                    s = splits[-1]
-                    break
-            if not s.isascii() and len(s) >= 50:
-                q.put(s)
-                s = ""
-    q.put(None)
+        if data['from'] == "llm": 
+            if data["type"] == "data":
+                sentence_id, tokens = data["payload"].values()
+                print("Putting: ", sentence_id, tokens)
+                q.put(sentence_id, tokens)
+            if data["type"] == "signal" and data["payload"] == "eos":
+                print("Putting End of Sentence")
+                q.put(None, "<eos>")
+            continue
+    q.put(None, None)
 
 def play_sound(q_fname: Queue[List[str]]):
     while True:
@@ -58,9 +52,19 @@ def play_sound(q_fname: Queue[List[str]]):
         # audio_name    : 音频文件
         # txt_name      : 生成文本
         # align_name    : 对齐文件
-        audio_name, txt_name, align_name = names
+        sentence_id, audio_name, txt_name, align_name = names
+        intervals = match_textgrid(align_name, txt_name)
+        for interval in intervals:
+            sock.sendall(
+                dumps([{"from": "tts", 
+                        "type": "data", 
+                        "payload": {"id": sentence_id, 
+                                    "token": interval["token"],
+                                    "duration": interval["maxTime"] - interval["minTime"]}}]
+                        ).encode())
         playsound.playsound(audio_name)
         
+
         os.remove(audio_name)
         os.remove(txt_name)
         os.remove(align_name)
@@ -93,27 +97,35 @@ if __name__ == "__main__":
     mfa_dir = os.path.expanduser(os.path.join(tts_config.MODELPATH, "mfa"))
     if not (os.path.exists(mfa_dir) and
             os.path.exists(os.path.join(mfa_dir, "mandarin_china_mfa.dict")) and
-            os.path.exists(os.path.join(mfa_dir, "mandarin_mfa.zip"))):
+            os.path.exists(os.path.join(mfa_dir, "mandarin_mfa.zip")) and
+            os.path.exists(os.path.join(mfa_dir, "english_mfa.zip")) and
+            os.path.exists(os.path.join(mfa_dir, "english_mfa.dict"))):
         print(" * SwarmClone 使用 Montreal Forced Aligner 进行对齐，开始下载: ")
         download_model_and_dict(tts_config)
-    acoustic_model, lexicon_compiler, tokenizer, pretrained_aligner = init_mfa_models(tts_config)
-        
-
-    q: Queue[Optional[str]] = Queue()
+    zh_acoustic, zh_lexicon, zh_tokenizer, zh_aligner = init_mfa_models(tts_config, lang="zh-CN")
+    en_acoustic, en_lexicon, en_tokenizer, en_aligner = init_mfa_models(tts_config, lang="en-US")
+    
+    q: Queue[Optional[str], Optional[str]] = Queue()
     q_fname: Queue[List[str]] = Queue()
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.connect((config.PANEL_HOST, config.PANEL_TO_TTS))
+        sock.connect((config.PANEL_HOST, config.TTS_PORT))
         get_data_thread = threading.Thread(target=get_data, args=(sock, q))
         get_data_thread.start()
         play_sound_thread = threading.Thread(target=play_sound, args=(q_fname,))
         play_sound_thread.start()
         while True:
             if not q.empty():
-                s = q.get()
+                sentence_id, s = q.get()
                 if s is None:
                     break
                 if not s or s.isspace():
                     continue
+                if sentence_id is None:
+                    sock.sendall(
+                        dumps([{"from": "tts", 
+                                "type": "signal", 
+                                "payload": "finish"}]
+                              ).encode())
                 outputs = list(cosyvoice.inference_sft(s, '中文女', stream=False))[0]["tts_speech"]
                 # 音频文件
                 audio_name = os.path.join(temp_dir, f"voice{time()}.mp3")
@@ -122,9 +134,12 @@ if __name__ == "__main__":
                 txt_name = audio_name.replace(".mp3", ".txt")
                 open(txt_name, "w", encoding="utf-8").write(s)
                 # 对齐文件
-                align(audio_name, txt_name, acoustic_model, lexicon_compiler, tokenizer, pretrained_aligner)
+                if s.isascii():
+                    align(audio_name, txt_name, en_acoustic, en_lexicon, en_tokenizer, en_aligner)
+                else:
+                    align(audio_name, txt_name, zh_acoustic, zh_lexicon, zh_tokenizer, zh_aligner)
                 align_name = audio_name.replace(".mp3", ".TextGrid")
-                q_fname.put([audio_name, txt_name, align_name])
+                q_fname.put([sentence_id, audio_name, txt_name, align_name])
         sock.close()
         q_fname.put(None)
         get_data_thread.join()
