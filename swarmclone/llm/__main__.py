@@ -6,6 +6,7 @@ import os
 import re
 import uuid
 import time
+from enum import Enum
 import torch
 import torch.nn.functional as F
 from tokenizers import Tokenizer # type: ignore
@@ -80,10 +81,11 @@ def generate(model: LLM, tokenizer: Tokenizer, model_config: dict,
 
 
 # 状态
-STANDBY = 0
-GENERATE = 1
-WAIT_FOR_TTS = 2
-WAIT_FOR_ASR = 3
+class States(Enum):
+    STANDBY = 0
+    GENERATE = 1
+    WAIT_FOR_TTS = 2
+    WAIT_FOR_ASR = 3
 
 # 事件
 stop_generation = threading.Event()
@@ -125,7 +127,7 @@ if __name__ == '__main__':
         generation_thread: threading.Thread | None = None # 在没有生成任务前没有值
 
         history: list[tuple[str, str]] = []
-        state = STANDBY
+        state: States = States.STANDBY
         text = "" # 尚未发送的文本
         full_text = "" # 一轮生成中的所有文本
         standby_time = time.time()
@@ -148,7 +150,7 @@ if __name__ == '__main__':
             except queue.Empty:
                 message = None
             match state:
-                case STANDBY:
+                case States.STANDBY:
                     if time.time() - standby_time > 5:
                         stop_generation.clear()
                         history = append_history(history, "human", "请随便说点什么吧！")
@@ -162,15 +164,15 @@ if __name__ == '__main__':
                         }
                         generation_thread = threading.Thread(target=generate, kwargs=kwargs)
                         generation_thread.start()
-                        state = GENERATE
+                        state = States.GENERATE
                         text = ""
                         full_text = ""
                         continue
                     if message == ASR_ACTIVATE:
-                        state = WAIT_FOR_ASR
+                        state = States.WAIT_FOR_ASR
                         continue
 
-                case GENERATE:
+                case States.GENERATE:
                     try:
                         token = q_generate.get(False)
                     except queue.Empty:
@@ -196,7 +198,7 @@ if __name__ == '__main__':
                         # 将这轮的生成文本加入历史记录
                         history = append_history(history, "ai", full_text)
                         # 发送信号并等待TTS
-                        state = WAIT_FOR_TTS
+                        state = States.WAIT_FOR_TTS
                         q_send.put(LLM_EOS)
                         text = ""
                         full_text = ""
@@ -208,19 +210,19 @@ if __name__ == '__main__':
                         if generation_thread is not None and generation_thread.is_alive():
                             generation_thread.join()
                         q_send.put(LLM_EOS)
-                        while not q_generate.empty:
+                        while not q_generate.empty():
                             q_generate.get()
                         # 处理剩余的文本，被打断时的文本直接加入历史记录不需要发出
                         full_text += text
                         # 将这轮的生成文本加入历史记录
                         history = append_history(history, "ai", full_text)
                         # 发送信号并等待ASR
-                        state = WAIT_FOR_ASR
+                        state = States.WAIT_FOR_ASR
                         q_send.put(LLM_EOS)
                         text = ""
                         full_text = ""
                         continue
-                    *sentences, text = split_text(text, ".!?。？！…\n\r") # 将所有完整的句子发送
+                    *sentences, text = split_text(text, ['.', '!', '?', '。', '？', '！', '…', '\n', '\r']) # 将所有完整的句子发送
                     for i, sentence in enumerate(sentences):
                         q_send.put({
                             'from': 'llm',
@@ -232,8 +234,12 @@ if __name__ == '__main__':
                         })
                     continue
 
-                case WAIT_FOR_ASR:
-                    if message is not None and message['from'] == 'asr' and message['type'] == 'data':
+                case States.WAIT_FOR_ASR:
+                    if     (message is not None and
+                            message['from'] == 'asr' and
+                            message['type'] == 'data' and
+                            isinstance(message['payload'], dict) and
+                            isinstance(message['payload']['content'], str)):
                         stop_generation.clear()
                         history = append_history(history, "ai", message['payload']['content'])
                         kwargs = {
@@ -246,14 +252,14 @@ if __name__ == '__main__':
                         }
                         generation_thread = threading.Thread(target=generate, kwargs=kwargs)
                         generation_thread.start()
-                        state = GENERATE
+                        state = States.GENERATE
                         text = ""
                         full_text = ""
                         continue
 
-                case WAIT_FOR_TTS:
+                case States.WAIT_FOR_TTS:
                     if message == TTS_FINISH:
-                        state = STANDBY
+                        state = States.STANDBY
                         standby_time = time.time()
                         continue
             if message is not None and message['type'] == 'signal' and message['payload'] == 'exit':
