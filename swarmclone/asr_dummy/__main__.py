@@ -17,7 +17,7 @@ if __name__ == '__main__':
     
 
     # sherpa-onnx will do resampling inside.
-    sample_rate = 16000
+    sample_rate = 44100
     samples_per_read = int(0.1 * sample_rate)  # 0.1 second = 100 ms
 
     stream = recognizer.create_stream()
@@ -47,7 +47,7 @@ if __name__ == '__main__':
                 samples, _ = s.read(samples_per_read)  # a blocking read
                 samples = samples.reshape(-1)
 
-                vad.accept_waveform(samples)
+                vad.accept_waveform(librosa.resample(samples, orig_sr=sample_rate, target_sr=16000))
 
                 if vad.is_speech_detected():
                     if not speech_started:
