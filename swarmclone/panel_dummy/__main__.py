@@ -53,6 +53,7 @@ def handle_submodule(submodule: int, sock: socket.socket) -> None:
             break
         # 逐个解析请求并将其转发给相应的模块
         for request in loads(data.decode()):
+            print(f"{SUBMODULE_NAMES[submodule]}: {request}")
             request_bytes = dumps([request]).encode()
             for receiver in CONN_TABLE[submodule][request["type"] == "data"]:
                 if CONNECTIONS[receiver]:
