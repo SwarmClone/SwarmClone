@@ -97,12 +97,11 @@ if __name__ == "__main__":
         print(" * SwarmClone 使用 Montreal Forced Aligner 进行对齐，开始下载: ")
         download_model_and_dict(tts_config)
     acoustic_model, lexicon_compiler, tokenizer, pretrained_aligner = init_mfa_models(tts_config)
-        
 
     q: Queue[Optional[str]] = Queue()
     q_fname: Queue[List[str]] = Queue()
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.connect((config.PANEL_HOST, config.PANEL_TO_TTS))
+        sock.connect((config.PANEL_HOST, config.TTS_PORT))
         get_data_thread = threading.Thread(target=get_data, args=(sock, q))
         get_data_thread.start()
         play_sound_thread = threading.Thread(target=play_sound, args=(q_fname,))
