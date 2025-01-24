@@ -102,7 +102,7 @@ if __name__ == '__main__':
         t_send.start()
         generation_thread: threading.Thread | None = None # 在没有生成任务前没有值
 
-        q_send.put(PANEL_START) # 就绪
+        q_send.put(MODULE_READY) # 就绪
 
         while True: # 等待启动
             try:
