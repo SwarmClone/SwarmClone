@@ -51,27 +51,32 @@ def handle_submodule(submodule: int, sock: socket.socket) -> None:
             break
         time.sleep(0.1)
     print(f"{SUBMODULE_NAMES[submodule]} is online.")
-    while not running: # 等待启动
-        time.sleep(0.1)
-    CONNECTIONS[submodule].sendall(dumps([PANEL_START]).encode("utf-8")) # type: ignore
+    try:
+        while not running: # 等待启动
+            time.sleep(0.1)
+        CONNECTIONS[submodule].sendall(dumps([PANEL_START]).encode("utf-8")) # type: ignore
 
-    while running:
-        # CONNECTIONS[submodule]必然不会是None
-        data = CONNECTIONS[submodule].recv(1024) # type: ignore
-        if not data:
-            running = False
-            break
-        # 逐个解析请求并将其转发给相应的模块
-        for request in loads(data.decode()):
-            print(f"{SUBMODULE_NAMES[submodule]}: {request}")
-            request_bytes = dumps([request]).encode()
-            for receiver in CONN_TABLE[submodule][request["type"] == "data"]:
-                if CONNECTIONS[receiver]:
-                    CONNECTIONS[receiver].sendall(request_bytes) # type: ignore
+        while running:
+            # CONNECTIONS[submodule]必然不会是None
+            data = CONNECTIONS[submodule].recv(1024) # type: ignore
+            if not data:
+                running = False
+                break
+            # 逐个解析请求并将其转发给相应的模块
+            for request in loads(data.decode()):
+                print(f"{SUBMODULE_NAMES[submodule]}: {request}")
+                request_bytes = dumps([request]).encode()
+                for receiver in CONN_TABLE[submodule][request["type"] == "data"]:
+                    if CONNECTIONS[receiver]:
+                        CONNECTIONS[receiver].sendall(request_bytes) # type: ignore
+    except KeyboardInterrupt:
+        running = False
 
-    CONNECTIONS[submodule].sendall(dumps([PANEL_STOP]).encode("utf-8")) # type: ignore
-    CONNECTIONS[submodule].close() # type: ignore
-    CONNECTIONS[submodule] = None
+    # 让模块停止并退出
+    if CONNECTIONS[submodule] is not None:
+        CONNECTIONS[submodule].sendall(dumps([PANEL_STOP]).encode("utf-8")) # type: ignore
+        CONNECTIONS[submodule].close() # type: ignore
+        CONNECTIONS[submodule] = None
 
 if __name__ == '__main__':
     running = False
@@ -97,6 +102,7 @@ if __name__ == '__main__':
     while not all([CONNECTIONS[LLM], CONNECTIONS[TTS], CONNECTIONS[FRONTEND]]):
         time.sleep(0.1) # 防止把CPU占满
     
+    print("Start.")
     running = True
     for t in threads:
         t.join()
