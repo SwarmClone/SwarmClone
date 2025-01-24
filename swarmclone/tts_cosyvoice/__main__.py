@@ -44,6 +44,13 @@ def get_data(sock: socket.socket, q: Queue[Optional[str], Optional[str]]):
             if data["type"] == "signal" and data["payload"] == "eos":
                 q.put([None, "<eos>"])
             continue
+        if (
+            data["from"] == "asr"
+            and data["type"] == "signal"
+            and data["payload"] == "activate"
+            ):
+            while not q.empty():
+                q.get()
     q.put([None, None])
 
 def play_sound(q_fname: Queue[List[str]]):
@@ -78,9 +85,8 @@ def play_sound(q_fname: Queue[List[str]]):
                                     "duration": 
                                         "{:.5f}".format(interval["maxTime"] - interval["minTime"])}}]
                         ).encode())
-
+            sleep(0.001)
         playsound.playsound(audio_name)
-        sleep(intervals[-1]["maxTime"] - intervals[0]["minTime"])
         os.remove(audio_name)
         os.remove(txt_name)
         os.remove(align_name)
