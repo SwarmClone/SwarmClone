@@ -127,6 +127,7 @@ if __name__ == '__main__':
                 dropout=0 # 推理时不使用dropout
             )
             if model_config['checkpoint_file']:
+                print(f"正在从{model_config['checkpoint_file']}加载模型……")
                 checkpoint_path = os.path.join(config_dir, model_config['checkpoint_file'])
                 model.load_state_dict(torch.load(checkpoint_path, weights_only=True))
             model.to(config.DEVICE)
@@ -143,6 +144,12 @@ if __name__ == '__main__':
         t_send = threading.Thread(target=send_msg, args=(sock, q_send, stop_module))
         t_send.start()
         generation_thread: threading.Thread | None = None # 在没有生成任务前没有值
+
+        torch.set_float32_matmul_precision('medium') # 降低矩阵乘法精度以减少显存使用
+        print("开始编译模型")
+        model.compile(fullgraph=True) # 进行编译提高推理速度
+        model(torch.zeros((1, model_config['max_length']), dtype=torch.long, device=config.DEVICE)) # 进行前向传播触发编译
+        print("编译成功结束")
 
         q_send.put(MODULE_READY) # 就绪
 
