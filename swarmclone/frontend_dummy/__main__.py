@@ -3,8 +3,13 @@ import threading
 import json
 from typing import Optional
 from queue import Queue, Empty
-from time import time
+from time import time, sleep
 from . import config
+from ..request_parser import loads, dumps, PANEL_START, MODULE_READY
+
+def is_panel_ready(sock: socket.socket):
+    msg = sock.recv(1024)
+    return loads(msg.decode())[0] == PANEL_START
 
 def get_data(sock: socket.socket, q_llm: Queue[Optional[str]], q_asr: Queue[Optional[str]]):
     while True:
@@ -34,6 +39,13 @@ mouths = "wo"
 if __name__ == "__main__":
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((config.PANEL_HOST, config.FRONTEND_PORT))
+        
+        print(" * Frontend 初始化完成，等待面板准备就绪。")
+        s.sendall(dumps([MODULE_READY]).encode())
+        while not is_panel_ready(s):
+            sleep(0.5)
+        print(" * 就绪。")
+
         q_llm: Queue[Optional[str]] = Queue()
         q_asr: Queue[Optional[str]] = Queue()
         t = threading.Thread(target=get_data, args=(s, q_llm, q_asr))

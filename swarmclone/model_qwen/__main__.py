@@ -34,6 +34,7 @@ def recv_msg(sock: socket.socket, q: queue.Queue[RequestType], stop_module: thre
             break
         messages = loads(data.decode())
         for message in messages:
+            print(" * [Received]: ", message)
             q.put(message)
 
 q_send: queue.Queue[RequestType] = queue.Queue()
@@ -41,6 +42,7 @@ def send_msg(sock: socket.socket, q: queue.Queue[RequestType], stop_module: thre
     while True:
         message = q.get()
         data = dumps([message]).encode()
+        print(" * [Sent]:", data)
         sock.sendall(data)
 
 def generate(model: AutoModelForCausalLM, text_inputs: list[dict[str, str]], streamer: TextIteratorStreamer):
@@ -136,7 +138,8 @@ if __name__ == '__main__':
                 message = None
             match state:
                 case States.STANDBY:
-                    if time.time() - standby_time > 5:
+                    print(" * STANDBY")
+                    if time.time() - standby_time > 15:
                         stop_generation.clear()
                         history.append({'role': 'user', 'content': '请随便说点什么吧！'})
                         kwargs = {"model": model, "text_inputs": history, "streamer": streamer}
@@ -150,6 +153,7 @@ if __name__ == '__main__':
                         continue
 
                 case States.GENERATE:
+                    print(" * GENERATE")
                     try:
                         text += next(streamer)
                     except StopIteration: # 生成完毕
@@ -203,6 +207,7 @@ if __name__ == '__main__':
                     continue
 
                 case States.WAIT_FOR_ASR:
+                    print(" * WAIT_FOR_ASR")
                     if     (message is not None and
                             message['from'] == 'asr' and
                             message['type'] == 'data' and
@@ -218,6 +223,7 @@ if __name__ == '__main__':
                         continue
 
                 case States.WAIT_FOR_TTS:
+                    print(" * WAIT_FOR_TTS")
                     if message == TTS_FINISH:
                         state = States.STANDBY
                         standby_time = time.time()
