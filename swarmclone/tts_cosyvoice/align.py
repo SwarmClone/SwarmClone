@@ -1,24 +1,24 @@
 import os
-import requests
+import requests   # type: ignore
 
 from pathlib import Path
 
 import pywrapfst
-import textgrid
+import textgrid   # type: ignore
 
 from . import tts_config
-from tqdm import tqdm
-from kalpy.utterance import  Segment
-from kalpy.feat.cmvn import CmvnComputer
-from kalpy.fstext.lexicon import LexiconCompiler
-from kalpy.fstext.lexicon import HierarchicalCtm
-from kalpy.utterance import Utterance as KalpyUtterance
-from montreal_forced_aligner import config
-from montreal_forced_aligner.alignment import PretrainedAligner
-from montreal_forced_aligner.models import AcousticModel
-from montreal_forced_aligner.tokenization.spacy import generate_language_tokenizer
-from montreal_forced_aligner.corpus.classes import FileData
-from montreal_forced_aligner.online.alignment import align_utterance_online
+from tqdm import tqdm   # type: ignore
+from kalpy.utterance import  Segment   # type: ignore
+from kalpy.feat.cmvn import CmvnComputer   # type: ignore
+from kalpy.fstext.lexicon import LexiconCompiler   # type: ignore
+from kalpy.fstext.lexicon import HierarchicalCtm   # type: ignore
+from kalpy.utterance import Utterance as KalpyUtterance   # type: ignore
+from montreal_forced_aligner import config   # type: ignore
+from montreal_forced_aligner.alignment import PretrainedAligner   # type: ignore
+from montreal_forced_aligner.models import AcousticModel   # type: ignore
+from montreal_forced_aligner.tokenization.spacy import generate_language_tokenizer   # type: ignore
+from montreal_forced_aligner.corpus.classes import FileData   # type: ignore
+from montreal_forced_aligner.online.alignment import align_utterance_online   # type: ignore
 
 def download_file(url, dest_path):
     response = requests.get(url, stream=True)
@@ -178,23 +178,20 @@ def match_textgrid(textgrid_path, text_path):
         if num_past_unk == len(past_word):
             for j in range(num_past_unk):
                 wait_to_send.append({
-                    "minTime": tg[i - num_past_unk + j].minTime,
-                    "maxTime": tg[i - num_past_unk + j].maxTime,
-                    "token": past_word[j]
+                    "token": past_word[j],
+                    "duration": tg[i - num_past_unk + j].maxTime - tg[i - num_past_unk + j].minTime
                 })
         # 对匹配不上的英文单词进行处理
         elif num_past_unk > 0:
             wait_to_send.append({
-                "minTime": tg[i - num_past_unk].minTime,
-                "maxTime": tg[i].maxTime,
-                "token": "".join(past_word)
+                "token": "".join(past_word),
+                "duration": tg[i].maxTime - tg[i - num_past_unk].minTime
             })
         
         # 避免最后一个字符是 unk 的情况
         if tg[i].mark != "<unk>":
-            wait_to_send.append({"minTime": tg[i].minTime, 
-                                 "maxTime": tg[i].maxTime, 
-                                 "token": tg[i].mark})
+            wait_to_send.append({"token": tg[i].mark,
+                                "duration": tg[i].maxTime - tg[i].minTime})
 
         num_past_unk = 0
         last_checked_text_idx = idx + len(tg[i].mark)

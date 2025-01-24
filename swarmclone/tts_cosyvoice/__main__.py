@@ -11,15 +11,13 @@ from time import time, sleep
 from queue import Queue
 from typing import Optional, List
 
-import playsound
-import torchaudio
+import torchaudio   # type: ignore
 import pygame
-import textgrid
 
 from . import config, tts_config
-from cosyvoice.cli.cosyvoice import CosyVoice, CosyVoice2
+from cosyvoice.cli.cosyvoice import CosyVoice, CosyVoice2   # type: ignore
 from .align import download_model_and_dict, init_mfa_models, align, match_textgrid
-from ..request_parser import loads, dumps, MODULE_READY, PANEL_START
+from ..request_parser import *
 
 def is_panel_ready(sock: socket.socket):
     msg = sock.recv(1024)
@@ -30,40 +28,45 @@ pygame_mixer = pygame.mixer
 pygame_mixer.init()
 # 阻塞生成
 chunk = False
-def get_data(sock: socket.socket, q: Queue[Optional[str], Optional[str]]):
+# 生成队列
+q: Queue[List[str]] = Queue()
+# 播放队列
+q_fname: Queue[List[str]] = Queue()
+
+def get_data(sock: socket.socket):
     global pygame_mixer
     global chunk
+    global q
+    global q_fname
     s = ""
     while True:
         msg = sock.recv(1024)
         if not msg:
             break
         try:
-            data = loads(msg.decode())[0]
+            data :RequestType = loads(msg.decode())[0]
         except Exception as e:
             print(e)
             continue
-        if data['from'] == "stop":
-            break
-        if data['from'] == "llm": 
-            if data["type"] == "data":
-                tokens, sentence_id = data["payload"].values()
-                q.put([sentence_id, tokens])
-            if data["type"] == "signal" and data["payload"] == "eos":
-                q.put([None, "<eos>"])
-            continue
-        if (
-            data["from"] == "asr"
-            and data["type"] == "signal"
-            and data["payload"] == "activate"
-            ):
-            pygame_mixer.music.stop()
-            chunk = True
-            while not q.empty():
-                q.get()
-    q.put([None, None])
+        match data:
+            case x if x == PANEL_STOP:
+                break
+            case {"from": "llm", "type": "data", "payload": {"content": tokens, "id": sentence_id}}:
+                q.put([sentence_id, tokens])    # type: ignore
+                continue
+            case {"from": "llm", "type": "signal", "payload": "<eos>"}:
+                q.put(["<eos>", "<eos>"])
+                continue
+            case x if x == ASR_ACTIVATE:
+                pygame_mixer.music.fadeout(200)
+                chunk = True
+                while not q.empty():
+                    q.get()
+                while not q_fname.empty():
+                    q_fname.get()
+    q.put(["<eos>", "<eos>"])
 
-def play_sound(q_fname: Queue[List[str]]):
+def play_sound(sock: socket.socket):
     """ 播放音频，发送结束信号
 
     Args:
@@ -73,9 +76,10 @@ def play_sound(q_fname: Queue[List[str]]):
                                         align_name  :str])
     """
     global pygame_mixer
+    global q_fname
     while True:
         names = q_fname.get()
-        if any([n is None for n in names]):
+        if names[0] == "<eos>":
             sock.sendall(
                 dumps([{"from": "tts", 
                         "type": "signal", 
@@ -83,15 +87,18 @@ def play_sound(q_fname: Queue[List[str]]):
                         ).encode())
             continue
         sentence_id, audio_name, txt_name, align_name = names
-        intervals = match_textgrid(align_name, txt_name)
+        if align_name != "err":
+            intervals = match_textgrid(align_name, txt_name)
+        else:
+            intervals = [{"token": open(txt_name, "r", encoding="utf-8").read(),
+                          "duration": pygame_mixer.Sound(audio_name).get_length()}]
         for interval in intervals:
             sock.sendall(
                 dumps([{"from": "tts", 
                         "type": "data", 
                         "payload": {"id": sentence_id, 
                                     "token": interval["token"],
-                                    "duration": 
-                                        "{:.5f}".format(interval["maxTime"] - interval["minTime"])}}]
+                                    "duration": "{:.5f}".format(interval["duration"])}}]
                         ).encode())
             sleep(0.001)
         pygame_mixer.music.load(audio_name)
@@ -102,7 +109,6 @@ def play_sound(q_fname: Queue[List[str]]):
         os.remove(audio_name)
         os.remove(txt_name)
         os.remove(align_name)
-
 
 
 if __name__ == "__main__":
@@ -143,10 +149,6 @@ if __name__ == "__main__":
     # TODO: 英文还需要检查其他一些依赖问题
     # en_acoustic, en_lexicon, en_tokenizer, en_aligner = init_mfa_models(tts_config, lang="en-US")
     
-    # 生成队列
-    q: Queue[Optional[str], Optional[str]] = Queue()
-    # 播放队列
-    q_fname: Queue[List[str]] = Queue()
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.connect((config.PANEL_HOST, config.TTS_PORT))
         print(" * CosyVoice 初始化完成，等待面板准备就绪。")
@@ -154,9 +156,9 @@ if __name__ == "__main__":
         while not is_panel_ready(sock):
             sleep(0.5)
         print(" * 就绪。")
-        get_data_thread = threading.Thread(target=get_data, args=(sock, q))
+        get_data_thread = threading.Thread(target=get_data, args=(sock, ))
         get_data_thread.start()
-        play_sound_thread = threading.Thread(target=play_sound, args=(q_fname,))
+        play_sound_thread = threading.Thread(target=play_sound, args=(sock, ))
         play_sound_thread.start()
         while True:
             if not q.empty():
@@ -165,35 +167,41 @@ if __name__ == "__main__":
                     break
                 if not s or s.isspace():
                     continue
-                if sentence_id is None:
-                    q_fname.put([None, None, None, None])
+                if sentence_id == "<eos>":
+                    q_fname.put(["<eos>", "<eos>", "<eos>", "<eos>"])
                     continue
                 chunk = False
-                outputs = list(cosyvoice.inference_sft(s, '中文女', stream=False))[0]["tts_speech"]
+                try:
+                    s = s.strip()
+                    outputs = list(cosyvoice.inference_sft(s.strip(), '中文女', stream=False))[0]["tts_speech"]
+                except:
+                    print(f" * 生成时出错，跳过了 '{s}'。")
+                    continue
+
+                # NOTE: chunk 将在阻塞状态丢弃正在生成而没有进入输出队列的句子
+                if chunk:
+                    continue
+
                 # 音频文件
                 audio_name = os.path.join(temp_dir, f"voice{time()}.mp3")
                 torchaudio.save(audio_name, outputs, 22050)
                 # 字幕文件
                 txt_name = audio_name.replace(".mp3", ".txt")
                 open(txt_name, "w", encoding="utf-8").write(s)
-                
-                # TODO: 尝试避免 SpliceFrames: empty input Error
-                # NOTE: chunk 将在阻塞状态丢弃进入生成队列而没有进入输出队列的句子
-                s = open(txt_name, "r", encoding="utf-8").read()
-                if not s or s.isspace() or chunk:
-                    os.remove(audio_name)
-                    os.remove(txt_name)
-                    continue
-                
                 # 对齐文件
                 # if s.isascii():
                 #     align(audio_name, txt_name, en_acoustic, en_lexicon, en_tokenizer, en_aligner)
                 # else:
-                align(audio_name, txt_name, zh_acoustic, zh_lexicon, zh_tokenizer, zh_aligner)
                 align_name = audio_name.replace(".mp3", ".TextGrid")
-                q_fname.put([sentence_id, audio_name, txt_name, align_name])
+                try:
+                    align(audio_name, txt_name, zh_acoustic, zh_lexicon, zh_tokenizer, zh_aligner)
+                    q_fname.put([sentence_id, audio_name, txt_name, align_name])
+                except:
+                    print(f" * MFA 在处理 '{s}' 产生了对齐错误。")
+                    q_fname.put([sentence_id, audio_name, txt_name, "err"])
+                    continue
         sock.close()
-        q_fname.put(None)
+        q_fname.put([None])
         get_data_thread.join()
         play_sound_thread.join()
     
