@@ -43,8 +43,15 @@ def handle_submodule(submodule: int, sock: socket.socket) -> None:
     global CONNECTIONS, running
     print(f"Waiting for {SUBMODULE_NAMES[submodule]}...")
     CONNECTIONS[submodule], _ = sock.accept() # 不需要知道连接的地址所以直接丢弃
+    while True: # 等待模块上线
+        data = CONNECTIONS[submodule].recv(1024) # type: ignore
+        if not data:
+            continue
+        if loads(data.decode()) == [MODULE_READY]:
+            break
+        time.sleep(0.1)
     print(f"{SUBMODULE_NAMES[submodule]} is online.")
-    while not running:
+    while not running: # 等待启动
         time.sleep(0.1)
     CONNECTIONS[submodule].sendall(dumps([PANEL_START]).encode("utf-8")) # type: ignore
 

@@ -126,6 +126,17 @@ if __name__ == '__main__':
         t_send.start()
         generation_thread: threading.Thread | None = None # 在没有生成任务前没有值
 
+        q_send.put(PANEL_START) # 就绪
+
+        while True: # 等待启动
+            try:
+                message: RequestType | None = q_recv.get(False)
+            except queue.Empty:
+                message = None
+            if message is not None and message == PANEL_START:
+                break
+            time.sleep(0.1) # 防止CPU占用过高
+
         history: list[tuple[str, str]] = []
         state: States = States.STANDBY
         text = "" # 尚未发送的文本
@@ -146,7 +157,7 @@ if __name__ == '__main__':
             - 若收到ASR给出的语音识别信息，切换到生成状态
             """
             try:
-                message: RequestType | None = q_recv.get(False)
+                message = q_recv.get(False)
             except queue.Empty:
                 message = None
             match state:
@@ -265,7 +276,7 @@ if __name__ == '__main__':
                     if message == ASR_ACTIVATE:
                         state = States.WAIT_FOR_ASR
                         continue
-            if message is not None and message['type'] == 'signal' and message['payload'] == 'exit':
+            if message is not None and message == PANEL_STOP:
                 stop_generation.set()
                 stop_module.set()
                 break
