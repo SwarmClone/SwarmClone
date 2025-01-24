@@ -26,6 +26,32 @@ def dumps(requests: list[RequestType]) -> str:
         for request in requests
     ])
 
+class Loader: # loads的进一步封装
+    def __init__(self, config: Config):
+        self.sep = config.REQUESTS_SEPARATOR
+        self.request_str = ""
+        self.requests: list[RequestType] = []
+    
+    def update(self, request_str: str) -> None:
+        self.request_str += request_str
+        request_strings = self.request_str.split(self.sep)
+        left = ""
+        for i, request_string in enumerate(request_strings):
+            if not request_string:
+                continue
+            try:
+                self.requests.append(json.loads(request_string))
+            except json.JSONDecodeError:
+                if i == len(request_strings) - 1: # 最后一个请求被截断，留待下次更新
+                    left = request_strings[-1]
+                else:
+                    print(f"Invalid JSON format: {request_string}")
+        self.request_str = left
+    
+    def get_requests(self) -> list[RequestType]:
+        requests, self.requests = self.requests, []
+        return requests
+
 # 内置的信号
 ASR_ACTIVATE: RequestType = {'from': 'asr', 'type': 'signal', 'payload': 'activate'}
 LLM_EOS: RequestType = {'from': 'llm', 'type': 'signal', 'payload': 'eos'}

@@ -41,13 +41,15 @@ CONNECTIONS: list[socket.socket | None] = [None for _ in range(iota.count)]
 
 def handle_submodule(submodule: int, sock: socket.socket) -> None:
     global CONNECTIONS, running
+    loader = Loader(config)
     print(f"Waiting for {SUBMODULE_NAMES[submodule]}...")
     CONNECTIONS[submodule], _ = sock.accept() # 不需要知道连接的地址所以直接丢弃
     while True: # 等待模块上线
         data = CONNECTIONS[submodule].recv(1024) # type: ignore
         if not data:
             continue
-        if loads(data.decode()) == [MODULE_READY]:
+        loader.update(data.decode())
+        if MODULE_READY in loader.get_requests():
             break
         time.sleep(0.1)
     print(f"{SUBMODULE_NAMES[submodule]} is online.")
@@ -63,7 +65,8 @@ def handle_submodule(submodule: int, sock: socket.socket) -> None:
                 running = False
                 break
             # 逐个解析请求并将其转发给相应的模块
-            for request in loads(data.decode()):
+            loader.update(data.decode())
+            for request in loader.get_requests():
                 print(f"{SUBMODULE_NAMES[submodule]}: {request}")
                 request_bytes = dumps([request]).encode()
                 for receiver in CONN_TABLE[submodule][request["type"] == "data"]:
