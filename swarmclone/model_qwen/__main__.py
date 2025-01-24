@@ -23,18 +23,37 @@ class CustomStoppingCriteria(StoppingCriteria):
             return True
         return False
 
-def split_text(text: str) -> list[str]:
-    return [part for part in re.split(r"\.|\?|!|。|？|！|…", text) if part.strip()]
+def split_text(s, separators="。？！～.?!~\n\r"): # By DeepSeek
+    # 构建正则表达式模式
+    separators_class = ''.join(map(re.escape, separators))
+    pattern = re.compile(rf'([{separators_class}]+)')
+    
+    # 分割并处理结果
+    parts = pattern.split(s)
+    result = []
+    
+    # 合并文本与分隔符（成对处理）
+    for text, delim in zip(parts[::2], parts[1::2]):
+        if (cleaned := (text + delim).lstrip()):
+            result.append(cleaned)
+    
+    # 处理未尾未配对内容（保留后置空格）
+    if len(parts) % 2:
+        if (last_cleaned := parts[-1].lstrip()):
+            result.append(last_cleaned)
+    
+    return result
 
 q_recv: queue.Queue[RequestType] = queue.Queue()
 def recv_msg(sock: socket.socket, q: queue.Queue[RequestType], stop_module: threading.Event):
+    loader = Loader(config)
     while True:
         data = sock.recv(1024)
         if not data:
             break
-        messages = loads(data.decode())
+        loader.update(data.decode())
+        messages = loader.get_requests()
         for message in messages:
-            print(" * [Received]: ", message)
             q.put(message)
 
 q_send: queue.Queue[RequestType] = queue.Queue()
@@ -42,7 +61,6 @@ def send_msg(sock: socket.socket, q: queue.Queue[RequestType], stop_module: thre
     while True:
         message = q.get()
         data = dumps([message]).encode()
-        print(" * [Sent]:", data)
         sock.sendall(data)
 
 def generate(model: AutoModelForCausalLM, text_inputs: list[dict[str, str]], streamer: TextIteratorStreamer):
@@ -138,8 +156,7 @@ if __name__ == '__main__':
                 message = None
             match state:
                 case States.STANDBY:
-                    print(" * STANDBY")
-                    if time.time() - standby_time > 15:
+                    if time.time() - standby_time > 1000000:
                         stop_generation.clear()
                         history.append({'role': 'user', 'content': '请随便说点什么吧！'})
                         kwargs = {"model": model, "text_inputs": history, "streamer": streamer}
@@ -153,7 +170,6 @@ if __name__ == '__main__':
                         continue
 
                 case States.GENERATE:
-                    print(" * GENERATE")
                     try:
                         text += next(streamer)
                     except StopIteration: # 生成完毕
@@ -194,20 +210,21 @@ if __name__ == '__main__':
                         text = ""
                         full_text = ""
                         continue
-                    *sentences, text = split_text(text) # 将所有完整的句子发送
-                    for i, sentence in enumerate(sentences):
-                        q_send.put({
-                            'from': 'llm',
-                            'type': 'data',
-                            'payload': {
-                                'content': sentence,
-                                'id': str(uuid.uuid4())
-                            }
-                        })
+                    print(text)
+                    if text.strip(): # 防止文本为空导致报错
+                        *sentences, text = split_text(text) # 将所有完整的句子发送
+                        for i, sentence in enumerate(sentences):
+                            q_send.put({
+                                'from': 'llm',
+                                'type': 'data',
+                                'payload': {
+                                    'content': sentence,
+                                    'id': str(uuid.uuid4())
+                                }
+                            })
                     continue
 
                 case States.WAIT_FOR_ASR:
-                    print(" * WAIT_FOR_ASR")
                     if     (message is not None and
                             message['from'] == 'asr' and
                             message['type'] == 'data' and
@@ -223,7 +240,6 @@ if __name__ == '__main__':
                         continue
 
                 case States.WAIT_FOR_TTS:
-                    print(" * WAIT_FOR_TTS")
                     if message == TTS_FINISH:
                         state = States.STANDBY
                         standby_time = time.time()

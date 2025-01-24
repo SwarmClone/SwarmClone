@@ -36,8 +36,26 @@ def append_history(history: list[tuple[str, str]], role: str, text: str) -> list
         history[-1] = (history[-1][0], text)
     return history
 
-def split_text(text: str) -> list[str]:
-    return [part for part in re.split(r"\.|\?|!|。|？|！|…", text) if part.strip()]
+def split_text(s, separators="。？！～.?!~\n\r"): # By DeepSeek
+    # 构建正则表达式模式
+    separators_class = ''.join(map(re.escape, separators))
+    pattern = re.compile(rf'([{separators_class}]+)')
+    
+    # 分割并处理结果
+    parts = pattern.split(s)
+    result = []
+    
+    # 合并文本与分隔符（成对处理）
+    for text, delim in zip(parts[::2], parts[1::2]):
+        if (cleaned := (text + delim).lstrip()):
+            result.append(cleaned)
+    
+    # 处理未尾未配对内容（保留后置空格）
+    if len(parts) % 2:
+        if (last_cleaned := parts[-1].lstrip()):
+            result.append(last_cleaned)
+    
+    return result
 
 q_recv: queue.Queue[RequestType] = queue.Queue()
 def recv_msg(sock: socket.socket, q: queue.Queue[RequestType], stop_module: threading.Event):

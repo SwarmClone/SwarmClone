@@ -7,11 +7,13 @@ from ..request_parser import *
 
 q_recv: queue.Queue[RequestType] = queue.Queue()
 def recv_msg(sock: socket.socket, q: queue.Queue[RequestType], stop_module: threading.Event):
+    loader = Loader(config)
     while True:
         data = sock.recv(1024)
         if not data:
             break
-        messages = loads(data.decode())
+        loader.update(data.decode())
+        messages = loader.get_requests()
         for message in messages:
             q.put(message)
 
@@ -49,7 +51,7 @@ if __name__ == '__main__':
             try:
                 message = q_recv.get(False)
             except queue.Empty:
-                continue
+                pass
             else:
                 if message == PANEL_STOP:
                     break
@@ -65,3 +67,6 @@ if __name__ == '__main__':
                     'content': s
                 }
             })
+    stop.set() # 通知线程退出
+    t_send.join()
+    t_recv.join()
