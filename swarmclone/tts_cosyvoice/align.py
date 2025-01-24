@@ -143,6 +143,7 @@ def align(sound_file_path, text_file_path, acoustic_model, lexicon_compiler, tok
             lexicon_compiler,
             tokenizer=tokenizer,
             g2p_model=None,
+            beam=15,
             **align_options,
         )
         file_ctm.word_intervals.extend(ctm.word_intervals)    

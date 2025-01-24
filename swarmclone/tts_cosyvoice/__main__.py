@@ -13,6 +13,7 @@ from typing import Optional, List
 
 import playsound
 import torchaudio
+import pygame
 import textgrid
 
 from . import config, tts_config
@@ -23,8 +24,15 @@ from ..request_parser import loads, dumps, MODULE_READY, PANEL_START
 def is_panel_ready(sock: socket.socket):
     msg = sock.recv(1024)
     return loads(msg.decode())[0] == PANEL_START
-        
+
+# 播放器
+pygame_mixer = pygame.mixer   
+pygame_mixer.init()
+# 阻塞生成
+chunk = False
 def get_data(sock: socket.socket, q: Queue[Optional[str], Optional[str]]):
+    global pygame_mixer
+    global chunk
     s = ""
     while True:
         msg = sock.recv(1024)
@@ -49,6 +57,8 @@ def get_data(sock: socket.socket, q: Queue[Optional[str], Optional[str]]):
             and data["type"] == "signal"
             and data["payload"] == "activate"
             ):
+            pygame_mixer.music.stop()
+            chunk = True
             while not q.empty():
                 q.get()
     q.put([None, None])
@@ -62,6 +72,7 @@ def play_sound(q_fname: Queue[List[str]]):
                                         txt_name    :str, 
                                         align_name  :str])
     """
+    global pygame_mixer
     while True:
         names = q_fname.get()
         if any([n is None for n in names]):
@@ -71,9 +82,6 @@ def play_sound(q_fname: Queue[List[str]]):
                         "payload": "finish"}]
                         ).encode())
             continue
-        # audio_name    : 音频文件
-        # txt_name      : 生成文本
-        # align_name    : 对齐文件
         sentence_id, audio_name, txt_name, align_name = names
         intervals = match_textgrid(align_name, txt_name)
         for interval in intervals:
@@ -86,7 +94,11 @@ def play_sound(q_fname: Queue[List[str]]):
                                         "{:.5f}".format(interval["maxTime"] - interval["minTime"])}}]
                         ).encode())
             sleep(0.001)
-        playsound.playsound(audio_name)
+        pygame_mixer.music.load(audio_name)
+        pygame_mixer.music.play()
+        while pygame.mixer.music.get_busy():
+            sleep(0.1)    
+        pygame.mixer.music.unload()
         os.remove(audio_name)
         os.remove(txt_name)
         os.remove(align_name)
@@ -156,6 +168,7 @@ if __name__ == "__main__":
                 if sentence_id is None:
                     q_fname.put([None, None, None, None])
                     continue
+                chunk = False
                 outputs = list(cosyvoice.inference_sft(s, '中文女', stream=False))[0]["tts_speech"]
                 # 音频文件
                 audio_name = os.path.join(temp_dir, f"voice{time()}.mp3")
@@ -163,6 +176,15 @@ if __name__ == "__main__":
                 # 字幕文件
                 txt_name = audio_name.replace(".mp3", ".txt")
                 open(txt_name, "w", encoding="utf-8").write(s)
+                
+                # TODO: 尝试避免 SpliceFrames: empty input Error
+                # NOTE: chunk 将在阻塞状态丢弃进入生成队列而没有进入输出队列的句子
+                s = open(txt_name, "r", encoding="utf-8").read()
+                if not s or s.isspace() or chunk:
+                    os.remove(audio_name)
+                    os.remove(txt_name)
+                    continue
+                
                 # 对齐文件
                 # if s.isascii():
                 #     align(audio_name, txt_name, en_acoustic, en_lexicon, en_tokenizer, en_aligner)
