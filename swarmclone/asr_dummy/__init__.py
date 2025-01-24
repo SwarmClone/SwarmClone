@@ -1,5 +1,3 @@
-from .. import Config
-from .config_asr import ASRConfig
+from ..config import Config
 
 config = Config()
-asr_config = ASRConfig()
