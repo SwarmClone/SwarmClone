@@ -17,7 +17,7 @@ if install.strip().lower() == "y":
     subprocess.run([
         "python", "-m", "pip", "install",
         "http://pixelstonelab.com:5005/sc_cosyvoice-0.1.0-py3-none-any.whl",
-        "spacy-pkuseg", "dragonmapper", "hanziconv", "spacy", "textgrid"])
+        "spacy-pkuseg", "dragonmapper", "hanziconv", "spacy", "textgrid", "pygame"])
 
     print("\033[H\033[J")
     print(" * 开始添加 Montreal Forced-Aligner: ")
