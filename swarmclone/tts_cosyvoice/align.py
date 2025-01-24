@@ -173,20 +173,23 @@ def match_textgrid(textgrid_path, text_path):
         
         past_word = text[last_checked_text_idx:idx].split()
 
+        # 对可以匹配上的英文单词进行处理
         if num_past_unk == len(past_word):
             for j in range(num_past_unk):
-                wait_to_send.append([
-                    tg[i - num_past_unk + j].minTime,
-                    tg[i - num_past_unk + j].maxTime,
-                    past_word[j]
-                ])
+                wait_to_send.append({
+                    "minTime": tg[i - num_past_unk + j].minTime,
+                    "maxTime": tg[i - num_past_unk + j].maxTime,
+                    "token": past_word[j]
+                })
+        # 对匹配不上的英文单词进行处理
         elif num_past_unk > 0:
-            wait_to_send.append([
-                tg[i - num_past_unk].minTime,
-                tg[i].maxTime,
-                "".join(past_word)
-            ])
-
+            wait_to_send.append({
+                "minTime": tg[i - num_past_unk].minTime,
+                "maxTime": tg[i].maxTime,
+                "token": "".join(past_word)
+            })
+        
+        # 避免最后一个字符是 unk 的情况
         if tg[i].mark != "<unk>":
             wait_to_send.append({"minTime": tg[i].minTime, 
                                  "maxTime": tg[i].maxTime, 

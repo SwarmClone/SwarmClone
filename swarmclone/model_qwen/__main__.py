@@ -128,7 +128,7 @@ if __name__ == '__main__':
             match state:
                 case States.STANDBY:
                     print(" * STANDBY")
-                    if time.time() - standby_time > 5:
+                    if time.time() - standby_time > 15:
                         stop_generation.clear()
                         history.append({'role': 'user', 'content': '请随便说点什么吧！'})
                         kwargs = {"model": model, "text_inputs": history, "streamer": streamer}

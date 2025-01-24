@@ -7,7 +7,7 @@ import tempfile
 import warnings
 import threading
 
-from time import time
+from time import time, sleep
 from queue import Queue
 from typing import Optional, List
 
@@ -17,7 +17,7 @@ import textgrid
 
 from . import config, tts_config
 from cosyvoice.cli.cosyvoice import CosyVoice, CosyVoice2
-from .align import *
+from .align import download_model_and_dict, init_mfa_models, align, match_textgrid
 from ..request_parser import loads, dumps
 
 def get_data(sock: socket.socket, q: Queue[Optional[str], Optional[str]]):
@@ -35,19 +35,22 @@ def get_data(sock: socket.socket, q: Queue[Optional[str], Optional[str]]):
             break
         if data['from'] == "llm": 
             if data["type"] == "data":
-                sentence_id, tokens = data["payload"].values()
-                print("Putting: ", sentence_id, tokens)
-                q.put(sentence_id, tokens)
+                tokens, sentence_id = data["payload"].values()
+                q.put([sentence_id, tokens])
             if data["type"] == "signal" and data["payload"] == "eos":
-                print("Putting End of Sentence")
-                q.put(None, "<eos>")
+                q.put([None, "<eos>"])
             continue
-    q.put(None, None)
+    q.put([None, None])
 
 def play_sound(q_fname: Queue[List[str]]):
     while True:
         names = q_fname.get()
-        if names is None:
+        if any([n is None for n in names]):
+            sock.sendall(
+                dumps([{"from": "tts", 
+                        "type": "signal", 
+                        "payload": "finish"}]
+                        ).encode())
             break
         # audio_name    : 音频文件
         # txt_name      : 生成文本
@@ -62,12 +65,14 @@ def play_sound(q_fname: Queue[List[str]]):
                                     "token": interval["token"],
                                     "duration": interval["maxTime"] - interval["minTime"]}}]
                         ).encode())
-        playsound.playsound(audio_name)
-        
 
+        playsound.playsound(audio_name)
+        sleep((intervals[-1]["maxTime"] - intervals[0]["minTime"]) / 22050)
         os.remove(audio_name)
         os.remove(txt_name)
         os.remove(align_name)
+
+
 
 if __name__ == "__main__":
     warnings.filterwarnings("ignore", message=".*LoRACompatibleLinear.*")
@@ -103,7 +108,7 @@ if __name__ == "__main__":
         print(" * SwarmClone 使用 Montreal Forced Aligner 进行对齐，开始下载: ")
         download_model_and_dict(tts_config)
     zh_acoustic, zh_lexicon, zh_tokenizer, zh_aligner = init_mfa_models(tts_config, lang="zh-CN")
-    en_acoustic, en_lexicon, en_tokenizer, en_aligner = init_mfa_models(tts_config, lang="en-US")
+    # en_acoustic, en_lexicon, en_tokenizer, en_aligner = init_mfa_models(tts_config, lang="en-US")
     
     q: Queue[Optional[str], Optional[str]] = Queue()
     q_fname: Queue[List[str]] = Queue()
@@ -121,11 +126,7 @@ if __name__ == "__main__":
                 if not s or s.isspace():
                     continue
                 if sentence_id is None:
-                    sock.sendall(
-                        dumps([{"from": "tts", 
-                                "type": "signal", 
-                                "payload": "finish"}]
-                              ).encode())
+                    q_fname.put([None, None, None, None])
                 outputs = list(cosyvoice.inference_sft(s, '中文女', stream=False))[0]["tts_speech"]
                 # 音频文件
                 audio_name = os.path.join(temp_dir, f"voice{time()}.mp3")
@@ -134,10 +135,10 @@ if __name__ == "__main__":
                 txt_name = audio_name.replace(".mp3", ".txt")
                 open(txt_name, "w", encoding="utf-8").write(s)
                 # 对齐文件
-                if s.isascii():
-                    align(audio_name, txt_name, en_acoustic, en_lexicon, en_tokenizer, en_aligner)
-                else:
-                    align(audio_name, txt_name, zh_acoustic, zh_lexicon, zh_tokenizer, zh_aligner)
+                # if s.isascii():
+                #     align(audio_name, txt_name, en_acoustic, en_lexicon, en_tokenizer, en_aligner)
+                # else:
+                align(audio_name, txt_name, zh_acoustic, zh_lexicon, zh_tokenizer, zh_aligner)
                 align_name = audio_name.replace(".mp3", ".TextGrid")
                 q_fname.put([sentence_id, audio_name, txt_name, align_name])
         sock.close()
