@@ -19,3 +19,5 @@ class ASRConfig:
     HOTWORDS_SCORE: float = 1.5
     # 解码时对空字符的惩罚。
     BLANK_PENALTY: float = 0.0
+    # vad模型路径
+    VADMODELPATH: str = "~/.swarmclone/vad/"

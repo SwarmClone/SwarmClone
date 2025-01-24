@@ -30,5 +30,7 @@ def dumps(requests: list[RequestType]) -> str:
 ASR_ACTIVATE: RequestType = {'from': 'asr', 'type': 'signal', 'payload': 'activate'}
 LLM_EOS: RequestType = {'from': 'llm', 'type': 'signal', 'payload': 'eos'}
 TTS_FINISH: RequestType = {'from': 'tts', 'type': 'signal', 'payload': 'finish'}
+PANEL_START: RequestType = {'from': 'panel', 'type': 'signal', 'payload':'start'}
+PANEL_STOP: RequestType = {'from': 'panel', 'type': 'signal', 'payload':'stop'}
 
 __ALL__ = ["loads", "dumps", "ASR_ACTIVATE", "LLM_EOS", "TTS_FINISH"]

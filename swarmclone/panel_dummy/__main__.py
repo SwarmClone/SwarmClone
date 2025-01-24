@@ -2,8 +2,9 @@ import threading
 import socket
 import json
 import subprocess
+import time
 from . import config
-from ..request_parser import loads, dumps
+from ..request_parser import *
 
 class Iota:
     """枚举整数"""
@@ -43,7 +44,9 @@ def handle_submodule(submodule: int, sock: socket.socket) -> None:
     print(f"Waiting for {SUBMODULE_NAMES[submodule]}...")
     CONNECTIONS[submodule], _ = sock.accept() # 不需要知道连接的地址所以直接丢弃
     print(f"{SUBMODULE_NAMES[submodule]} is online.")
-    while not running:...
+    while not running:
+        time.sleep(0.1)
+    CONNECTIONS[submodule].sendall(dumps([PANEL_START]).encode("utf-8")) # type: ignore
 
     while running:
         # CONNECTIONS[submodule]必然不会是None
@@ -59,6 +62,7 @@ def handle_submodule(submodule: int, sock: socket.socket) -> None:
                 if CONNECTIONS[receiver]:
                     CONNECTIONS[receiver].sendall(request_bytes) # type: ignore
 
+    CONNECTIONS[submodule].sendall(dumps([PANEL_STOP]).encode("utf-8")) # type: ignore
     CONNECTIONS[submodule].close() # type: ignore
     CONNECTIONS[submodule] = None
 
@@ -83,7 +87,8 @@ if __name__ == '__main__':
         t.start()
 
     # 只需要LLM、TTS和FRONTEND上线即可开始运行，ASR和CHAT不必需
-    while not all([CONNECTIONS[LLM], CONNECTIONS[TTS], CONNECTIONS[FRONTEND]]):...
+    while not all([CONNECTIONS[LLM], CONNECTIONS[TTS], CONNECTIONS[FRONTEND]]):
+        time.sleep(0.1) # 防止把CPU占满
     
     running = True
     for t in threads:
