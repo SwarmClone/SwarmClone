@@ -1,20 +1,67 @@
 import socket
 import time
+import queue
+import threading
 from . import config
 from ..request_parser import *
+
+q_recv: queue.Queue[RequestType] = queue.Queue()
+def recv_msg(sock: socket.socket, q: queue.Queue[RequestType], stop_module: threading.Event):
+    while True:
+        data = sock.recv(1024)
+        if not data:
+            break
+        messages = loads(data.decode())
+        for message in messages:
+            q.put(message)
+
+q_send: queue.Queue[RequestType] = queue.Queue()
+def send_msg(sock: socket.socket, q: queue.Queue[RequestType], stop_module: threading.Event):
+    while True:
+        message = q.get()
+        data = dumps([message]).encode()
+        sock.sendall(data)
+
+stop = threading.Event()
 
 if __name__ == '__main__':
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.connect((config.PANEL_HOST, config.ASR_PORT))
+        # 启动接收和发送线程
+        t_send = threading.Thread(target=send_msg, args=(sock, q_send, stop))
+        t_recv = threading.Thread(target=recv_msg, args=(sock, q_recv, stop))
+        t_send.start()
+        t_recv.start()
+
+        q_send.put(MODULE_READY) # 初始化完毕
+        while True: # 等待模块开始
+            try:
+                message = q_recv.get(False)
+            except queue.Empty:
+                continue
+            if message == PANEL_START:
+                break
+            time.sleep(0.1)
         while True:
             s = input("> ")
-            sock.sendall(dumps([ASR_ACTIVATE]).encode('utf-8'))
+
+            # 是否需要退出
+            try:
+                message = q_recv.get(False)
+            except queue.Empty:
+                continue
+            else:
+                if message == PANEL_STOP:
+                    break
+            
+            # 发出激活信息和语音信息
+            q_send.put(ASR_ACTIVATE)
             time.sleep(0.1)
-            sock.sendall(dumps([{
+            q_send.put({
                 'from': 'asr',
                 'type': 'data',
                 'payload': {
                     'user': 'Developer A',
                     'content': s
-                }   
-            }]).encode('utf-8'))
+                }
+            })
