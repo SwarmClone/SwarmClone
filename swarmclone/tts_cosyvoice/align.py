@@ -178,11 +178,20 @@ def match_textgrid(textgrid_path, text_path):
 
         # 获取原 token
         tg[i].mark = text[idx: idx + len(tg[i].mark)]
+        # 获取第一个 token 前的标点符号
+        if i == 0 and idx != 0:
+            have_marks_begin = 1
+            while regex.match(r"\p{P}", text[idx - have_marks_begin]):
+                tg[i].mark = text[idx - have_marks_begin] + tg[i].mark
+                idx -= 1
+                if idx == 0:
+                    break
         # 获取紧随 token 后的标点符号
         try:
-            have_marks = 0
-            while regex.match(r"\p{P}", text[idx + len(tg[i].mark) + have_marks]):
-                tg[i].mark += text[idx + len(tg[i].mark) + have_marks]
+            have_marks = 1
+            following_idx = idx + len(tg[i].mark) - 1
+            while regex.match(r"\p{P}", text[following_idx + have_marks]):
+                tg[i].mark += text[following_idx + have_marks]
                 have_marks += 1
         except:
             pass
@@ -210,5 +219,4 @@ def match_textgrid(textgrid_path, text_path):
         num_past_unk = 0
         last_checked_text_idx = idx + len(tg[i].mark)
         i += 1
-        
-    return wait_to_send
+    return [interval for interval in wait_to_send if not interval["token"].isspace()]
