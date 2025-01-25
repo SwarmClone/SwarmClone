@@ -98,7 +98,7 @@ def play_sound(sock: socket.socket):
                         "type": "data", 
                         "payload": {"id": sentence_id, 
                                     "token": interval["token"],
-                                    "duration": "{:.5f}".format(interval["duration"])}}]
+                                    "duration": interval["duration"]}}]
                         ).encode())
             sleep(0.001)
         pygame_mixer.music.load(audio_name)
