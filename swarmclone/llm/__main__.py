@@ -79,8 +79,9 @@ def generate(model: LLM, tokenizer: Tokenizer, model_config: dict,
             text_inputs: list[tuple[str, str]], q: queue.Queue[str], stop_generation: threading.Event):
     with torch.no_grad():
         n_blank_lines = 0
+        print(text_inputs)
+        input_ids = build_context(text_inputs, tokenizer, model_config['max_length']).to(config.DEVICE)
         while not stop_generation.is_set():
-            input_ids = build_context(text_inputs, tokenizer, model_config['max_length']).to(config.DEVICE)
             output = model(input_ids)
             logits = F.softmax(output[0][-1] / model_config['temperature'], dim=-1)
             probs, indices = logits.topk(round(tokenizer.get_vocab_size() * model_config['top_p']))
@@ -88,6 +89,7 @@ def generate(model: LLM, tokenizer: Tokenizer, model_config: dict,
             token_id = indices[sample]
             input_ids = torch.cat([input_ids, token_id.unsqueeze(0)], dim=-1)[:, -model_config['max_length']:]
             token = tokenizer.id_to_token(token_id.item())
+            print(token)
             if token == "\n":
                 n_blank_lines += 1
                 if n_blank_lines >= 3:

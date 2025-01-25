@@ -106,7 +106,7 @@ class CausalSelfAttention(nn.Module):
                     is_causal=True, dropout_p=self.dropout,
                     scale=self.head_dim ** 0.5)
             .transpose(1, 2)
-            .view(B, T, C)
+            .reshape(B, T, C)
         )
         return normalize(self.o_proj(x))
 
