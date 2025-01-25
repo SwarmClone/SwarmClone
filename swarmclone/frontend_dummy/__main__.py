@@ -1,105 +1,119 @@
 import socket
 import threading
-import json
-from typing import Optional
-from queue import Queue, Empty
+import queue
 from time import time, sleep
 from . import config
-from ..request_parser import loads, dumps, PANEL_START, MODULE_READY
+from ..request_parser import *
 
-def is_panel_ready(sock: socket.socket):
-    msg = sock.recv(1024)
-    return loads(msg.decode())[0] == PANEL_START
-
-def get_data(sock: socket.socket, q_llm: Queue[Optional[str]], q_asr: Queue[Optional[str]]):
+q_recv: queue.Queue[RequestType] = queue.Queue()
+def recv_msg(sock: socket.socket, q: queue.Queue[RequestType], stop_module: threading.Event):
+    loader = Loader(config)
     while True:
-        msg = sock.recv(1024)
-        if not msg:
+        data = sock.recv(1024)
+        if not data:
             break
-        try:
-            data = json.loads(msg.decode())
-        except:
-            continue
-        if data["from"] == "stop":
-            break
-        if data["from"] == "LLM":
-            q_llm.put(data["token"])
-        if data["from"] == "ASR":
-            q_asr.put(f"{data['name']}: {data['text']}")
-    q_llm.put(None)
+        loader.update(data.decode())
+        messages = loader.get_requests()
+        for message in messages:
+            q.put(message)
 
-face_template = """
- ___
-({eye}{mouth}{eye})
-"""
+q_send: queue.Queue[RequestType] = queue.Queue()
+def send_msg(sock: socket.socket, q: queue.Queue[RequestType], stop_module: threading.Event):
+    while True:
+        message = q.get()
+        data = dumps([message]).encode()
+        sock.sendall(data)
 
-eyes = "O-"
-mouths = "wo"
 
-if __name__ == "__main__":
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.connect((config.PANEL_HOST, config.FRONTEND_PORT))
-        
-        print(" * Frontend 初始化完成，等待面板准备就绪。")
-        s.sendall(dumps([MODULE_READY]).encode())
-        while not is_panel_ready(s):
-            sleep(0.5)
-        print(" * 就绪。")
+if __name__ == '__main__':
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.connect((config.PANEL_HOST, config.FRONTEND_PORT))
+        stop_module = threading.Event()
+        t_recv = threading.Thread(target=recv_msg, args=(sock, q_recv, stop_module))
+        t_recv.start()
+        t_send = threading.Thread(target=send_msg, args=(sock, q_send, stop_module))
+        t_send.start()
 
-        q_llm: Queue[Optional[str]] = Queue()
-        q_asr: Queue[Optional[str]] = Queue()
-        t = threading.Thread(target=get_data, args=(s, q_llm, q_asr))
-        t.start()
-        model_s: str = ""
-        asr_res: Optional[str] = ""
-        do_clear = False
-        do_refresh = False
-        eye_closed = False
-        word_count = 0
-        t0 = time()
-        while True:
+        q_send.put(MODULE_READY) # 就绪
+
+        while True: # 等待开始
             try:
-                token = q_llm.get(False)
-            except Empty:
-                pass
-            else:
-                if token is None:
+                message: RequestType | None = q_recv.get(False)
+                if message == PANEL_START:
                     break
-                word_count += 1
-                if do_clear:
-                    model_s = ""
-                    do_clear = False
-                if token == "<eos>":
-                    do_clear = True
-                    word_count = 0
-                else:
-                    model_s += token
-                do_refresh = True
+            except queue.Empty:
+                sleep(0.1)
 
+        t0 = time()
+        target = .0
+        q_sentences: queue.Queue[str | None] = queue.Queue()
+        tokens: dict[str, tuple[float, str] | None] = {}
+        sentence_finished = True
+        current_sentence: str | None = None
+        clear_screen = False
+        user_str = ''
+        ai_str = ''
+        while True:
+            message = None
             try:
-                asr_res = q_asr.get(False)
-            except Empty:
-                pass
-            else:
-                do_refresh = True
+                message = q_recv.get(False)
+                print(message)
+            except queue.Empty:
+                sleep(1 / 60)
             
-            t1 = time()
-            if eye_closed and t1 - t0 > 0.2:
-                eye_closed = False
-                t0 = t1
-                do_refresh = True
-            elif not eye_closed and t1 - t0 > 2:
-                eye_closed = True
-                t0 = t1
-                do_refresh = True
+            print("\033[H\033[J", end="")
+            print(f"User: {user_str}\nAI: {ai_str}")
+            
+            match message:
+                case x if x == PANEL_STOP:
+                    stop_module.set()
+                    break
+                case x if x == ASR_ACTIVATE:
+                    print("ASR activated")
+                    while not q_sentences.empty(): q_sentences.get()
+                    tokens.clear()
+                    clear_screen = True
+                    current_sentence = None
+                    sentence_finished = True
+                    target = .0
+                case {'from': 'asr', 'type': 'data', 'payload': {'user': user, 'content': content}}:
+                    user_str = f"{content}"
+                case {'from': 'tts', 'type': 'data', 'payload': {'id': sid, 'token': token, 'duration': duration}}:
+                    if tokens[sid] is None: # type: ignore
+                        tokens[sid] = [] # type: ignore
+                    tokens[sid].append((duration, token)) # type: ignore
+                case {'from': 'llm', 'type': 'data', 'payload': {'content': content, 'id': sid}}:
+                    q_sentences.put(sid) # type: ignore
+                    tokens[sid] = None # type: ignore
+                case x if x == LLM_EOS:
+                    q_sentences.put(None)
 
-            if do_refresh:
-                print("\033[H\033[J")
-                eye = eyes[eye_closed]
-                mouth = mouths[word_count % 10 > 6]
-                face = face_template.format(eye=eye, mouth=mouth)
-                print(face)
-                print(asr_res)
-                print(f"Qwen2.5-0.5b-Instruct: {model_s}")
-                do_refresh = False
+            if sentence_finished and not q_sentences.empty():
+                sentence_finished = False
+                current_sentence = q_sentences.get()
+                print(current_sentence)
+                if current_sentence is None:
+                    sentence_finished = True
+                    clear_screen = True
+                    continue
+                elif clear_screen:
+                    clear_screen = False
+                    ai_str = ''
+
+            if not sentence_finished and current_sentence and time() - t0 > target:
+                if current_sentence not in tokens:
+                    continue
+                if tokens[current_sentence] == []:
+                    sentence_finished = True
+                    del tokens[current_sentence]
+                    continue
+                if tokens[current_sentence] is None:
+                    continue
+                (duration, token), *tokens[current_sentence] = tokens[current_sentence] # type: ignore
+                print(f"Token: {token}, Duration: {duration}")
+                ai_str += token # type: ignore
+                target = duration # type: ignore
+                t0 = time()
         
+        t_recv.join()
+        t_send.join()
