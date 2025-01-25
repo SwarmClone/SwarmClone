@@ -1,5 +1,6 @@
 import socket
 import json
+import time
 import librosa
 import sounddevice as sd # type: ignore
 from .sherpa_asr import asr_init, create_recognizer
@@ -30,7 +31,18 @@ if __name__ == '__main__':
         sock.connect((config.PANEL_HOST, config.ASR_PORT))
         last_result = ""
         segment_id = 0
-        print("Started! Please speak")
+        print("就绪，等待开始。")
+        sock.sendall(dumps([MODULE_READY]).encode())
+        while True:
+            try:
+                data = loads(sock.recv(1024).decode())
+                if PANEL_START in data:
+                    break
+            except:
+                time.sleep(0.1)
+                continue
+
+        print("开始录音。")
         speech_started = False
         while True:
             try:
@@ -82,7 +94,6 @@ if __name__ == '__main__':
                         segment_id += 1
                     recognizer.reset(stream)
             except KeyboardInterrupt:
-                sock.sendall(b'{"from": "stop"}')
                 sock.close()
                 break
             
