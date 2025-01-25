@@ -1,5 +1,6 @@
 import os
 import requests   # type: ignore
+import regex
 
 from pathlib import Path
 
@@ -7,6 +8,7 @@ import pywrapfst
 import textgrid   # type: ignore
 
 from . import tts_config
+from zhconv import convert   # type: ignore
 from tqdm import tqdm   # type: ignore
 from kalpy.utterance import  Segment   # type: ignore
 from kalpy.feat.cmvn import CmvnComputer   # type: ignore
@@ -157,40 +159,52 @@ def match_textgrid(textgrid_path, text_path):
     text = open(text_path, "r", encoding="utf-8").read().strip()
     tg = textgrid.TextGrid.fromFile(textgrid_path)
     tg = [interval for tier in tg if tier.name == "words" for interval in tier if interval.mark != "<eps>"]
-
+    
     wait_to_send = []
     i = 0
     num_past_unk = 0
     last_checked_text_idx = 0
-
     while i < len(tg):
+        # 处理句中的 <unk>
         while tg[i].mark == "<unk>" and i < len(tg) - 1:
             num_past_unk += 1
             i += 1
+        # 处理最后一个 token 是 <unk> 的情况
+        if (i == len(tg) - 1 and tg[i].mark == "<unk>"):
+            idx = len(text)
+            num_past_unk += 1
+        else:
+            idx = text.lower().find(convert(tg[i].mark.lower(), 'zh-cn'), last_checked_text_idx)
 
-        idx = len(text) \
-            if (i == len(tg) - 1 and tg[i].mark == "<unk>") \
-            else text.find(tg[i].mark, last_checked_text_idx)
-        
+        # 获取原 token
+        tg[i].mark = text[idx: idx + len(tg[i].mark)]
+        # 获取紧随 token 后的标点符号
+        try:
+            have_marks = 0
+            while regex.match(r"\p{P}", text[idx + len(tg[i].mark) + have_marks]):
+                tg[i].mark += text[idx + len(tg[i].mark) + have_marks]
+                have_marks += 1
+        except:
+            pass
+        # 获取错过的英语单词
         past_word = text[last_checked_text_idx:idx].split()
-
+        
         # 对可以匹配上的英文单词进行处理
         if num_past_unk == len(past_word):
             for j in range(num_past_unk):
                 wait_to_send.append({
-                    "token": past_word[j],
+                    "token": past_word[j] if not past_word[j].isascii() else past_word[j] + " ",
                     "duration": tg[i - num_past_unk + j].maxTime - tg[i - num_past_unk + j].minTime
                 })
         # 对匹配不上的英文单词进行处理
         elif num_past_unk > 0:
             wait_to_send.append({
-                "token": "".join(past_word),
+                "token": " ".join(past_word) + " ",
                 "duration": tg[i].maxTime - tg[i - num_past_unk].minTime
             })
         
-        # 避免最后一个字符是 unk 的情况
-        if tg[i].mark != "<unk>":
-            wait_to_send.append({"token": tg[i].mark,
+        if tg[i].mark != "<nuk>":
+            wait_to_send.append({"token": tg[i].mark if not tg[i].mark.isascii() else tg[i].mark + " ",
                                 "duration": tg[i].maxTime - tg[i].minTime})
 
         num_past_unk = 0

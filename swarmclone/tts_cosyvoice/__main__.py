@@ -90,7 +90,7 @@ def play_sound(sock: socket.socket):
         if align_name != "err":
             intervals = match_textgrid(align_name, txt_name)
         else:
-            intervals = [{"token": open(txt_name, "r", encoding="utf-8").read(),
+            intervals = [{"token": open(txt_name, "r", encoding="utf-8").read() + " ",
                           "duration": pygame_mixer.Sound(audio_name).get_length()}]
         for interval in intervals:
             sock.sendall(
@@ -98,7 +98,7 @@ def play_sound(sock: socket.socket):
                         "type": "data", 
                         "payload": {"id": sentence_id, 
                                     "token": interval["token"],
-                                    "duration": interval["duration"]}}]
+                                    "duration": round(interval["duration"], 5)}}]
                         ).encode())
             sleep(0.001)
         pygame_mixer.music.load(audio_name)
@@ -108,7 +108,8 @@ def play_sound(sock: socket.socket):
         pygame.mixer.music.unload()
         os.remove(audio_name)
         os.remove(txt_name)
-        os.remove(align_name)
+        if align_name != "err":
+            os.remove(align_name)
 
 
 if __name__ == "__main__":
