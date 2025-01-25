@@ -136,6 +136,7 @@ if __name__ == '__main__':
         text = "" # 尚未发送的文本
         full_text = "" # 一轮生成中的所有文本
         standby_time = time.time()
+        message_consumed = True # 受到消息后是否已处理
         while True: # 状态机
             """
             待机状态：
@@ -150,10 +151,13 @@ if __name__ == '__main__':
             等待ASR状态：
             - 若收到ASR给出的语音识别信息，切换到生成状态
             """
-            try:
-                message = q_recv.get(False)
-            except queue.Empty:
-                message = None
+            print(message)
+            if message_consumed:
+                try:
+                    message = q_recv.get(False)
+                    message_consumed = False
+                except queue.Empty:
+                    message = None
             match state:
                 case States.STANDBY:
                     if time.time() - standby_time > 1000000:
@@ -164,10 +168,9 @@ if __name__ == '__main__':
                         generation_thread.start()
                         state = States.GENERATE
                         text = ""
-                        continue
                     if message == ASR_ACTIVATE:
                         state = States.WAIT_FOR_ASR
-                        continue
+                        message_consumed = True
 
                 case States.GENERATE:
                     try:
@@ -209,6 +212,7 @@ if __name__ == '__main__':
                         state = States.WAIT_FOR_ASR
                         text = ""
                         full_text = ""
+                        message_consumed = True
                         continue
                     print(text)
                     if text.strip(): # 防止文本为空导致报错
@@ -230,6 +234,7 @@ if __name__ == '__main__':
                             message['type'] == 'data' and
                             isinstance(message['payload'], dict) and
                             isinstance(message['payload']['content'], str)):
+                        message_consumed = True
                         stop_generation.clear()
                         history.append({'role': 'user', 'content': message['payload']['content']})
                         kwargs = {"model": model, "text_inputs": history, "streamer": streamer}
@@ -243,10 +248,10 @@ if __name__ == '__main__':
                     if message == TTS_FINISH:
                         state = States.STANDBY
                         standby_time = time.time()
-                        continue
+                        message_consumed = True
                     if message == ASR_ACTIVATE:
                         state = States.WAIT_FOR_ASR
-                        continue
+                        message_consumed = True
             if message is not None and message == PANEL_STOP:
                 stop_generation.set()
                 stop_module.set()

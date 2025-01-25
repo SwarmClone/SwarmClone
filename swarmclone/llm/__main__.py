@@ -150,7 +150,7 @@ if __name__ == '__main__':
         torch.set_float32_matmul_precision('medium') # 降低矩阵乘法精度以减少显存使用
         print("开始编译模型")
         model.compile(fullgraph=True) # 进行编译提高推理速度
-        model(torch.zeros((1, model_config['max_length']), dtype=torch.long, device=config.DEVICE)) # 进行前向传播触发编译
+        model(torch.zeros((1, model_config['max_length']), dtype=torch.int, device=config.DEVICE)) # 进行前向传播触发编译
         print("编译成功结束")
 
         q_send.put(MODULE_READY) # 就绪
@@ -169,6 +169,7 @@ if __name__ == '__main__':
         text = "" # 尚未发送的文本
         full_text = "" # 一轮生成中的所有文本
         standby_time = time.time()
+        message_consumed = True # 收到消息后是否已处理
         while True: # 状态机
             """
             待机状态：
@@ -183,13 +184,15 @@ if __name__ == '__main__':
             等待ASR状态：
             - 若收到ASR给出的语音识别信息，切换到生成状态
             """
-            try:
-                message = q_recv.get(False)
-            except queue.Empty:
-                message = None
+            if message_consumed:
+                try:
+                    message = q_recv.get(False)
+                    message_consumed = False
+                except queue.Empty:
+                    message = None
             match state:
                 case States.STANDBY:
-                    if time.time() - standby_time > 5:
+                    if time.time() - standby_time > 50000:
                         stop_generation.clear()
                         history = append_history(history, "human", "请随便说点什么吧！")
                         kwargs = {
@@ -205,16 +208,15 @@ if __name__ == '__main__':
                         state = States.GENERATE
                         text = ""
                         full_text = ""
-                        continue
                     if message == ASR_ACTIVATE:
                         state = States.WAIT_FOR_ASR
-                        continue
+                        message_consumed = True
 
                 case States.GENERATE:
                     try:
                         token = q_generate.get(False)
                     except queue.Empty:
-                        continue
+                        token = ""
                     if token == "<eos>": # 生成完毕
                         # 停止生成并清空队列
                         stop_generation.set()
@@ -243,6 +245,7 @@ if __name__ == '__main__':
                         continue
                     text += token
                     if message == ASR_ACTIVATE:
+                        print("ASR激活")
                         # 停止生成并清空队列
                         stop_generation.set()
                         if generation_thread is not None and generation_thread.is_alive():
@@ -259,8 +262,11 @@ if __name__ == '__main__':
                         q_send.put(LLM_EOS)
                         text = ""
                         full_text = ""
+                        message_consumed = True
                         continue
-                    *sentences, text = split_text(text) # 将所有完整的句子发送
+                    sentences = []
+                    if text.strip():
+                        *sentences, text = split_text(text) # 将所有完整的句子发送
                     for i, sentence in enumerate(sentences):
                         q_send.put({
                             'from': 'llm',
@@ -270,7 +276,6 @@ if __name__ == '__main__':
                                 'id': str(uuid.uuid4())
                             }
                         })
-                    continue
 
                 case States.WAIT_FOR_ASR:
                     if     (message is not None and
@@ -278,6 +283,7 @@ if __name__ == '__main__':
                             message['type'] == 'data' and
                             isinstance(message['payload'], dict) and
                             isinstance(message['payload']['content'], str)):
+                        message_consumed = True
                         stop_generation.clear()
                         history = append_history(history, "human", message['payload']['content'])
                         kwargs = {
@@ -293,16 +299,15 @@ if __name__ == '__main__':
                         state = States.GENERATE
                         text = ""
                         full_text = ""
-                        continue
 
                 case States.WAIT_FOR_TTS:
                     if message == TTS_FINISH:
                         state = States.STANDBY
                         standby_time = time.time()
-                        continue
+                        message_consumed = True
                     if message == ASR_ACTIVATE:
                         state = States.WAIT_FOR_ASR
-                        continue
+                        message_consumed = True
             if message is not None and message == PANEL_STOP:
                 stop_generation.set()
                 stop_module.set()

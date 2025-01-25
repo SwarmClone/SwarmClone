@@ -34,7 +34,7 @@ CONN_TABLE: dict[int, tuple[list[int], list[int]]] = {
 #  发送方       信号接受方               数据接受方
     LLM:  ([     TTS, FRONTEND], [     TTS, FRONTEND]),
     ASR:  ([LLM, TTS, FRONTEND], [LLM,      FRONTEND]),
-    TTS:  ([LLM,      FRONTEND], [LLM,      FRONTEND]),
+    TTS:  ([LLM,      FRONTEND], [          FRONTEND]),
     CHAT: ([                  ], [LLM,      FRONTEND])
 } # 数据包转发表
 CONNECTIONS: list[socket.socket | None] = [None for _ in range(iota.count)]
