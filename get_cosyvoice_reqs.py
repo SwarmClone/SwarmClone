@@ -14,7 +14,7 @@ requirements = {
         ],
         "linux": [
             "http://pixelstonelab.com:5005/ttsfrd-0.4.2-cp310-cp310-linux_x86_64.whl",
-            "http://pixelstonelab.com:5005/ttsfrd-0.4.2-cp310-cp310-linux_x86_64.whl",
+            "http://pixelstonelab.com:5005/ttsfrd_dependency-0.1-py3-none-any.whl",
         ],
         "windows": [
         ]
