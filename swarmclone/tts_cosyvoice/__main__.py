@@ -1,6 +1,5 @@
 import os
 import sys
-import json
 import socket
 import shutil
 import tempfile
@@ -9,13 +8,13 @@ import threading
 
 from time import time, sleep
 from queue import Queue
-from typing import Optional, List
+from typing import List
 
 import torchaudio   # type: ignore
 import pygame
 
 from . import config, tts_config
-from cosyvoice.cli.cosyvoice import CosyVoice, CosyVoice2   # type: ignore
+from cosyvoice.cli.cosyvoice import CosyVoice   # type: ignore
 from .align import download_model_and_dict, init_mfa_models, align, match_textgrid
 from ..request_parser import *
 
@@ -54,7 +53,7 @@ def get_data(sock: socket.socket):
             case {"from": "llm", "type": "data", "payload": {"content": tokens, "id": sentence_id}}:
                 q.put([sentence_id, tokens])    # type: ignore
                 continue
-            case {"from": "llm", "type": "signal", "payload": "<eos>"}:
+            case {'from': 'llm', 'type': 'signal', 'payload': 'eos'}:
                 q.put(["<eos>", "<eos>"])
                 continue
             case x if x == ASR_ACTIVATE:
@@ -80,6 +79,7 @@ def play_sound(sock: socket.socket):
     while True:
         names = q_fname.get()
         if names[0] == "<eos>":
+            print(" * Send finish signal to panel.")
             sock.sendall(
                 dumps([{"from": "tts", 
                         "type": "signal", 

@@ -1,6 +1,6 @@
 import os
 import requests   # type: ignore
-import regex
+import regex  # type: ignore
 
 from pathlib import Path
 
