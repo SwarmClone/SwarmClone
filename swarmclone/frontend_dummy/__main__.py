@@ -25,6 +25,7 @@ def send_msg(sock: socket.socket, q: queue.Queue[RequestType], stop_module: thre
         sock.sendall(data)
 
 
+<<<<<<< Updated upstream
 if __name__ == '__main__':
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.connect((config.PANEL_HOST, config.FRONTEND_PORT))
@@ -37,6 +38,23 @@ if __name__ == '__main__':
         q_send.put(MODULE_READY) # 就绪
 
         while True: # 等待开始
+=======
+if __name__ == "__main__":
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect((config.PANEL_HOST, config.PANEL_TO_FRONTEND))
+        q_llm: Queue[Optional[str]] = Queue()
+        q_asr: Queue[Optional[str]] = Queue()
+        t = threading.Thread(target=get_data, args=(s, q_llm, q_asr))
+        t.start()
+        model_s: str = ""
+        asr_res: Optional[str] = ""
+        do_clear = False
+        do_refresh = False
+        eye_closed = False
+        word_count = 0
+        t0 = time()
+        while True:
+>>>>>>> Stashed changes
             try:
                 message: RequestType | None = q_recv.get(False)
                 if message == PANEL_START:

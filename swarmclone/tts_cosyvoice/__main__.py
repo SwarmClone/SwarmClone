@@ -146,6 +146,7 @@ if __name__ == "__main__":
             os.path.exists(os.path.join(mfa_dir, "english_mfa.dict"))):
         print(" * SwarmClone 使用 Montreal Forced Aligner 进行对齐，开始下载: ")
         download_model_and_dict(tts_config)
+<<<<<<< Updated upstream
     zh_acoustic, zh_lexicon, zh_tokenizer, zh_aligner = init_mfa_models(tts_config, lang="zh-CN")
     # TODO: 英文还需要检查其他一些依赖问题
     # en_acoustic, en_lexicon, en_tokenizer, en_aligner = init_mfa_models(tts_config, lang="en-US")
@@ -158,6 +159,16 @@ if __name__ == "__main__":
             sleep(0.5)
         print(" * 就绪。")
         get_data_thread = threading.Thread(target=get_data, args=(sock, ))
+=======
+    acoustic_model, lexicon_compiler, tokenizer, pretrained_aligner = init_mfa_models(tts_config)
+        
+
+    q: Queue[Optional[str]] = Queue()
+    q_fname: Queue[List[str]] = Queue()
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.connect((config.PANEL_HOST, config.PANEL_TO_TTS))
+        get_data_thread = threading.Thread(target=get_data, args=(sock, q))
+>>>>>>> Stashed changes
         get_data_thread.start()
         play_sound_thread = threading.Thread(target=play_sound, args=(sock, ))
         play_sound_thread.start()

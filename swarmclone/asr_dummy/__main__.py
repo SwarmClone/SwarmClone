@@ -26,8 +26,17 @@ def send_msg(sock: socket.socket, q: queue.Queue[RequestType], stop_module: thre
 
 stop = threading.Event()
 
-if __name__ == '__main__':
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+    # sherpa-onnx will do resampling inside.
+    sample_rate = 16000
+    samples_per_read = int(0.1 * sample_rate)  # 0.1 second = 100 ms
+
+    stream = recognizer.create_stream()
+
+
+    with (
+        socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock,
+        sd.InputStream(channels=1, dtype="float32", samplerate=sample_rate) as s
+    ):
         sock.connect((config.PANEL_HOST, config.ASR_PORT))
         # 启动接收和发送线程
         t_send = threading.Thread(target=send_msg, args=(sock, q_send, stop))
@@ -35,13 +44,43 @@ if __name__ == '__main__':
         t_send.start()
         t_recv.start()
 
-        q_send.put(MODULE_READY) # 初始化完毕
-        while True: # 等待模块开始
-            try:
-                message = q_recv.get(False)
-            except queue.Empty:
-                continue
-            if message == PANEL_START:
+                vad.accept_waveform(samples)
+
+                if vad.is_speech_detected():
+                    if not speech_started:
+                        sock.sendall(dumps([ASR_ACTIVATE]).encode())
+                        speech_started = True
+                else:
+                    speech_started = False
+
+                stream.accept_waveform(sample_rate, samples)
+                while recognizer.is_ready(stream):
+                    recognizer.decode_stream(stream)
+
+                is_endpoint = recognizer.is_endpoint(stream)
+
+                result: str = recognizer.get_result(stream)
+                
+                if result and (last_result != result):
+                    last_result = result
+                    print("\r{}:{}".format(segment_id, result), end="", flush=True)
+                if is_endpoint:
+                    if result:
+                        print("\r{}:{}".format(segment_id, result), flush=True)
+                        data: RequestType = {
+                            "from": "asr",
+                            "type": "data",
+                            "payload": {
+                                "user": "Developer A",
+                                "content": result
+                            }
+                        }
+                        sock.sendall(dumps([data]).encode())
+                        segment_id += 1
+                    recognizer.reset(stream)
+            except KeyboardInterrupt:
+                sock.sendall(b'{"from": "stop"}')
+                sock.close()
                 break
             time.sleep(0.1)
         while True:

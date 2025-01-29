@@ -1,15 +1,23 @@
-body {
-    -webkit-text-size-adjust: 100%;
-    -webkit-tap-highlight-color: rgba(22, 28, 45, 0);
-    background-color: #fff;
-    color: #161c2d;
-    font-family: var(--bs-font-sans-serif);
-    font-size: 1.0625rem;
-    font-weight: 400;
-    line-height: 1.6;
-    margin: 0;
+#startup_button {
+    position: absolute;
+    top: 80%;
+    right: 2.6%;
+    border-radius: 10px;
 }
 
-p{
-    margin: 0;
+.quick_access_title {
+    position: absolute;
+    top: 6%;
+    right: 78%;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.quick_access_content {
+    position: absolute;
+    top: 12%;
+    right: 22%;
+    min-width: 62%;
+    min-height: 40%;
+    background-color: chartreuse;
 }

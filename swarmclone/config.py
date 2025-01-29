@@ -13,8 +13,8 @@ class Config:
     LLM_PORT: int = 8000
     ASR_PORT: int = 8001
     TTS_PORT: int = 8002
-    FRONTEND_PORT: int = 8003
     CHAT_PORT: int = 8004
+    FRONTEND_PORT: int = 8500
     PANEL_PORT: int = 80
     REQUESTS_SEPARATOR: str = "%SEP%"
 

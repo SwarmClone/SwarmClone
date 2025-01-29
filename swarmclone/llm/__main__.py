@@ -36,6 +36,7 @@ def append_history(history: list[tuple[str, str]], role: str, text: str) -> list
         history[-1] = (history[-1][0], text)
     return history
 
+<<<<<<< Updated upstream
 def split_text(s, separators="。？！～.?!~\n\r"): # By DeepSeek
     # 构建正则表达式模式
     separators_class = ''.join(map(re.escape, separators))
@@ -56,6 +57,10 @@ def split_text(s, separators="。？！～.?!~\n\r"): # By DeepSeek
             result.append(last_cleaned)
     
     return result
+=======
+def split_text(text: str, separators: list[str]) -> list[str]:
+    return [part for part in re.split("|".join(separators), text) if part.strip()]
+>>>>>>> Stashed changes
 
 q_recv: queue.Queue[RequestType] = queue.Queue()
 def recv_msg(sock: socket.socket, q: queue.Queue[RequestType], stop_module: threading.Event):
@@ -264,9 +269,13 @@ if __name__ == '__main__':
                         full_text = ""
                         message_consumed = True
                         continue
+<<<<<<< Updated upstream
                     sentences = []
                     if text.strip():
                         *sentences, text = split_text(text) # 将所有完整的句子发送
+=======
+                    *sentences, text = split_text(text, ['.', '!', '?', '。', '？', '！', '…', '\n', '\r']) # 将所有完整的句子发送
+>>>>>>> Stashed changes
                     for i, sentence in enumerate(sentences):
                         q_send.put({
                             'from': 'llm',
@@ -304,14 +313,18 @@ if __name__ == '__main__':
                     if message == TTS_FINISH:
                         state = States.STANDBY
                         standby_time = time.time()
+<<<<<<< Updated upstream
                         message_consumed = True
                     if message == ASR_ACTIVATE:
                         state = States.WAIT_FOR_ASR
                         message_consumed = True
             if message is not None and message == PANEL_STOP:
+=======
+                        continue
+            if message is not None and message['type'] == 'signal' and message['payload'] == 'exit':
+>>>>>>> Stashed changes
                 stop_generation.set()
                 stop_module.set()
-                break
         t_recv.join()
         t_send.join()
         if generation_thread is not None and generation_thread.is_alive():

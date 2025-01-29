@@ -248,14 +248,18 @@ if __name__ == '__main__':
                     if message == TTS_FINISH:
                         state = States.STANDBY
                         standby_time = time.time()
+<<<<<<< Updated upstream
                         message_consumed = True
                     if message == ASR_ACTIVATE:
                         state = States.WAIT_FOR_ASR
                         message_consumed = True
             if message is not None and message == PANEL_STOP:
+=======
+                        continue
+            if message is not None and message['type'] == 'signal' and message['payload'] == 'exit':
+>>>>>>> Stashed changes
                 stop_generation.set()
                 stop_module.set()
-                break
         t_recv.join()
         t_send.join()
         if generation_thread is not None and generation_thread.is_alive():
