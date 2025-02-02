@@ -21,3 +21,19 @@
     min-height: 40%;
     background-color: chartreuse;
 }
+
+.system_info {
+    top: 5%;
+    right: 708%;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.system_info_content {  
+    position: absolute;
+    top: 62%;
+    right: 22%;
+    min-width: 62%;
+    min-height: 40%;
+    background-color: rgb(10, 82, 171);
+}

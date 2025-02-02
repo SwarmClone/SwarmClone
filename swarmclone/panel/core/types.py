@@ -1,6 +1,6 @@
 from enum import Enum
-from dataclasses import dataclass
 from typing import Dict, Tuple, List
+from loguru import logger as log
 
 from . import config
 

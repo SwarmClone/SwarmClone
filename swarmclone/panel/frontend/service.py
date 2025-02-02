@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 import uvicorn
@@ -15,8 +15,16 @@ class FrontendService:
 
     def _configure_routes(self):
         @self.app.get("/")
-        async def redirect_root():
+        async def _redirect_root():
             return RedirectResponse(url="/pages/index.html")
+        
+        @self.app.post("/api/start_all/}")
+        async def _start_module(request: Request):
+            # 支持任意多个参数，可以在这个字典中读取
+            args = dict(request.query_params)
+            print(args)
+            return {"message": "Starting all modules..."}
+        
 
     def _mount_static(self, static_dir: str):
         self.app.mount("/", StaticFiles(directory=static_dir), name="static")
@@ -30,7 +38,8 @@ class FrontendService:
                 self.app,
                 host=self.host,
                 port=self.port,
-                lifespan="on"
+                lifespan="on",
+                log_level="critical"
             )
             self.server = uvicorn.Server(config)
             started_event.set()
