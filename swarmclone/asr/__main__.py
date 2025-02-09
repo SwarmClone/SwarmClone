@@ -8,6 +8,9 @@ from .sherpa_vad import vad_init, create_detector
 from . import config, asr_config
 from ..request_parser import *
 
+MODULE_READY = MODULE_READY_TEMPLATE
+MODULE_READY["from"] = MODULE_READY["from"].format("asr") # type: ignore
+
 if __name__ == '__main__':
 
     asr_init(asr_config)

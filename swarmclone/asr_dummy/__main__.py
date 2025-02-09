@@ -5,6 +5,9 @@ import threading
 from . import config
 from ..request_parser import *
 
+MODULE_READY = MODULE_READY_TEMPLATE
+MODULE_READY["from"] = MODULE_READY["from"].format("asr") # type: ignore
+
 q_recv: queue.Queue[RequestType] = queue.Queue()
 def recv_msg(sock: socket.socket, q: queue.Queue[RequestType], stop_module: threading.Event):
     loader = Loader(config)

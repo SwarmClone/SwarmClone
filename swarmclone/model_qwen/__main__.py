@@ -11,6 +11,9 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStream
 from . import config, qwen2_config
 from ..request_parser import *
 
+MODULE_READY = MODULE_READY_TEMPLATE
+MODULE_READY["from"] = MODULE_READY["from"].format("llm") # type: ignore
+
 class CustomStoppingCriteria(StoppingCriteria):
     def __init__(self, stop_event: threading.Event, eos_token_id: int):
         self.stop_event = stop_event

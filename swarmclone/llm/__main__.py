@@ -14,6 +14,9 @@ from . import config, llm_config
 from ..request_parser import *
 from .model import LLM
 
+MODULE_READY = MODULE_READY_TEMPLATE
+MODULE_READY["from"] = MODULE_READY["from"].format("llm") # type: ignore
+
 def build_context(history: list[tuple[str, str]], tokenizer: Tokenizer,
                 max_length: int) -> torch.Tensor:
     ids = []

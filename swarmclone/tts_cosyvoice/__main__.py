@@ -18,6 +18,9 @@ from cosyvoice.cli.cosyvoice import CosyVoice   # type: ignore
 from .align import download_model_and_dict, init_mfa_models, align, match_textgrid
 from ..request_parser import *
 
+MODULE_READY = MODULE_READY_TEMPLATE
+MODULE_READY["from"] = MODULE_READY["from"].format("tts") # type: ignore
+
 def is_panel_ready(sock: socket.socket):
     msg = sock.recv(1024)
     return loads(msg.decode())[0] == PANEL_START
