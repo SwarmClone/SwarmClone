@@ -15,6 +15,7 @@ class Config:
     TTS_PORT: int = 8002
     FRONTEND_PORT: int = 8003
     CHAT_PORT: int = 8004
+    WEBSITE_PORT: int = 7620
     PANEL_PORT: int = 80
     REQUESTS_SEPARATOR: str = "%SEP%"
 

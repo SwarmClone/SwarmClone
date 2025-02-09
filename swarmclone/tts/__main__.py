@@ -1,3 +1,4 @@
+"""**DEPRECATED: This module is deprecated and will be removed in the future.**"""
 import os
 import socket
 import json

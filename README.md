@@ -13,8 +13,23 @@
  - 正在预训练
  - 下一步：搜集数据并微调模型
 
+## 如何开始？
+您需要安装最新版本的Anaconda，然后打开`Anaconda Prompt`，并运行以下命令：
+
+`conda create -n swarmclone python=3.10.6`
+
+`conda activate swarmclone`
+
+然后切换到项目的根目录，并运行以下命令：
+
+`pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple`
+
+如果遇到网络问题，您可以尝试手动下载.whl文件并安装。
+
+
 ## 如何参与开发？
- 您可以加入我们的开发QQ群：1017493942
+- 您可以加入我们的开发QQ群：1017493942
+
 
 ## 总技术路线：
  1) 大语言模型搭建（Tokenizer：tokenizers库；模型本体：nGPT；训练数据：OpenWebText、Wiki、悟道） <---现在位置

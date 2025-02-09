@@ -14,6 +14,9 @@ from . import config, llm_config
 from ..request_parser import *
 from .model import LLM
 
+MODULE_READY = MODULE_READY_TEMPLATE
+MODULE_READY["from"] = MODULE_READY["from"].format("llm") # type: ignore
+
 def build_context(history: list[tuple[str, str]], tokenizer: Tokenizer,
                 max_length: int) -> torch.Tensor:
     ids = []
@@ -184,10 +187,14 @@ if __name__ == '__main__':
             等待ASR状态：
             - 若收到ASR给出的语音识别信息，切换到生成状态
             """
+            print(message)
             if message_consumed:
                 try:
                     message = q_recv.get(False)
                     message_consumed = False
+                    if message.get("from") == "tts" and message.get("type") == "data": # 不需要处理TTS给出的对齐信息
+                        message_consumed = True
+                        continue
                 except queue.Empty:
                     message = None
             match state:
