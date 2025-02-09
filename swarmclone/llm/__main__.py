@@ -187,10 +187,14 @@ if __name__ == '__main__':
             等待ASR状态：
             - 若收到ASR给出的语音识别信息，切换到生成状态
             """
+            print(message)
             if message_consumed:
                 try:
                     message = q_recv.get(False)
                     message_consumed = False
+                    if message.get("from") == "tts" and message.get("type") == "data": # 不需要处理TTS给出的对齐信息
+                        message_consumed = True
+                        continue
                 except queue.Empty:
                     message = None
             match state:

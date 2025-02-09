@@ -159,6 +159,9 @@ if __name__ == '__main__':
                 try:
                     message = q_recv.get(False)
                     message_consumed = False
+                    if message.get("from") == "tts" and message.get("type") == "data": # 不需要处理TTS给出的对齐信息
+                        message_consumed = True
+                        continue
                 except queue.Empty:
                     message = None
             match state:
