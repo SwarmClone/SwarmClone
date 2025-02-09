@@ -92,69 +92,69 @@ class ModuleManager:
                 log.exception(f"[{module.name}] Unexpected error:")
                 break
 
-def _forward_messages(self, source: ModuleType, data: bytes):
-    """转发消息到目标模块（新增信号检测）"""
-    try:
-        requests = loads(data.decode('utf-8'))
-        log.debug(f"[{source.name}] Decoded {len(requests)} request(s)")
-    except JSONDecodeError as e:
-        log.error(f"[{source.name}] JSON decode error: {str(e)}")
-        return
-    except Exception as e:
-        log.error(f"[{source.name}] Message parsing failed: {str(e)}")
-        return
-
-    for idx, request in enumerate(requests):
+    def _forward_messages(self, source: ModuleType, data: bytes):
+        """转发消息到目标模块（新增信号检测）"""
         try:
-            # 信号消息处理
-            if request.get("type") == "signal":
-                payload = request.get("payload")
-                module_from = request.get("from", "").upper()
-                
-                if payload == "module.exit":
-                    log.info(f"[{module_from}] Module exited normally")
-                    self._handle_module_exit(module_from)
-                    continue
-                    
-                if payload == "module.crash":
-                    log.error(f"[{module_from}] Module encountered critical error!")
-                    self._handle_module_exit(module_from)
-                    continue
-
-                # 处理MODULE_READY信号
-                if payload == "ready":
-                    log.info(f"[{module_from}] Module is ready. Sending PANEL_START.")
-                    try:
-                        target_module = ModuleType[module_from]
-                        with self.lock:
-                            conn = self.connections.get(target_module)
-                            if conn:
-                                start_signal = PANEL_START
-                                data_to_send = dumps([start_signal]).encode()
-                                conn.sendall(data_to_send)
-                                log.debug(f"[Panel] Sent PANEL_START to {target_module.name}")
-                            else:
-                                log.error(f"[Panel] No connection for {target_module.name}")
-                    except KeyError:
-                        log.error(f"[Panel] Invalid module name: {module_from}")
-                    continue
-
-            # 正常消息转发流程
-            req_type = request.get("type", "unknown")
-            targets = CONNECTION_TABLE[source][req_type == "data"]
-            
-            log.debug(
-                f"[{source.name}] Request #{idx+1} "
-                f"(type={req_type}) -> {[t.name for t in targets]}"
-            )
-
-            request_bytes = dumps([request]).encode('utf-8')
-            self._send_to_targets(source, request_bytes, targets)
-
-        except KeyError as e:
-            log.error(f"[{source.name}] Invalid request type: {str(e)}")
+            requests = loads(data.decode('utf-8'))
+            log.debug(f"[{source.name}] Decoded {len(requests)} request(s)")
+        except JSONDecodeError as e:
+            log.error(f"[{source.name}] JSON decode error: {str(e)}")
+            return
         except Exception as e:
-            log.exception(f"[{source.name}] Request processing error:")
+            log.error(f"[{source.name}] Message parsing failed: {str(e)}")
+            return
+
+        for idx, request in enumerate(requests):
+            try:
+                # 信号消息处理
+                if request.get("type") == "signal":
+                    payload = request.get("payload")
+                    module_from = request.get("from", "").upper() # type: ignore
+                    
+                    if payload == "module.exit":
+                        log.info(f"[{module_from}] Module exited normally")
+                        self._handle_module_exit(module_from)
+                        continue
+                        
+                    if payload == "module.crash":
+                        log.error(f"[{module_from}] Module encountered critical error!")
+                        self._handle_module_exit(module_from)
+                        continue
+
+                    # 处理MODULE_READY信号
+                    if payload == "ready":
+                        log.info(f"[{module_from}] Module is ready. Sending PANEL_START.")
+                        try:
+                            target_module = ModuleType[module_from]
+                            with self.lock:
+                                conn = self.connections.get(target_module)
+                                if conn:
+                                    start_signal = PANEL_START
+                                    data_to_send = dumps([start_signal]).encode()
+                                    conn.sendall(data_to_send)
+                                    log.debug(f"[Panel] Sent PANEL_START to {target_module.name}")
+                                else:
+                                    log.error(f"[Panel] No connection for {target_module.name}")
+                        except KeyError:
+                            log.error(f"[Panel] Invalid module name: {module_from}")
+                        continue
+
+                # 正常消息转发流程
+                req_type = request.get("type", "unknown")
+                targets = CONNECTION_TABLE[source][req_type == "data"]
+                
+                log.debug(
+                    f"[{source.name}] Request #{idx+1} "
+                    f"(type={req_type}) -> {[t.name for t in targets]}"
+                )
+
+                request_bytes = dumps([request]).encode('utf-8')
+                self._send_to_targets(source, request_bytes, targets)
+
+            except KeyError as e:
+                log.error(f"[{source.name}] Invalid request type: {str(e)}")
+            except Exception as e:
+                log.exception(f"[{source.name}] Request processing error:")
 
 
     def _handle_module_exit(self, module_name: str):
