@@ -3,10 +3,10 @@ import time
 import webbrowser
 from loguru import logger as log
 
+from ..config import config
 from .core.types import ModuleType
 from .core.module_manager import ModuleManager
 from .frontend.service import FrontendService
-from . import config
 
 def get_available_port(host, default_port, module_name):
     """获取可用端口"""
@@ -73,8 +73,8 @@ def create_module_socket(host, module_type):
 def main():
     # 初始化前端服务
     frontend = FrontendService(
-        host=config.PANEL_HOST,
-        port=config.WEBSITE_PORT,
+        host=config.panel.server.host,
+        port=config.panel.frontend.port,
         static_dir="frontend/static"
     )
     started_event = frontend.start()
@@ -86,7 +86,7 @@ def main():
     sockets = {}
     for mt in ModuleType:
         try:
-            sockets[mt] = create_module_socket(config.PANEL_HOST, mt)
+            sockets[mt] = create_module_socket(config.panel.server.host, mt)
             manager.start_module_handler(mt, sockets[mt])
         except Exception as e:
             log.critical(f"[{mt.name}] Failed to initialize: {str(e)}")
@@ -94,7 +94,7 @@ def main():
 
     # 等待前端启动后打开浏览器
     started_event.wait()
-    webbrowser.open(f'http://{config.PANEL_HOST}:{config.WEBSITE_PORT}/pages/index.html')
+    webbrowser.open(f'http://{config.panel.server.host}:{config.panel.frontend.port}/pages/index.html')
 
     try:
         manager.running = True

@@ -12,7 +12,8 @@ import soundfile as sf # type: ignore
 from TTS.tts.configs.xtts_config import XttsConfig # type: ignore
 from TTS.tts.models.xtts import Xtts # type: ignore
 
-from . import config, tts_config
+from . import tts_config
+from ..config import config
 
 
 def get_data(sock: socket.socket, q: Queue[Optional[str]]):
@@ -83,7 +84,7 @@ if __name__ == '__main__':
     q_fname: Queue[Optional[str]] = Queue()
     abs_reference_wav_path = os.path.join(abs_model_path, tts_config.REFERENCE_WAV_PATH)
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.connect((config.PANEL_HOST, config.TTS_PORT))
+        sock.connect((config.panel.server.host, config.tts.port))
         get_data_thread = threading.Thread(target=get_data, args=(sock, q))
         get_data_thread.start()
         play_sound_thread = threading.Thread(target=play_sound, args=(q_fname,))

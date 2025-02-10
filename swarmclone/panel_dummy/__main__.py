@@ -1,10 +1,10 @@
 import threading
 import socket
-import json
-import subprocess
 import time
-from . import config
+
 from ..request_parser import *
+from ..config import config
+
 
 class Iota:
     """枚举整数"""
@@ -19,11 +19,11 @@ iota = Iota()
 
 SUBMODULE_NAMES = ["LLM", "ASR", "TTS", "FRONTEND", "CHAT"]
 PORTS = [
-    config.LLM_PORT,
-    config.ASR_PORT,
-    config.TTS_PORT,
-    config.FRONTEND_PORT, 
-    config.CHAT_PORT
+    config.llm.port,
+    config.asr.port,
+    config.tts.port,
+    config.unity_frontend.port, 
+    config.chat.port
 ]
 LLM = iota()
 ASR = iota()
@@ -91,7 +91,7 @@ if __name__ == '__main__':
         for _ in range(iota.count)
     ]
     for i, sock in enumerate(sockets):
-        sock.bind((config.PANEL_HOST, PORTS[i]))
+        sock.bind((config.panel.server.host, PORTS[i]))
         sock.listen(1)
 
     # 分别启动处理各个模块的子线程

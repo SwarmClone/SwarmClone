@@ -8,8 +8,11 @@ import uuid
 import time
 from enum import Enum
 from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer, StoppingCriteriaList, StoppingCriteria # type: ignore
-from . import config, qwen2_config
+
+from . import qwen2_config
 from ..request_parser import *
+from ..config import config
+
 
 MODULE_READY = MODULE_READY_TEMPLATE
 MODULE_READY["from"] = MODULE_READY["from"].format("llm") # type: ignore
@@ -116,7 +119,7 @@ if __name__ == '__main__':
     
     streamer = TextIteratorStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.connect((config.PANEL_HOST, config.LLM_PORT))
+        sock.connect((config.panel.server.host, config.llm.port))
         t_recv = threading.Thread(target=recv_msg, args=(sock, q_recv, stop_module))
         t_recv.start()
         t_send = threading.Thread(target=send_msg, args=(sock, q_send, stop_module))
