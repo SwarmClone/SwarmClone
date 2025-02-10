@@ -156,7 +156,7 @@ if __name__ == "__main__":
     # en_acoustic, en_lexicon, en_tokenizer, en_aligner = init_mfa_models(tts_config, lang="en-US")
     
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.connect((config.panel.server.port, config.tts.port))
+        sock.connect((config.panel.server.host, config.tts.port))
         print(" * CosyVoice 初始化完成，等待面板准备就绪。")
         sock.sendall(dumps([MODULE_READY]).encode())
         while not is_panel_ready(sock):
