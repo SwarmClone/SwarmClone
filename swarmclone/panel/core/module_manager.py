@@ -8,6 +8,7 @@ from typing import Dict, Optional, Set
 from ...request_parser import *
 from .types import ModuleType, CONNECTION_TABLE
 
+
 class ModuleManager:
     def __init__(self):
         self.running = False
@@ -93,7 +94,7 @@ class ModuleManager:
                 break
 
 def _forward_messages(self, source: ModuleType, data: bytes):
-    """转发消息到目标模块（新增信号检测）"""
+    """转发消息到目标模块"""
     try:
         requests = loads(data.decode('utf-8'))
         log.debug(f"[{source.name}] Decoded {len(requests)} request(s)")
@@ -157,6 +158,7 @@ def _forward_messages(self, source: ModuleType, data: bytes):
             log.exception(f"[{source.name}] Request processing error:")
 
 
+    # TODO:待完善
     def _handle_module_exit(self, module_name: str):
         """处理模块退出事件"""
         try:
@@ -170,6 +172,7 @@ def _forward_messages(self, source: ModuleType, data: bytes):
         except KeyError:
             log.error(f"Invalid module name: {module_name}")
 
+    # TODO:待完善
     def _send_to_targets(self, source: ModuleType, data: bytes, targets: list):
         """发送数据到指定目标"""
         with self.lock:

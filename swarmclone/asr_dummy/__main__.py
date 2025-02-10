@@ -2,11 +2,14 @@ import socket
 import time
 import queue
 import threading
-from . import config
+
 from ..request_parser import *
+from swarmclone.config import config
+
 
 q_recv: queue.Queue[RequestType] = queue.Queue()
 def recv_msg(sock: socket.socket, q: queue.Queue[RequestType], stop_module: threading.Event):
+    # TODO:检查这里是否仍然适用
     loader = Loader(config)
     while True:
         data = sock.recv(1024)
@@ -28,7 +31,7 @@ stop = threading.Event()
 
 if __name__ == '__main__':
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.connect((config.PANEL_HOST, config.ASR_PORT))
+        sock.connect((config.panel.server.port, config.asr.port))
         # 启动接收和发送线程
         t_send = threading.Thread(target=send_msg, args=(sock, q_send, stop))
         t_recv = threading.Thread(target=recv_msg, args=(sock, q_recv, stop))

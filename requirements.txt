@@ -23,3 +23,6 @@ torchaudio==2.5.1
 
 # 日志库
 loguru
+
+# toml配置文件支持
+tomli

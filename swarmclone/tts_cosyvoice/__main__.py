@@ -13,10 +13,13 @@ from typing import List
 import torchaudio   # type: ignore
 import pygame
 
-from . import config, tts_config
+from . import tts_config
+from ..request_parser import *
+from swarmclone.config import config
 from cosyvoice.cli.cosyvoice import CosyVoice   # type: ignore
 from .align import download_model_and_dict, init_mfa_models, align, match_textgrid
-from ..request_parser import *
+
+
 
 def is_panel_ready(sock: socket.socket):
     msg = sock.recv(1024)
@@ -151,7 +154,7 @@ if __name__ == "__main__":
     # en_acoustic, en_lexicon, en_tokenizer, en_aligner = init_mfa_models(tts_config, lang="en-US")
     
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.connect((config.PANEL_HOST, config.TTS_PORT))
+        sock.connect((config.panel.server.port, config.tts.port))
         print(" * CosyVoice 初始化完成，等待面板准备就绪。")
         sock.sendall(dumps([MODULE_READY]).encode())
         while not is_panel_ready(sock):

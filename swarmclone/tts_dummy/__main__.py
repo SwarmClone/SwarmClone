@@ -5,8 +5,9 @@ from time import sleep
 from queue import Queue
 from typing import List
 
-from . import config
 from ..request_parser import *
+from swarmclone.config import config
+
 
 def is_panel_ready(sock: socket.socket):
     msg = sock.recv(1024)

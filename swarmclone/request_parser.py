@@ -1,14 +1,16 @@
 """解析新的API.txt中定义的请求序列"""
 import json
-from .config import Config
+from . import config
 from typing import Literal
 
-config = Config()
+from swarmclone.config import config
+
+
 PayloadType = dict[str, str | float | int]
 RequestType = dict[Literal["from", "type", "payload"], str | PayloadType]
 
 def loads(request_str: str) -> list[RequestType]:
-    request_strings = request_str.split(config.REQUESTS_SEPARATOR)
+    request_strings = request_str.split(config.panel.server.requests_separator)
     requests = []
     for request_string in request_strings:
         if not request_string:
@@ -21,14 +23,14 @@ def loads(request_str: str) -> list[RequestType]:
 
 def dumps(requests: list[RequestType]) -> str:
     return "".join([
-        (json.dumps(request).replace(config.REQUESTS_SEPARATOR, "") + # 防止在不应出现的地方出现分隔符
-        config.REQUESTS_SEPARATOR)
+        (json.dumps(request).replace(config.server.requests_separator, "") + # 防止在不应出现的地方出现分隔符
+        config.server.requests_separator)
         for request in requests
     ])
 
 class Loader: # loads的进一步封装
-    def __init__(self, config: Config):
-        self.sep = config.REQUESTS_SEPARATOR
+    def __init__(self):
+        self.sep = config.panel.server.requests_separator
         self.request_str = ""
         self.requests: list[RequestType] = []
     

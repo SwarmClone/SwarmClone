@@ -26,11 +26,11 @@ def create_detector(asr_config):
     sample_rate = 16000
     # samples_per_read = int(0.1 * sample_rate)  # 0.1 second = 100 ms
 
-    config = sherpa_onnx.VadModelConfig()
-    config.silero_vad.model = model_file
-    config.sample_rate = sample_rate
+    m_config = sherpa_onnx.VadModelConfig()
+    m_config.silero_vad.model = model_file
+    m_config.sample_rate = sample_rate
 
-    vad = sherpa_onnx.VoiceActivityDetector(config, buffer_size_in_seconds=30)
+    vad = sherpa_onnx.VoiceActivityDetector(m_config, buffer_size_in_seconds=30)
 
     return vad
 

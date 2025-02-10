@@ -1,0 +1,22 @@
+[panel.server]
+host = "127.0.0.1"
+port = 7624
+requests_separator = "%SEP%"
+
+[panel.frontend]
+port = 7624
+
+[llm]
+port = 7621
+
+[asr]
+port = 7622
+
+[tts]
+port = 7623
+
+[unity_frontend]
+port = 7624
+
+[chat]
+port = 7625

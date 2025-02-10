@@ -5,8 +5,11 @@ import librosa
 import sounddevice as sd # type: ignore
 from .sherpa_asr import asr_init, create_recognizer
 from .sherpa_vad import vad_init, create_detector
-from . import config, asr_config
+
+from . import asr_config
 from ..request_parser import *
+from swarmclone.config import config
+
 
 if __name__ == '__main__':
 
@@ -28,7 +31,7 @@ if __name__ == '__main__':
         socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock,
         sd.InputStream(channels=1, dtype="float32", samplerate=sample_rate) as s
     ):
-        sock.connect((config.PANEL_HOST, config.ASR_PORT))
+        sock.connect((config.panel.server.host, config.asr.port))
         last_result = ""
         segment_id = 0
         print("就绪，等待开始。")

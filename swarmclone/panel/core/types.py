@@ -1,15 +1,14 @@
 from enum import Enum
 from typing import Dict, Tuple, List
-from loguru import logger as log
 
-from . import config
+from swarmclone.config import config
 
 class ModuleType(Enum):
-    LLM = (0, "LLM", config.LLM_PORT)
-    ASR = (1, "ASR", config.ASR_PORT)
-    TTS = (2, "TTS", config.TTS_PORT)
-    FRONTEND = (3, "FRONTEND", config.FRONTEND_PORT)
-    CHAT = (4, "CHAT", config.CHAT_PORT)
+    LLM = (0, "LLM", config.llm.port)
+    ASR = (1, "ASR", config.asr.port)
+    TTS = (2, "TTS", config.tts.port)
+    FRONTEND = (3, "FRONTEND", config.panel.frontend.port)
+    CHAT = (4, "CHAT", config.chat.port)
 
     def __init__(self, idx: int, name: str, port: int):
         self.idx = idx
