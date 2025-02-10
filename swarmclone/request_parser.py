@@ -20,8 +20,8 @@ def loads(request_str: str) -> list[RequestType]:
 
 def dumps(requests: list[RequestType]) -> str:
     return "".join([
-        (json.dumps(request).replace(config.server.requests_separator, "") + # 防止在不应出现的地方出现分隔符
-        config.server.requests_separator)
+        (json.dumps(request).replace(config.panel.server.requests_separator, "") + # 防止在不应出现的地方出现分隔符
+        config.panel.server.requests_separator)
         for request in requests
     ])
 

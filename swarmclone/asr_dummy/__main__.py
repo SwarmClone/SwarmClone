@@ -34,7 +34,7 @@ stop = threading.Event()
 
 if __name__ == '__main__':
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.connect((config.panel.server.port, config.asr.port))
+        sock.connect((config.panel.server.host, config.asr.port))
         # 启动接收和发送线程
         t_send = threading.Thread(target=send_msg, args=(sock, q_send, stop))
         t_recv = threading.Thread(target=recv_msg, args=(sock, q_recv, stop))
