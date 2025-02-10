@@ -1,22 +1,22 @@
 [panel.server]
 host = "127.0.0.1"
-port = 7624
+port = 8001
 requests_separator = "%SEP%"
 
 [panel.frontend]
-port = 7624
+port = 8002
 
 [llm]
-port = 7621
+port = 8003
 
 [asr]
-port = 7622
+port = 8004
 
 [tts]
-port = 7623
+port = 8005
 
 [unity_frontend]
-port = 7624
+port = 8006
 
 [chat]
-port = 7625
+port = 8007
