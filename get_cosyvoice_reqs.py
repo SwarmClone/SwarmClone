@@ -31,7 +31,6 @@ requirements = {
     }
 }
 
-
 print(""" * 开始为 SwarmClone 添加以下依赖: \n\t 1. TTS CosyVoice \n\t 2. Montreal Forced Aligner""")
 install = input(" * 确认? [y/n]")
 
