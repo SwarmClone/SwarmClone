@@ -196,7 +196,15 @@ if __name__ == '__main__':
                                 'type': 'data',
                                 'payload': {
                                     'content': text,
-                                    'id': str(uuid.uuid4())
+                                    'id': str(uuid.uuid4()),
+                                    'emotion': {
+                                        'like': 0,
+                                        'disgust': 0,
+                                        'anger': 0,
+                                        'happy': 0,
+                                        'sad': 0,
+                                        'neutral': 1.0
+                                    } # 占位符
                                 }
                             })
                         full_text += text
@@ -232,7 +240,15 @@ if __name__ == '__main__':
                                 'type': 'data',
                                 'payload': {
                                     'content': sentence,
-                                    'id': str(uuid.uuid4())
+                                    'id': str(uuid.uuid4()),
+                                    'emotion': {
+                                        'like': 0,
+                                        'disgust': 0,
+                                        'anger': 0,
+                                        'happy': 0,
+                                        'sad': 0,
+                                        'neutral': 1.0
+                                    } # 占位符
                                 }
                             })
                     continue
