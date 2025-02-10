@@ -3,7 +3,7 @@ import time
 import webbrowser
 from loguru import logger as log
 
-from swarmclone.config import config
+from ..config import config
 from .core.types import ModuleType
 from .core.module_manager import ModuleManager
 from .frontend.service import FrontendService

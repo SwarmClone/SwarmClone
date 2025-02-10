@@ -13,7 +13,7 @@ from TTS.tts.configs.xtts_config import XttsConfig # type: ignore
 from TTS.tts.models.xtts import Xtts # type: ignore
 
 from . import tts_config
-from swarmclone.config import config
+from ..config import config
 
 
 def get_data(sock: socket.socket, q: Queue[Optional[str]]):

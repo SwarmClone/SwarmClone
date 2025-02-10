@@ -8,8 +8,7 @@ from .sherpa_vad import vad_init, create_detector
 
 from . import asr_config
 from ..request_parser import *
-from swarmclone.config import config
-
+from ..config import config
 
 MODULE_READY = MODULE_READY_TEMPLATE
 MODULE_READY["from"] = MODULE_READY["from"].format("asr") # type: ignore

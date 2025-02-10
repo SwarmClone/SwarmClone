@@ -4,7 +4,7 @@ import queue
 import threading
 
 from ..request_parser import *
-from swarmclone.config import config
+from ..config import config
 
 
 MODULE_READY = MODULE_READY_TEMPLATE

@@ -3,7 +3,7 @@ import socket
 import time
 
 from ..request_parser import *
-from swarmclone.config import config
+from ..config import config
 
 
 class Iota:

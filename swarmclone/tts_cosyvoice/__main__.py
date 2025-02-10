@@ -15,10 +15,9 @@ import pygame
 
 from . import tts_config
 from ..request_parser import *
-from swarmclone.config import config
+from ..config import config
 from cosyvoice.cli.cosyvoice import CosyVoice   # type: ignore
 from .align import download_model_and_dict, init_mfa_models, align, match_textgrid
-
 
 
 MODULE_READY = MODULE_READY_TEMPLATE

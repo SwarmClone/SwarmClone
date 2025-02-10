@@ -14,8 +14,7 @@ from tokenizers import Tokenizer # type: ignore
 from . import llm_config
 from ..request_parser import *
 from .model import LLM
-from swarmclone.config import config
-
+from ..config import config
 
 MODULE_READY = MODULE_READY_TEMPLATE
 MODULE_READY["from"] = MODULE_READY["from"].format("llm") # type: ignore

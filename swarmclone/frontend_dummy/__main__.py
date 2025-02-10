@@ -4,8 +4,7 @@ import queue
 from time import time, sleep
 
 from ..request_parser import *
-from swarmclone.config import config
-
+from ..config import config
 
 MODULE_READY = MODULE_READY_TEMPLATE
 MODULE_READY["from"] = MODULE_READY["from"].format("frontend") # type: ignore
