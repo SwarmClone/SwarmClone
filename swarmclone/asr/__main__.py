@@ -87,7 +87,7 @@ if __name__ == '__main__':
                 if is_endpoint:
                     if result:
                         print("\r{}:{}".format(segment_id, result), flush=True)
-                        data: RequestType = {
+                        req: RequestType = {
                             "from": "asr",
                             "type": "data",
                             "payload": {
@@ -95,11 +95,9 @@ if __name__ == '__main__':
                                 "content": result
                             }
                         }
-                        sock.sendall(dumps([data]).encode())
+                        sock.sendall(dumps([req]).encode())
                         segment_id += 1
                     recognizer.reset(stream)
             except KeyboardInterrupt:
                 sock.close()
                 break
-            
-                
