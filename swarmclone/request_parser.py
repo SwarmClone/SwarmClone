@@ -3,7 +3,8 @@ import json
 from .config import config
 from typing import Literal
 
-PayloadType = dict[str, str | float | int]
+EmotionType = dict[Literal["like", "disgust", "anger", "happy", "sad", "neutral"], float]
+PayloadType = dict[str, str | float | int | EmotionType]
 RequestType = dict[Literal["from", "type", "payload"], str | PayloadType]
 
 def loads(request_str: str) -> list[RequestType]:
@@ -63,6 +64,7 @@ __all__ = [
     "loads",
     "dumps",
     "Loader",
+    "EmotionType",
     "PayloadType",
     "RequestType",
     "ASR_ACTIVATE",

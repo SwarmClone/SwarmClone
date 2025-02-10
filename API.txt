@@ -71,7 +71,15 @@ LLM生成文本示例：
     "type": "data",
     "payload": {
         "content": "this is an llm test.",
-        "id": <UUID>
+        "id": <UUID>,
+        "emotion": {
+            "like": 0.1,
+            "disgust": 0.1,
+            "anger": 0.1,
+            "happy": 0.1,
+            "sad": 0.1,
+            "neutral": 0.5
+        }
     }
 }%SEP%
 TTS生成完毕信号示例：
@@ -93,3 +101,6 @@ TTS对齐信息示例：
 
 %SEP%用于分割不同数据包，当接收方没有及时接收导致数据包堆积时可以用%SEP%将数据包分割开分别处理
 任何type=signal且payload=exit的数据包都会终止连接
+任何模块在与panel连接后，都会发送一个ready类型数据包（{'from':'<模块名>', 'type': 'signal', 'payload':'ready'}），
+panel在确认所有必须模块都ready后会发送一个start类型数据包（{'from':'panel', 'type': 'signal', 'payload':'start'}），
+模块在接收到start信号后才开始启动主逻辑。
