@@ -1,10 +1,7 @@
 """解析新的API.txt中定义的请求序列"""
 import json
-from . import config
+from .config import config
 from typing import Literal
-
-from swarmclone.config import config
-
 
 PayloadType = dict[str, str | float | int]
 RequestType = dict[Literal["from", "type", "payload"], str | PayloadType]
@@ -29,7 +26,7 @@ def dumps(requests: list[RequestType]) -> str:
     ])
 
 class Loader: # loads的进一步封装
-    def __init__(self):
+    def __init__(self, config):
         self.sep = config.panel.server.requests_separator
         self.request_str = ""
         self.requests: list[RequestType] = []
@@ -62,4 +59,16 @@ PANEL_START: RequestType = {'from': 'panel', 'type': 'signal', 'payload':'start'
 PANEL_STOP: RequestType = {'from': 'panel', 'type': 'signal', 'payload':'stop'}
 MODULE_READY_TEMPLATE: RequestType = {'from':'{}', 'type': 'signal', 'payload':'ready'}
 
-__ALL__ = ["loads", "dumps", "ASR_ACTIVATE", "LLM_EOS", "TTS_FINISH"]
+__all__ = [
+    "loads",
+    "dumps",
+    "Loader",
+    "PayloadType",
+    "RequestType",
+    "ASR_ACTIVATE",
+    "LLM_EOS",
+    "TTS_FINISH",
+    "PANEL_START",
+    "PANEL_STOP",
+    "MODULE_READY_TEMPLATE"
+] # 防止json、config等模块被重复导入
