@@ -7,6 +7,9 @@ from ..request_parser import *
 from swarmclone.config import config
 
 
+MODULE_READY = MODULE_READY_TEMPLATE
+MODULE_READY["from"] = MODULE_READY["from"].format("asr") # type: ignore
+
 q_recv: queue.Queue[RequestType] = queue.Queue()
 def recv_msg(sock: socket.socket, q: queue.Queue[RequestType], stop_module: threading.Event):
     # TODO:检查这里是否仍然适用

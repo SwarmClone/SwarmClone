@@ -14,6 +14,9 @@ from ..request_parser import *
 from swarmclone.config import config
 
 
+MODULE_READY = MODULE_READY_TEMPLATE
+MODULE_READY["from"] = MODULE_READY["from"].format("llm") # type: ignore
+
 class CustomStoppingCriteria(StoppingCriteria):
     def __init__(self, stop_event: threading.Event, eos_token_id: int):
         self.stop_event = stop_event
@@ -159,6 +162,9 @@ if __name__ == '__main__':
                 try:
                     message = q_recv.get(False)
                     message_consumed = False
+                    if message.get("from") == "tts" and message.get("type") == "data": # 不需要处理TTS给出的对齐信息
+                        message_consumed = True
+                        continue
                 except queue.Empty:
                     message = None
             match state:

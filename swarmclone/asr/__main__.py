@@ -11,6 +11,9 @@ from ..request_parser import *
 from swarmclone.config import config
 
 
+MODULE_READY = MODULE_READY_TEMPLATE
+MODULE_READY["from"] = MODULE_READY["from"].format("asr") # type: ignore
+
 if __name__ == '__main__':
 
     asr_init(asr_config)

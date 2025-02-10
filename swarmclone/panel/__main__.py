@@ -8,7 +8,6 @@ from .core.types import ModuleType
 from .core.module_manager import ModuleManager
 from .frontend.service import FrontendService
 
-
 def get_available_port(host, default_port, module_name):
     """获取可用端口"""
     while True:

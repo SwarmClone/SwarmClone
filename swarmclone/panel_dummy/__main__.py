@@ -49,8 +49,9 @@ def handle_submodule(submodule: int, sock: socket.socket) -> None:
         if not data:
             continue
         loader.update(data.decode())
-        if MODULE_READY in loader.get_requests():
-            break
+        for req in loader.get_requests():
+            if req.get("type") == "signal" and req.get("payload") == "ready":
+                break
         time.sleep(0.1)
     print(f"{SUBMODULE_NAMES[submodule]} is online.")
     try:

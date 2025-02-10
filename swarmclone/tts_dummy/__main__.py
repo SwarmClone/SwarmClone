@@ -9,6 +9,9 @@ from ..request_parser import *
 from swarmclone.config import config
 
 
+MODULE_READY = MODULE_READY_TEMPLATE
+MODULE_READY["from"] = MODULE_READY["from"].format("tts") # type: ignore
+
 def is_panel_ready(sock: socket.socket):
     msg = sock.recv(1024)
     return loads(msg.decode())[0] == PANEL_START
