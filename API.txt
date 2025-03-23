@@ -44,6 +44,8 @@ ASR逻辑：
 
 前端逻辑：接受LLM给出的生成句子、ASR给出的语音识别信息、TTS给出的生成完毕信号和语音对齐信息
 
+Chat逻辑：发出弹幕信息
+
 语音活动信号示例：
 {
     "from": "asr",
@@ -96,6 +98,15 @@ TTS对齐信息示例：
         "id": <对应的句子的id>,
         "token": <这一段音频对应的文本>,
         "duration": <这一段音频的长度>
+    }
+}%SEP%
+Chat弹幕信息实例：
+{
+    "from": "chat",
+    "type": "data",
+    "payload": {
+        "user": "Developer A",
+        "content": "this is a chat test."
     }
 }%SEP%
 
