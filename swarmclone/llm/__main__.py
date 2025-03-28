@@ -145,6 +145,7 @@ if __name__ == '__main__':
             time.sleep(0.1) # 防止CPU占用过高
 
         history: list[dict[str, str]] = []
+        chat_messages: list[tuple[str, str]] = []
         state: States = States.STANDBY
         text = "" # 尚未发送的文本
         full_text = "" # 一轮生成中的所有文本
@@ -179,7 +180,8 @@ if __name__ == '__main__':
             if state == States.STANDBY:
                 if time.time() - standby_time > 1000000:
                     stop_generation.clear()
-                    history.append({'role': 'user', 'content': '请随便说点什么吧！'})
+                    history += [{'role': 'chat', 'content': f"{name}：{content}"} for name, content in chat_messages]
+                    chat_messages.clear()
                     kwargs = {"model": model, "text_inputs": history, "streamer": streamer}
                     generation_thread = threading.Thread(target=generate, kwargs=kwargs)
                     generation_thread.start()
@@ -239,6 +241,8 @@ if __name__ == '__main__':
                         isinstance(message['payload']['content'], str)):
                     message_consumed = True
                     stop_generation.clear()
+                    history += [{'role': 'chat', 'content': f"{name}：{content}"} for name, content in chat_messages]
+                    chat_messages.clear()
                     history.append({'role': 'user', 'content': message['payload']['content']})
                     kwargs = {"model": model, "text_inputs": history, "streamer": streamer}
                     generation_thread = threading.Thread(target=generate, kwargs=kwargs)
@@ -255,6 +259,15 @@ if __name__ == '__main__':
                 if message == ASR_ACTIVATE:
                     state = States.WAIT_FOR_ASR
                     message_consumed = True
+
+            if (message is not None and
+                message['from'] == 'chat' and
+                message['type'] == 'data' and
+                isinstance(message['payload'], dict) and
+                isinstance(message['payload']['user'], str) and
+                isinstance(message['payload']['content'], str)):
+                chat_messages.append((message['payload']['user'], message['payload']['content']))
+                message_consumed = True
             
             if message is not None and message == PANEL_STOP:
                 stop_generation.set()
