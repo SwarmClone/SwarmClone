@@ -33,7 +33,9 @@ requirements = {
             # config
             "tomli",
             # MiniLM2
-            "modelscope"
+            "modelscope",
+            # Bilibili Chat
+            "bilibili-api"
         ],
         "linux": [
             # tts
