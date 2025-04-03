@@ -177,7 +177,7 @@ if __name__ == '__main__':
                     message = None
 
             if state == States.STANDBY:
-                if time.time() - standby_time > 1000000:
+                if time.time() - standby_time > 10 and chat_messages:
                     stop_generation.clear()
                     history += [{'role': 'chat', 'content': f"{name}：{content}"} for name, content in chat_messages]
                     chat_messages.clear()
