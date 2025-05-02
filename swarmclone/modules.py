@@ -4,22 +4,8 @@ import asyncio
 import time
 import abc
 from enum import Enum
-
-class ModuleRoles(Enum):
-    # 输出模块
-    LLM = "LLM"
-    TTS = "TTS"
-    FRONTEND = "FRONTEND"
-
-    # 输入模块
-    ASR = "ASR"
-    CHAT = "CHAT"
-
-    # 其他模块
-    PLUGIN = "PLUGIN"
-
-    # 主控（并非模块，但是为了向其他模块发送消息，必须要有角色）
-    CONTROLLER = "CONTROLLER"
+from .constants import MessageType, ModuleRoles
+from .messages import *
 
 class ModuleBase(abc.ABC):
     def __init__(self, module_role: ModuleRoles, name: str):
@@ -72,45 +58,3 @@ class FrontendDummy(ModuleBase):
         if task is not None:
             print(f"{self} received {task}")
         return None
-
-class MessageType(Enum):
-    SIGNAL = "SIGNAL"
-    DATA = "DATA"
-
-class Message:
-    def __init__(self, message_type: MessageType,
-                 source: ModuleBase, destinations: list[ModuleRoles],
-                 **kwargs):
-        self.message_type = message_type
-        self.kwargs = kwargs
-        self.source = source
-        self.destinations = destinations
-        print(f"{source} -> {self} -> {destinations}")
-    
-    def __repr__(self):
-        return f"{self.message_type.value} {self.kwargs}"
-    
-    def get_value(self, getter: ModuleBase) -> dict:
-        if not getter in self.destinations:
-            print(f"{getter} <x {self} (-> {self.destinations})")
-            return {}
-        print(f"{getter} <- {self}")
-        return self.kwargs
-
-class ASRActivated(Message):
-    def __init__(self, source: ModuleBase):
-        super().__init__(
-            MessageType.SIGNAL,
-            source,
-            destinations=[ModuleRoles.TTS, ModuleRoles.FRONTEND, ModuleRoles.LLM]
-        )
-
-class ASRMessage(Message):
-    def __init__(self, source: ModuleBase, speaker_name: str, message: str):
-        super().__init__(
-            MessageType.DATA,
-            source,
-            destinations=[ModuleRoles.LLM, ModuleRoles.FRONTEND],
-            speaker_name=speaker_name,
-            message=message
-        )

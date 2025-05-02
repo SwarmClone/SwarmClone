@@ -1,4 +1,6 @@
-from . import *
+from .controller import Controller
+from .modules import *
+from .constants import *
 
 if __name__ == "__main__":
     controller = Controller()
