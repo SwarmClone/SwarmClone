@@ -3,6 +3,7 @@
 """
 import asyncio
 from .modules import *
+from .constants import *
 
 class Controller:
     def __init__(self):
