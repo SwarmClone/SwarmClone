@@ -5,13 +5,15 @@ import warnings
 import shutil
 import socket
 import threading
+import tempfile
+from time import time
 
 import asyncio
-import torchaudio
+import torchaudio # type: ignore
 
 from swarmclone_old.config import config
-from swarmclone.modules import ModuleRoles, ModuleBase
-from swarmclone.messages import Message, TTSFinished, TTSAlignment, TTSAudio ,LLMMessage
+from ..modules import ModuleRoles, ModuleBase
+from ..messages import *
 
 from cosyvoice.cli.cosyvoice import CosyVoice   # type: ignore
 from .align import download_model_and_dict, init_mfa_models, align, match_textgrid
@@ -74,13 +76,31 @@ class TTSCosyvoice(ModuleBase):
         self.cosyvoice_sft, self.cosyvoice_ins = init["tts"]
         self.zh_acoustic, self.zh_lexicon, self.zh_tokenizer, self.zh_aligner = init["mfa"]
         del init
+        self.processed_queue = asyncio.Queue(maxsize=10)
 
-    async def process_task(self, task: Message | None) -> Message | None:
-        assert task is LLMMessage
-        id = task.get_value(self).get("id", None)
-        content = task.get_value(self).get("content", None)
-        emotions = task.get_value(self).get("emotion", None)
+    async def run(self):
+        loop = asyncio.get_running_loop()
+        loop.create_task(self.preprocess_tasks())
+        while True:
+            task = await self.processed_queue.get()
+            if isinstance(task, LLMMessage): # 是一个需要处理的句子
+                id = task.get_value(self).get("id", None)
+                content = task.get_value(self).get("content", None)
+                emotions = task.get_value(self).get("emotion", None)
+                await self.generate_sentence(id, content, emotions)
+            elif isinstance(task, LLMEOS):
+                await self.results_queue.put(TTSFinished(self))
 
+    async def preprocess_tasks(self) -> None:
+        while True:
+            task = await self.task_queue.get()
+            if isinstance(task, ASRActivated):
+                while not self.processed_queue.empty():
+                    self.processed_queue.get_nowait() # 确保没有句子还在生成
+            else:
+                await self.processed_queue.put(task)
+
+    async def generate_sentence(self, id: str, content: str, emotions: dict) -> Message | None:
         try:
             output = await asyncio.to_thread(
                 tts_generate,
@@ -92,49 +112,47 @@ class TTSCosyvoice(ModuleBase):
             )
         except:
             print(f" * 生成时出错，跳过了 '{content}'。")
-            self.results_queue.put(TTSFinished(self))
             return None
             
         # 音频文件
-        audio_name = os.path.join(temp_dir, f"voice{time()}.wav")
-        txt_name = audio_name.replace(".wav", ".txt")
-        align_name = audio_name.replace(".wav", ".TextGrid")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            audio_name = os.path.join(temp_dir, f"voice{time()}.wav")
+            txt_name = audio_name.replace(".wav", ".txt")
+            align_name = audio_name.replace(".wav", ".TextGrid")
 
-        torchaudio.save(audio_name, output, 22050),
-        open(txt_name, "w", encoding="utf-8").write(str(content))
+            torchaudio.save(audio_name, output, 22050)
+            open(txt_name, "w", encoding="utf-8").write(str(content))
 
-        try:
-            await asyncio.to_thread(
-                align, 
-                audio_name, 
-                txt_name, 
-                self.zh_acoustic, 
-                self.zh_lexicon,
-                self.zh_tokenizer, 
-                self.zh_aligner
-            )
-            intervals = await asyncio.to_thread(match_textgrid, align_name, txt_name)
-        except Exception as align_err:
-            print(f" * MFA 对齐失败: {align_err}")
-            info = torchaudio.info(audio_name)
-            duration = info.num_frames / info.sample_rate
-            intervals = [{"token": content + " ", "duration": duration}]
+            try:
+                await asyncio.to_thread(
+                    align, 
+                    audio_name, 
+                    txt_name, 
+                    self.zh_acoustic, 
+                    self.zh_lexicon,
+                    self.zh_tokenizer, 
+                    self.zh_aligner
+                )
+                intervals = await asyncio.to_thread(match_textgrid, align_name, txt_name)
+            except Exception as align_err:
+                print(f" * MFA 对齐失败: {align_err}")
+                info = torchaudio.info(audio_name)
+                duration = info.num_frames / info.sample_rate
+                intervals = [{"token": content + " ", "duration": duration}]
 
         # 音频数据
         audio_data = base64.b64encode(open(audio_name, "rb").read()).decode("utf-8")
-        await self.results_queue.put(TTSAudio(self, id, audio_data.encode("utf-8")))
+        await self.results_queue.put(TTSAudio(self, id, audio_data))
         # 对齐数据
         for interval in intervals:
-            await self.results_queue.put(TTSAlignment(self,
-                                                id=id,
-                                                token=interval["token"],
-                                                duration=interval["duration"]))
-        # # 完成数据
-        # await self.results_queue.put(TTSFinished(self))
+            await self.results_queue.put(
+                TTSAlignment(self,
+                id=id,
+                token=interval["token"],
+                duration=interval["duration"])
+            )
         return None
-    
 
-
-            
-            
-            
+    async def process_task(self, task: Message | None) -> Message | None:
+        # 其实没用到
+        return None

@@ -1,6 +1,7 @@
 from .controller import Controller
 from .modules import *
 from .constants import *
+from .tts_cosyvoice import TTSCosyvoice
 
 if __name__ == "__main__":
     controller = Controller()

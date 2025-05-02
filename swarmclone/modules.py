@@ -7,8 +7,6 @@ from enum import Enum
 from .constants import MessageType, ModuleRoles
 from .messages import *
 
-from swarmclone.tts_cosyvoice import TTSCosyvoice
-
 class ModuleBase(abc.ABC):
     def __init__(self, module_role: ModuleRoles, name: str):
         self.name = name
