@@ -31,7 +31,7 @@ class Controller:
                 loop.create_task(module.run())
                 loop.create_task(self.handle_module(module))
                 print(f"{module}已启动")
-            else:
+            if len(modules) > 0:
                 print(f"{module_role.value}模块已启动")
         loop.run_forever()
     

@@ -35,7 +35,8 @@ class ASRActivated(Message):
         super().__init__(
             MessageType.SIGNAL,
             source,
-            destinations=[ModuleRoles.TTS, ModuleRoles.FRONTEND, ModuleRoles.LLM]
+            destinations=[ModuleRoles.TTS, ModuleRoles.FRONTEND, ModuleRoles.LLM],
+            name="ASRActivated"
         )
 
 class ASRMessage(Message):
@@ -61,7 +62,8 @@ class LLMEOS(Message):
         super().__init__(
             MessageType.SIGNAL,
             source,
-            destinations=[ModuleRoles.FRONTEND, ModuleRoles.TTS]
+            destinations=[ModuleRoles.FRONTEND, ModuleRoles.TTS],
+            name="LLMEOS"
         )
 
 class LLMMessage(Message):
@@ -89,7 +91,8 @@ class TTSFinished(Message):
         super().__init__(
             MessageType.SIGNAL,
             source,
-            destinations=[ModuleRoles.FRONTEND, ModuleRoles.LLM]
+            destinations=[ModuleRoles.FRONTEND, ModuleRoles.LLM],
+            name="TTSFinished"
         )
 
 class TTSAlignment(Message):
