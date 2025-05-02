@@ -76,7 +76,7 @@ class TTSCosyvoice(ModuleBase):
         self.cosyvoice_sft, self.cosyvoice_ins = init["tts"]
         self.zh_acoustic, self.zh_lexicon, self.zh_tokenizer, self.zh_aligner = init["mfa"]
         del init
-        self.processed_queue = asyncio.Queue(maxsize=10)
+        self.processed_queue = asyncio.Queue(maxsize=128)
 
     async def run(self):
         loop = asyncio.get_running_loop()
@@ -141,7 +141,8 @@ class TTSCosyvoice(ModuleBase):
                 intervals = [{"token": content + " ", "duration": duration}]
 
         # 音频数据
-        audio_data = base64.b64encode(open(audio_name, "rb").read()).decode("utf-8")
+        with open(audio_name, "rb") as f:
+            audio_data = f.read()
         await self.results_queue.put(TTSAudio(self, id, audio_data))
         # 对齐数据
         for interval in intervals:

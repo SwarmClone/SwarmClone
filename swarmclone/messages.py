@@ -116,9 +116,9 @@ class TTSAudio(Message):
     """
     TTS 对齐信息
     .id：消息的 id（uuid）
-    .audio_data：base64 编码的音频数据
+    .audio_data：bytes 音频数据
     """
-    def __init__(self, source: ModuleBase, id: str, audio_data: str):
+    def __init__(self, source: ModuleBase, id: str, audio_data: bytes):
         super().__init__(
             MessageType.DATA,
             source,
