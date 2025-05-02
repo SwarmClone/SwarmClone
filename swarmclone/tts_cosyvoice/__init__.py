@@ -1,1 +1,1 @@
-from .tts_cosyvoice import TTSCosyvoice, TTSNetworkServer
+from .tts_cosyvoice import TTSCosyvoice

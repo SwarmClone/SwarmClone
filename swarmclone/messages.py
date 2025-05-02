@@ -112,6 +112,21 @@ class TTSAlignment(Message):
             duration=duration
         )
 
+class TTSAudio(Message):
+    """
+    TTS 对齐信息
+    .id：消息的 id（uuid）
+    .audio_data：base64 编码的音频数据
+    """
+    def __init__(self, source: ModuleBase, id: str, audio_data: str):
+        super().__init__(
+            MessageType.DATA,
+            source,
+            destinations=[ModuleRoles.FRONTEND],
+            id=id,
+            data=audio_data
+        )
+
 class ChatMessage(Message):
     """
     聊天信息

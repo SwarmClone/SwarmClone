@@ -6,9 +6,12 @@ import shutil
 import socket
 import threading
 
+import asyncio
+import torchaudio
+
 from swarmclone_old.config import config
 from swarmclone.modules import ModuleRoles, ModuleBase
-from swarmclone.messages import Message, TTSFinished, TTSAlignment, LLMMessage
+from swarmclone.messages import Message, TTSFinished, TTSAlignment, TTSAudio ,LLMMessage
 
 from cosyvoice.cli.cosyvoice import CosyVoice   # type: ignore
 from .align import download_model_and_dict, init_mfa_models, align, match_textgrid
@@ -64,71 +67,13 @@ def init_tts():
     return {"tts": (cosyvoice_sft, cosyvoice_ins), "mfa": (zh_acoustic, zh_lexicon, zh_tokenizer, zh_aligner)}
 
 
-class TTSNetworkServer:
-    def __init__(self):
-        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        address = ('localhost', config.tts.port)
-        print(" * TTS Server Start...")
-        self.server.bind(address)
-        self.server.listen(1)
-        
-        self.client_conn = None
-        self.client_addr = None
-        self.running = True
-
-        self.thread = threading.Thread(target=self.run)
-        self.thread.start() 
-
-        self.connected = False
-
-    def accpet_client(self):
-        while self.running:
-            try:
-                client_conn, client_addr = self.server.accept()
-                print(f" * TTS Server Connected by {client_addr}")
-                if self.client_conn:
-                    self.client_conn.close()
-                self.client_conn = client_conn
-                self.client_addr = client_addr
-                self.connected = True
-            except:
-                if self.running:
-                    print(" * TTS Server Accept Error")
-
-    def send(self, audio_name):
-        if self.client_conn:
-            try:
-                with open(audio_name, "rb") as f:
-                    data = f.read()
-                data = base64.b64encode(data).decode("utf-8")
-                length = len(data).to_bytes(4, byteorder='big')
-                self.client_conn.sendall(length + data.encode("utf-8"))
-            except:
-                print(" * TTS Server Send Error")
-                self.client_conn.close()
-                self.client_conn = None
-                self.connected = False
-                
-    def close(self):
-        if self.client_conn:
-            self.client_conn.close()
-            self.client_conn = None
-        self.server.close()
-        self.running = False
-        self.connected = False
-        print(" * TTS Server Closed")
-        
-        
 class TTSCosyvoice(ModuleBase):
-    def __init__(self, tts_server: TTSNetworkServer):
+    def __init__(self):
         super().__init__(ModuleRoles.TTS, "TTSCosyvoice")
         init = init_tts()
         self.cosyvoice_sft, self.cosyvoice_ins = init["tts"]
         self.zh_acoustic, self.zh_lexicon, self.zh_tokenizer, self.zh_aligner = init["mfa"]
         del init
-        
-        self.tts_server = tts_server
-        assert self.tts_server.connected, " * TTS Server have not connected yet."
 
     async def process_task(self, task: Message | None) -> Message | None:
         assert task is LLMMessage
@@ -137,7 +82,8 @@ class TTSCosyvoice(ModuleBase):
         emotions = task.get_value(self).get("emotion", None)
 
         try:
-            output = tts_generate(
+            output = await asyncio.to_thread(
+                tts_generate,
                 tts=[self.cosyvoice_ins] if not is_linux else [self.cosyvoice_sft, self.cosyvoice_ins],
                 s=content.strip(),
                 tune=config.tts.cosyvoice.tune,
@@ -151,32 +97,42 @@ class TTSCosyvoice(ModuleBase):
             
         # 音频文件
         audio_name = os.path.join(temp_dir, f"voice{time()}.wav")
-        torchaudio.save(audio_name, output, 22050)
-        # 字幕文件
         txt_name = audio_name.replace(".wav", ".txt")
-        open(txt_name, "w", encoding="utf-8").write(str(content))
-        # 对齐文件
         align_name = audio_name.replace(".wav", ".TextGrid")
-        try:
-            align(audio_name, txt_name, self.zh_acoustic, self.zh_lexicon, self.zh_tokenizer, self.zh_aligner)
-        except:
-            print(f" * MFA 在处理 '{content}' 产生了对齐错误。")
-            align_name = "err"
 
-        if align_name != "err":
-            intervals = match_textgrid(align_name, txt_name)
-        else:
-            intervals = [{"token": open(txt_name, "r", encoding="utf-8").read() + " ",
-                          "duration": pygame_mixer.Sound(audio_name).get_length()}]
+        torchaudio.save(audio_name, output, 22050),
+        open(txt_name, "w", encoding="utf-8").write(str(content))
+
+        try:
+            await asyncio.to_thread(
+                align, 
+                audio_name, 
+                txt_name, 
+                self.zh_acoustic, 
+                self.zh_lexicon,
+                self.zh_tokenizer, 
+                self.zh_aligner
+            )
+            intervals = await asyncio.to_thread(match_textgrid, align_name, txt_name)
+        except Exception as align_err:
+            print(f" * MFA 对齐失败: {align_err}")
+            info = torchaudio.info(audio_name)
+            duration = info.num_frames / info.sample_rate
+            intervals = [{"token": content + " ", "duration": duration}]
+
+        # 音频数据
+        audio_data = base64.b64encode(open(audio_name, "rb").read()).decode("utf-8")
+        await self.results_queue.put(TTSAudio(self, id, audio_data.encode("utf-8")))
+        # 对齐数据
         for interval in intervals:
             await self.results_queue.put(TTSAlignment(self,
                                                 id=id,
                                                 token=interval["token"],
                                                 duration=interval["duration"]))
-        await self.results_queue.put(TTSFinished(self))
-        self.tts_server.send(audio_name)
-        
+        # # 完成数据
+        # await self.results_queue.put(TTSFinished(self))
         return None
+    
 
 
             
