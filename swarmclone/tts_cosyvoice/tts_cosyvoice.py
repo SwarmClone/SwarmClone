@@ -154,5 +154,5 @@ class TTSCosyvoice(ModuleBase):
         return None
 
     async def process_task(self, task: Message | None) -> Message | None:
-        # 其实没用到
-        return None
+        # 不应被调用
+        raise NotImplementedError
