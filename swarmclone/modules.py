@@ -50,12 +50,12 @@ class ASRDummy(ModuleBase):
             await self.results_queue.put(ASRMessage(self, f"{self}", "Hello, world!"))
         return None
 
-class LLMDummy(ModuleBase):
-    def __init__(self):
-        super().__init__(ModuleRoles.LLM, "LLMDummy")
+class LLMBase(ModuleBase):
+    def __init__(self, name: str):
+        super().__init__(ModuleRoles.LLM, name)
         self.timer = time.perf_counter()
         self.state = LLMState.IDLE
-        self.history = []
+        self.history: list[dict[str, str]] = []
         self.generated_text = ""
     
     async def run(self):
@@ -127,10 +127,35 @@ class LLMDummy(ModuleBase):
             )
         await self.results_queue.put(LLMEOS(self))
     
+    @abc.abstractmethod
+    async def iter_sentences_emotions(self):
+        """
+        句子-感情迭代器
+        使用yield返回：
+        (句子: str, 感情: dict)
+        句子：模型返回的单个句子（并非整个回复）
+        情感：{
+            'like': float,
+            'disgust': float,
+            'anger': float,
+            'happy': float,
+            'sad': float,
+            'neutral': float
+        }
+        迭代直到本次回复完毕即可
+        """
+
+    async def process_task(self, task: Message | None) -> Message | None:
+        ... # 不会被用到
+
+class LLMDummy(LLMBase):
+    def __init__(self):
+        super().__init__(ModuleRoles.LLM, "LLMDummy")
+
     async def iter_sentences_emotions(self):
         sentences = ["This is a test sentence.", f"I received user prompt {self.history[-1]['content']}"]
         for sentence in sentences:
-            yield sentence, {'like': 0, 'disgust': 0, 'anger': 0, 'happy': 0, 'sad': 0, 'neutral': 0}
+            yield sentence, {'like': 0, 'disgust': 0, 'anger': 0, 'happy': 0, 'sad': 0, 'neutral': 1}
 
     async def process_task(self, task: Message | None) -> Message | None:
         ... # 不会被用到
