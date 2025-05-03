@@ -21,7 +21,7 @@ class Message:
         return f"{self.message_type.value} {self.kwargs}"
     
     def get_value(self, getter: ModuleBase) -> dict:
-        if not getter in self.destinations:
+        if not getter.role in self.destinations:
             print(f"{getter} <x {self} (-> {self.destinations})")
             return {}
         print(f"{getter} <- {self}")

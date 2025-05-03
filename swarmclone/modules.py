@@ -5,7 +5,7 @@ import time
 import abc
 from enum import Enum
 from uuid import uuid4
-from .constants import MessageType, ModuleRoles
+from .constants import *
 from .messages import *
 
 class ModuleBase(abc.ABC):
@@ -44,7 +44,7 @@ class ASRDummy(ModuleBase):
 
     async def process_task(self, task: Message | None) -> Message | None:
         call_time = time.perf_counter()
-        if call_time - self.timer > 1:
+        if call_time - self.timer > 10:
             self.timer = call_time
             await self.results_queue.put(ASRActivated(self))
             await self.results_queue.put(ASRMessage(self, f"{self}", "Hello, world!"))
@@ -70,14 +70,13 @@ class LLMDummy(ModuleBase):
                 case LLMState.IDLE:
                     if isinstance(task, ASRActivated):
                         self.state = LLMState.WAITING4ASR
-                    elif time.perf_counter - self.timer > 10:
+                    elif time.perf_counter() - self.timer > 10:
                         self.state = LLMState.GENERATING
                         self.history += [
                             {'role': 'system', 'content': '请随便说点什么吧！'}
                         ]
                         generate_task = asyncio.create_task(
-                            self.start_generating(),
-                            asyncio.get_running_loop()
+                            self.start_generating()
                         )
                 case LLMState.GENERATING:
                     if isinstance(task, ASRActivated) and generate_task is not None:
@@ -105,8 +104,7 @@ class LLMDummy(ModuleBase):
                             'content': f"{(value := task.get_value(self))['speaker_name']}：{value['message']}"
                         }]
                         generate_task = asyncio.create_task(
-                            self.start_generating(),
-                            asyncio.get_running_loop()
+                            self.start_generating()
                         )
                 case LLMState.WAITING4TTS:
                     if task is not None and isinstance(task, TTSFinished):
@@ -117,18 +115,22 @@ class LLMDummy(ModuleBase):
             await asyncio.sleep(0.1)
     
     async def start_generating(self) -> None:
-        await asyncio.to_thread(self.generate_text)
-        await self.results_queue.put(
-            LLMMessage(
-                self,
-                uuid4().bytes.decode("utf-8"),
-                "Hello!",
-                {'like': 0, 'disgust': 0, 'anger': 0, 'happy': 0, 'sad': 0, 'neutral': 1}
+        async for sentence, emotion in self.iter_sentences_emotions():
+            self.generated_text += sentence
+            await self.results_queue.put(
+                LLMMessage(
+                    self,
+                    sentence,
+                    str(uuid4()),
+                    emotion
+                )
             )
-        )
+        await self.results_queue.put(LLMEOS(self))
     
-    def generate_text(self) -> None:
-        pass
+    async def iter_sentences_emotions(self):
+        sentences = ["This is a test sentence.", f"I received user prompt {self.history[-1]['content']}"]
+        for sentence in sentences:
+            yield sentence, {'like': 0, 'disgust': 0, 'anger': 0, 'happy': 0, 'sad': 0, 'neutral': 0}
 
     async def process_task(self, task: Message | None) -> Message | None:
         ... # 不会被用到
