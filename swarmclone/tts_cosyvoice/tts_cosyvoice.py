@@ -140,9 +140,9 @@ class TTSCosyvoice(ModuleBase):
                 duration = info.num_frames / info.sample_rate
                 intervals = [{"token": content + " ", "duration": duration}]
 
-        # 音频数据
-        with open(audio_name, "rb") as f:
-            audio_data = f.read()
+            # 音频数据
+            with open(audio_name, "rb") as f:
+                audio_data = f.read()
         await self.results_queue.put(TTSAudio(self, id, audio_data))
         # 对齐数据
         for interval in intervals:
