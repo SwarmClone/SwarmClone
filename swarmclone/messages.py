@@ -18,11 +18,17 @@ class Message:
         print(f"{source} -> {self} -> {destinations}")
     
     def __repr__(self):
-        return f"{self.message_type.value} {self.kwargs}"
+        kwrepr = "{"
+        for k, v in self.kwargs.items():
+            if len(repr(v)) > 50:
+                v = repr(v)[:50] + "..."
+            kwrepr += f"{k}: {v}, "
+        kwrepr = kwrepr[:-2] + "}"
+        return f"{self.message_type.value} {kwrepr}"
     
     def get_value(self, getter: ModuleBase) -> dict:
         if not getter.role in self.destinations:
-            print(f"{getter} <x {self} (-> {self.destinations})")
+            print(f"{getter} <x {self} (-> {[destination.value for destination in self.destinations]})")
             return {}
         print(f"{getter} <- {self}")
         return self.kwargs
