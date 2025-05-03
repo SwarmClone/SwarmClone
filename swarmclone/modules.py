@@ -90,7 +90,7 @@ class LLMBase(ModuleBase):
             match self.state:
                 case LLMState.IDLE:
                     if isinstance(task, ASRActivated):
-                        self.state = LLMState.WAITING4ASR
+                        self._switch_to_waiting4asr()
                     elif time.perf_counter() - self.timer > 10:
                         self._switch_to_generating({'role': 'system', 'content': '请随便说点什么吧！'})
                 case LLMState.GENERATING:
