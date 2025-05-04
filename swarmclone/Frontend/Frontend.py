@@ -9,44 +9,52 @@ from ..messages import *
 class frontend(ModuleBase):
     def __init__(self):
         super().__init__(ModuleRoles.FRONTEND, "Frontend")
-        self.clientdict:dict[int,asyncio.StreamWriter] = []
+        self.clientdict:dict[int,asyncio.StreamWriter] = {}
         self.server = None
 
     async def run(self):
         loop = asyncio.get_running_loop()
         loop.create_task(self.preprocess_tasks())
-        self.server = await asyncio.start_server(self.handle_client(self.clientdict),config.panel.server.host, config.panel.frontend.port)
+        self.server = await asyncio.start_server(self.handle_client,config.panel.server.host, config.panel.frontend.port)
         async with self.server:
             await self.server.serve_forever()
-        
     
     async def preprocess_tasks(self):
-        task = await self.task_queue.get()
-        message = self.load(task)
-        for addr, client in self.clientdict:
-            try:
-                client.write(message.encode('utf-8'))
-                await client.drain()
-                print(f"消息已发送给 {addr}")
-            except ConnectionResetError:
-                print(f"客户端 {addr} 已断开连接")
-                client.close()
-                del self.clientdict[addr]
+        while(True):
+            if(self.clientdict):
+                print("wait task")
+                task = await self.task_queue.get()
+                print("task get")
+                message = self.load(task)
+                for addr, client in self.clientdict.items():
+                    try:
+                        client.write(message.encode('utf-8'))
+                        await client.drain()
+                        print(f"消息已发送给 {addr}")
+                    except ConnectionResetError:
+                        print(f"客户端 {addr} 已断开连接")
+                        client.close()
+                        del self.clientdict[addr]
+            else:
+                await asyncio.sleep(0.01)
 
-    def handle_client(self, writer:asyncio.StreamWriter) -> None:
+    def handle_client(self, reader:asyncio.StreamReader, writer:asyncio.StreamWriter) -> None:
         addr = writer.get_extra_info('peername')
         print(f"客户端已连接：{addr}")
-        self.clientdict[addr]=writer
+        self.clientdict[addr[1]]=writer
     
-    def load(task:Message) -> str:
+    def load(self, task:Message) -> str:
         dict = {
                 "message_type": task.message_type.value,
                 "source": task.source.role.value,
                 **task.kwargs
             }
         if(isinstance(task, TTSAudio)):
-            dict["data"] = base64.b64decode(dict["data"]).decode('utf-8')
+            dict["data"] = base64.b64encode(dict["data"]).decode('utf-8')#UnicodeDecodeError: 'utf-8' codec can't decode byte 0x81 in position 1: invalid start byte
         massage = (json.dumps(dict).replace(config.panel.server.requests_separator, "") + # 防止在不应出现的地方出现分隔符
         config.panel.server.requests_separator)
         return(massage)
     
+    async def process_task(self, task: Message | None) -> Message | None:
+    # 不应被调用
+        raise NotImplementedError
