@@ -22,9 +22,7 @@ class frontend(ModuleBase):
     async def preprocess_tasks(self):
         while(True):
             if(self.clientdict):
-                print("wait task")
                 task = await self.task_queue.get()
-                print("task get")
                 message = self.load(task)
                 for addr, client in self.clientdict.items():
                     try:
