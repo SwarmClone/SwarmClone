@@ -23,6 +23,7 @@ class frontend(ModuleBase):
         while(True):
             if(self.clientdict):
                 task = await self.task_queue.get()
+                to_remove = []
                 message = self.load(task)
                 for addr, client in self.clientdict.items():
                     try:
@@ -32,7 +33,9 @@ class frontend(ModuleBase):
                     except ConnectionResetError:
                         print(f"客户端 {addr} 已断开连接")
                         client.close()
-                        del self.clientdict[addr]
+                        to_remove.append(addr)
+                for addr in to_remove:
+                    del self.clientdict[addr]
             else:
                 await asyncio.sleep(0.01)
 
