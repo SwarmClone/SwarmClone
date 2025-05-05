@@ -104,7 +104,7 @@ class LLMMiniLM2(LLMBase):
         ids = self.classifier_tokenizer([text], return_tensors="pt").input_ids.to(self.device)
         print(text)
         logits = (await asyncio.to_thread(self.classifier_model, input_ids=ids)).logits
-        neutral, like, sad, disgust, anger, happy = logits.softmax().tolist()[0]
+        neutral, like, sad, disgust, anger, happy = logits.tolist()[0]
         return {
             "neutral": neutral,
             "like": like,
