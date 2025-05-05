@@ -6,9 +6,10 @@ import shutil
 import socket
 import threading
 import tempfile
+import asyncio
 from time import time
 
-import asyncio
+import torch
 import torchaudio # type: ignore
 
 from ..config import config
@@ -100,6 +101,7 @@ class TTSCosyvoice(ModuleBase):
             else:
                 await self.processed_queue.put(task)
 
+    @torch.no_grad()
     async def generate_sentence(self, id: str, content: str, emotions: dict) -> Message | None:
         try:
             output = await asyncio.to_thread(

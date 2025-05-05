@@ -51,6 +51,7 @@ class Controller:
             module = data.get("module")
             
             if module == ModuleRoles.ASR.value:
+                await self.handle_message(ASRActivated(self))
                 speaker_name = data.get("speaker_name")
                 content = data.get("content")
                 message = ASRMessage(
@@ -58,11 +59,14 @@ class Controller:
                     speaker_name=speaker_name,
                     message=content
                 )
-                for destination in message.destinations:
-                    for module_destination in self.modules[destination]:
-                        await module_destination.task_queue.put(message)
+                await self.handle_message(message)
             
             return jsonify({"status": "OK"}), 200
+    
+    async def handle_message(self, message: Message):
+        for destination in message.destinations:
+            for module_destination in self.modules[destination]:
+                await module_destination.task_queue.put(message)
 
     def start(self):
         loop = asyncio.get_event_loop()
@@ -74,12 +78,10 @@ class Controller:
             if len(modules) > 0:
                 print(f"{module_role.value}模块已启动")
 
-        self.app.run()
+        loop.create_task(asyncio.to_thread(self.app.run))
         loop.run_forever()
     
     async def handle_module(self, module: ModuleBase):
         while True:
             result: Message = await module.results_queue.get()
-            for destination in result.destinations:
-                for module_destination in self.modules[destination]:
-                    await module_destination.task_queue.put(result)
+            await self.handle_message(result)

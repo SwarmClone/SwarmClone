@@ -37,7 +37,7 @@ requirements = {
             # Bilibili Chat
             "bilibili-api",
             # Flask Controller
-            'flask'
+            "flask[async]"
         ],
         "linux": [
             # tts

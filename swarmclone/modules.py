@@ -50,7 +50,7 @@ class ASRDummy(ModuleBase):
             await self.results_queue.put(ASRMessage(self, f"{self}", "Hello, world!"))
         return None
 
-class LLMBase(ModuleBase):
+class LLMBase(ModuleBase, abc.ABC):
     def __init__(self, name: str):
         super().__init__(ModuleRoles.LLM, name)
         self.timer = time.perf_counter()
@@ -79,11 +79,20 @@ class LLMBase(ModuleBase):
     def _switch_to_idle(self):
         self.state = LLMState.IDLE
         self.timer = time.perf_counter()
+    
+    def _switch_to_waiting4tts(self):
+        self.history += [
+            {'role': 'user', 'content': self.generated_text}
+        ]
+        self.generated_text = ""
+        self.generate_task = None
+        self.state = LLMState.WAITING4TTS
             
     async def run(self):
         while True:
             try:
                 task = self.task_queue.get_nowait()
+                print(self.state, task)
             except asyncio.QueueEmpty:
                 task = None
             
@@ -94,9 +103,10 @@ class LLMBase(ModuleBase):
                     elif time.perf_counter() - self.timer > 10:
                         self._switch_to_generating({'role': 'system', 'content': '请随便说点什么吧！'})
                 case LLMState.GENERATING:
-                    if (isinstance(task, ASRActivated) or
-                        (self.generate_task is not None and self.generate_task.done())):
+                    if isinstance(task, ASRActivated):
                         self._switch_to_waiting4asr()
+                    if self.generate_task is not None and self.generate_task.done():
+                        self._switch_to_waiting4tts()
                 case LLMState.WAITING4ASR:
                     if task is not None and isinstance(task, ASRMessage):
                         message_value = task.get_value(self)
@@ -114,8 +124,9 @@ class LLMBase(ModuleBase):
             await asyncio.sleep(0.1)
     
     async def start_generating(self) -> None:
+        iterator = self.iter_sentences_emotions()
         try:
-            async for sentence, emotion in self.iter_sentences_emotions():
+            async for sentence, emotion in iterator:
                 self.generated_text += sentence
                 await self.results_queue.put(
                     LLMMessage(
@@ -126,7 +137,7 @@ class LLMBase(ModuleBase):
                     )
                 )
         except asyncio.CancelledError:
-            print("")
+            await iterator.aclose()
         finally:
             await self.results_queue.put(LLMEOS(self))
     
@@ -147,6 +158,7 @@ class LLMBase(ModuleBase):
         }
         迭代直到本次回复完毕即可
         """
+        yield "", {"like": 0, "disgust": 0, "anger": 0, "happy": 0, "sad": 0, "neutral": 1}
 
     async def process_task(self, task: Message | None) -> Message | None:
         ... # 不会被用到，但是这是抽象方法必须继承
