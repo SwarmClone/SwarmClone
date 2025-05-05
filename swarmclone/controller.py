@@ -50,7 +50,7 @@ class Controller:
 
             module = data.get("module")
             
-            if module == ModuleRoles.ASR:
+            if module == ModuleRoles.ASR.value:
                 speaker_name = data.get("speaker_name")
                 content = data.get("content")
                 message = ASRMessage(
@@ -58,7 +58,9 @@ class Controller:
                     speaker_name=speaker_name,
                     message=content
                 )
-                await self.modules[ModuleRoles.LLM][0].task_queue.put(message)
+                for destination in message.destinations:
+                    for module_destination in self.modules[destination]:
+                        await module_destination.task_queue.put(message)
             
             return jsonify({"status": "OK"}), 200
 
