@@ -146,23 +146,6 @@ class GlobalConfig:
     DEVICE: str = "cuda"
     CONFIG_FILE: str = "./config/server_settings.toml"
     
-    # 模块启动命令
-    START_ASR_COMMAND: List[str] = field(
-        default_factory=lambda: ["python", "-m", "swarmclone.asr_dummy"]
-    )
-    START_TTS_COMMAND: List[str] = field(
-        default_factory=lambda: ["python", "-m", "swarmclone.tts_dummy"]
-    )
-    START_LLM_COMMAND: List[str] = field(
-        default_factory=lambda: ["python", "-m", "swarmclone.model_qwen"]
-    )
-    START_FRONTEND_COMMAND: List[str] = field(
-        default_factory=lambda: ["python", "-m", "swarmclone.frontend_dummy"]
-    )
-    START_PANEL_COMMAND: List[str] = field(
-        default_factory=lambda: ["python", "-m", "swarmclone.panel"]
-    )
-
     # 运行时属性
     _toml_data: dict = field(default_factory=dict)
     _lock: threading.Lock = field(default_factory=threading.Lock, init=False)
