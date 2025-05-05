@@ -83,6 +83,3 @@ class Controller:
             for destination in result.destinations:
                 for module_destination in self.modules[destination]:
                     await module_destination.task_queue.put(result)
-
-
-
