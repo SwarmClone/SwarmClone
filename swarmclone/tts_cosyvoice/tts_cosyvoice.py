@@ -11,7 +11,7 @@ from time import time
 import asyncio
 import torchaudio # type: ignore
 
-from swarmclone_old.config import config
+from ..config import config
 from ..modules import ModuleRoles, ModuleBase
 from ..messages import *
 
