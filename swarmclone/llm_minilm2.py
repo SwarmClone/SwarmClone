@@ -131,6 +131,7 @@ class LLMMiniLM2(LLMBase):
                 )
             )
         )
+        await asyncio.sleep(0.05)
         generating_sentence = ""
         try:
             for t in streamer:
