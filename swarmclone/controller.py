@@ -3,8 +3,8 @@
 """
 import asyncio
 
-from flask import Flask
-from flask import request, jsonify
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import JSONResponse
 
 from .modules import *
 from .constants import *
@@ -19,7 +19,7 @@ class Controller:
             ModuleRoles.PLUGIN: [],
             ModuleRoles.TTS: [],
         }
-        self.app = Flask(__name__)
+        self.app = FastAPI(title="Zhiluo Controller")
         self.register_routes()
     
     def register(self, module: ModuleBase):
@@ -36,32 +36,39 @@ class Controller:
         /:      根路由
         /api:   API路由
         """
-        @self.app.route("/")
+        @self.app.get("/")
         async def index():
-            return "Hello, Zhiluo!"
+            return {"message": "Hello, Zhiluo!"}
 
-        @self.app.route("/api", methods=["POST"])
-        async def api():
-            data = request.get_json()
-            if not data:
-                return jsonify({"error": "Invalid JSON"}), 400
+
+        @self.app.post("/api")
+        async def api(request: Request):
+            try:
+                data = await request.json()
+            except Exception:
+                return JSONResponse(
+                    {"error": "Invalid JSON"},
+                    status_code=400
+                )
+            
             if "module" not in data:
-                return jsonify({"error": "Missing module field"}), 400
+                return JSONResponse(
+                    {"error": "Missing module field"},
+                    status_code=400
+                )
 
             module = data.get("module")
             
             if module == ModuleRoles.ASR.value:
                 await self.handle_message(ASRActivated(self))
-                speaker_name = data.get("speaker_name")
-                content = data.get("content")
                 message = ASRMessage(
                     source=ControllerDummy(),
-                    speaker_name=speaker_name,
-                    message=content
+                    speaker_name=data.get("speaker_name"),
+                    message=data.get("content")
                 )
                 await self.handle_message(message)
             
-            return jsonify({"status": "OK"}), 200
+            return {"status": "OK"}
     
     async def handle_message(self, message: Message):
         for destination in message.destinations:
@@ -78,8 +85,16 @@ class Controller:
             if len(modules) > 0:
                 print(f"{module_role.value}模块已启动")
 
-        loop.create_task(asyncio.to_thread(self.app.run))
-        loop.run_forever()
+                import uvicorn
+                
+        config = uvicorn.Config(
+            self.app,
+            host="0.0.0.0",
+            port=5000,
+            loop="asyncio"
+        )
+        server = uvicorn.Server(config)
+        loop.run_until_complete(server.serve())
     
     async def handle_module(self, module: ModuleBase):
         while True:
