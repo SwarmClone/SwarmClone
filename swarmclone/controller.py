@@ -1,6 +1,7 @@
 """
 主控——主控端的核心
 """
+import uvicorn
 import asyncio
 
 from fastapi import FastAPI, Request, HTTPException
@@ -84,8 +85,6 @@ class Controller:
                 print(f"{module}已启动")
             if len(modules) > 0:
                 print(f"{module_role.value}模块已启动")
-
-                import uvicorn
                 
         config = uvicorn.Config(
             self.app,
