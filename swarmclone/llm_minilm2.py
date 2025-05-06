@@ -103,7 +103,7 @@ class LLMMiniLM2(LLMBase):
     async def get_emotion(self, text: str) -> dict[str, float]:
         ids = self.classifier_tokenizer([text], return_tensors="pt").input_ids.to(self.device)
         print(text)
-        logits = (await asyncio.to_thread(self.classifier_model, input_ids=ids)).logits
+        logits = (await asyncio.to_thread(self.classifier_model, input_ids=ids)).logits.softmax(dim=-1)
         neutral, like, sad, disgust, anger, happy = logits.tolist()[0]
         return {
             "neutral": neutral,
@@ -135,12 +135,11 @@ class LLMMiniLM2(LLMBase):
         generating_sentence = ""
         try:
             for t in streamer:
-                print(t)
                 generating_sentence += t
                 self.generated_text += t
                 if (sentences := split_text(generating_sentence))[:-1]:
                     for sentence in sentences:
-                        if sentence.strip():
+                        if (sentence := sentence.strip()):
                             yield sentence, await self.get_emotion(sentence)
                     generating_sentence = sentences[-1]
         finally: # 被中断或者生成完毕
