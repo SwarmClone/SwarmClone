@@ -36,8 +36,8 @@ requirements = {
             "modelscope",
             # Bilibili Chat
             "bilibili-api",
-            # Flask Controller
-            "flask[async]"
+            # FastAPI Controller
+            "fastapi"
         ],
         "linux": [
             # tts
