@@ -12,7 +12,7 @@ class ModuleBase(abc.ABC):
     def __init__(self, module_role: ModuleRoles, name: str):
         self.name = name
         self.role = module_role
-        self.task_queue: asyncio.Queue[Message] = asyncio.Queue(maxsize=10)
+        self.task_queue: asyncio.Queue[Message] = asyncio.Queue(maxsize=128)
         self.results_queue: asyncio.Queue[Message] = asyncio.Queue(maxsize=128)
     
     async def run(self):
