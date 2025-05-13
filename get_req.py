@@ -94,8 +94,11 @@ print(
 [get_req.py]    开始安装 SwarmClone AI 1.0 相关依赖。
 
 [Prerequisite]  已安装 Conda 并配置 PATH。
+[Prerequisite]  已安装 Node.js 以及 NPM 并配置 PATH。
+[Prerequisite]  已更新所有子模块。
     
 [get_req.py]    开始检查先决条件。
+[get_req.py]    开始检查 Conda 条件。
 """
 )
 
@@ -122,6 +125,14 @@ except:
                     \n conda --version \n \
                     来检查您是否添加了 conda 到 PATH 中。", "error")
 
+print("[get_req.py]    开始检查 Node.js 条件。")
+try:
+    subprocess.run(["node", "--version"], check=True, stdout=subprocess.DEVNULL)
+    subprocess.run(["npm", "--version"], check=True, stdout=subprocess.DEVNULL)
+except:
+    log_info("未找到可执行的 node 命令，您可以手动尝试运行 \
+                    \n node --version \n \
+                    来检查您是否添加了 node 到 PATH 中。", "error")
 
 if not (3, 9) < sys.version_info < (3, 11):
     log_info("我们推荐使用 Python~=3.10。但如果您当前的系统是 Windows， \
@@ -137,8 +148,9 @@ print(
                 1. ASR
                 2. MiniLM & Qwen2.5
                 3. Cosyvoice TTS
+                4. Panel
                 
-[Noitce]        现在开始安装吗？[y/n] """
+[Noitce]        现在开始安装吗？[y/N] """
 , end="")
 
 
@@ -165,6 +177,11 @@ if install.strip().lower() == "y":
     log_info("安装通用依赖中: ", "notice")
     install_pip_packages(requirements["pip"]["general"])
     install_conda_packages(requirements["conda"]["general"], "conda-forge", conda_path)
+
+    log_info("安装 Panel 中：", "notice")
+    os.chdir("panel")
+    subprocess.run(["npm", "install"])
+    subprocess.run(["npm", "run", "build"])
     
     log_info("安装完毕！如果在运行时发生缺少包，请重复运行该脚本。", "notice")
 else:
