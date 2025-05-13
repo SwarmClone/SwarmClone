@@ -1,0 +1,3 @@
+[submodule "panel"]
+	path = panel
+	url = https://github.com/SwarmClone/SwarmPanel.git

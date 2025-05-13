@@ -35,7 +35,7 @@ requirements = {
             # MiniLM2
             "modelscope",
             # Bilibili Chat
-            "bilibili-api",
+            "bilibili-api-python",
             # FastAPI Controller
             "fastapi"
         ],
