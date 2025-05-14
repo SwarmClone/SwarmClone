@@ -5,10 +5,13 @@ import uvicorn
 import asyncio
 
 from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse, HTMLResponse
 
 from .modules import *
 from .constants import *
+
+from . import __version__
 
 class Controller:
     def __init__(self):
@@ -32,15 +35,16 @@ class Controller:
         self.modules[module.role].append(module)
                    
     def register_routes(self):
-        """ 注册Flask路由
+        """ 注册FastAPI路由
         
         /:      根路由
         /api:   API路由
         """
+        self.app.mount("/assets", StaticFiles(directory="panel/dist/assets"), name="assets")
+        
         @self.app.get("/")
-        async def index():
-            return {"message": "Hello, Zhiluo!"}
-
+        async def root():
+            return HTMLResponse(open("panel/dist/index.html").read())
 
         @self.app.post("/api")
         async def api(request: Request):
@@ -61,7 +65,7 @@ class Controller:
             module = data.get("module")
             
             if module == ModuleRoles.ASR.value:
-                await self.handle_message(ASRActivated(self))
+                await self.handle_message(ASRActivated(ControllerDummy()))
                 message = ASRMessage(
                     source=ControllerDummy(),
                     speaker_name=data.get("speaker_name"),
@@ -70,6 +74,12 @@ class Controller:
                 await self.handle_message(message)
             
             return {"status": "OK"}
+        
+        @self.app.get("/api/get_version")
+        async def get_version():
+            response = JSONResponse({"version": __version__})
+            response.headers["Access-Control-Allow-Origin"] = "*"
+            return response
     
     async def handle_message(self, message: Message):
         for destination in message.destinations:
@@ -89,7 +99,7 @@ class Controller:
         config = uvicorn.Config(
             self.app,
             host="0.0.0.0",
-            port=5000,
+            port=8000,
             loop="asyncio"
         )
         server = uvicorn.Server(config)
