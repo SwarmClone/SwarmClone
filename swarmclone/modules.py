@@ -2,13 +2,12 @@ from __future__ import annotations # 为了延迟注解评估
 
 import asyncio
 import time
-import abc
 from enum import Enum
 from uuid import uuid4
 from .constants import *
 from .messages import *
 
-class ModuleBase(abc.ABC):
+class ModuleBase:
     def __init__(self, module_role: ModuleRoles, name: str):
         self.name = name
         self.role = module_role
@@ -29,7 +28,6 @@ class ModuleBase(abc.ABC):
     def __repr__(self):
         return f"<{self.role} {self.name}>"
 
-    @abc.abstractmethod
     async def process_task(self, task: Message | None) -> Message | None:
         """
         处理任务的方法，每个循环会自动调用
@@ -50,7 +48,7 @@ class ASRDummy(ModuleBase):
             await self.results_queue.put(ASRMessage(self, f"{self}", "Hello, world!"))
         return None
 
-class LLMBase(ModuleBase, abc.ABC):
+class LLMBase(ModuleBase):
     def __init__(self, name: str):
         super().__init__(ModuleRoles.LLM, name)
         self.timer = time.perf_counter()
@@ -141,7 +139,6 @@ class LLMBase(ModuleBase, abc.ABC):
         finally:
             await self.results_queue.put(LLMEOS(self))
     
-    @abc.abstractmethod
     async def iter_sentences_emotions(self):
         """
         句子-感情迭代器
@@ -160,9 +157,6 @@ class LLMBase(ModuleBase, abc.ABC):
         """
         yield "", {"like": 0, "disgust": 0, "anger": 0, "happy": 0, "sad": 0, "neutral": 1}
 
-    async def process_task(self, task: Message | None) -> Message | None:
-        ... # 不会被用到，但是这是抽象方法必须继承
-
 class LLMDummy(LLMBase):
     def __init__(self):
         super().__init__("LLMDummy")
@@ -171,9 +165,6 @@ class LLMDummy(LLMBase):
         sentences = ["This is a test sentence.", f"I received user prompt {self.history[-1]['content']}"]
         for sentence in sentences:
             yield sentence, {'like': 0, 'disgust': 0, 'anger': 0, 'happy': 0, 'sad': 0, 'neutral': 1}
-
-    async def process_task(self, task: Message | None) -> Message | None:
-        ... # 不会被用到
 
 class FrontendDummy(ModuleBase):
     def __init__(self):
@@ -189,4 +180,3 @@ class ControllerDummy(ModuleBase):
     def __init__(self):
         super().__init__(ModuleRoles.CONTROLLER, "ControllerDummy")
     
-    async def process_task(self, task: Message | None) -> Message | None:...    
