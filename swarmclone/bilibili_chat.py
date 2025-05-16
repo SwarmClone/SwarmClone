@@ -13,7 +13,7 @@ class BiliBiliChat(ModuleBase):
             sessdata=config.chat.bilibili.credential.sessdata or None,
             bili_jct=config.chat.bilibili.credential.bili_jct or None,
             buvid3=config.chat.bilibili.credential.buvid3 or None,
-            dedeuserid=config.chat.bilibili.credential.dedeuseride or None,
+            dedeuserid=config.chat.bilibili.credential.dedeuserid or None,
             ac_time_value=config.chat.bilibili.credential.ac_time_value or None
         )
         self.room = live.LiveDanmaku(config.chat.bilibili.live_room_id, credential=self.credential)
