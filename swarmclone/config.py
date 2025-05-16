@@ -144,7 +144,9 @@ class GlobalConfig:
     )
     NUM_WORKERS: int = 4
     DEVICE: str = "cuda"
-    CONFIG_FILE: str = "./config/server_settings.toml"
+    CUSTOM_SETTINGS_PATH: str = "./config/custom_settings.toml"
+    DEFAULT_SETTINGS_PATH: str = "./config/server_settings.toml"
+    CONFIG_FILE: str = CUSTOM_SETTINGS_PATH if os.path.exists(CUSTOM_SETTINGS_PATH) else DEFAULT_SETTINGS_PATH
     
     # 运行时属性
     _toml_data: dict = field(default_factory=dict)

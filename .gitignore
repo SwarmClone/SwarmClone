@@ -177,3 +177,4 @@ datasets/
 Dockerfile
 *.x86_64
 *_Data
+custom_settings.toml
