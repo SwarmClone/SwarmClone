@@ -101,18 +101,18 @@ class LLMMiniLM2(LLMBase):
     
     @torch.no_grad()
     async def get_emotion(self, text: str) -> dict[str, float]:
+        labels = ['neutral', 'like', 'sad', 'disgust', 'anger', 'happy']
         ids = self.classifier_tokenizer([text], return_tensors="pt").input_ids.to(self.device)
-        print(text)
-        logits = (await asyncio.to_thread(self.classifier_model, input_ids=ids)).logits.softmax(dim=-1)
-        neutral, like, sad, disgust, anger, happy = logits.tolist()[0]
-        return {
-            "neutral": neutral,
-            "like": like,
-            "sad": sad,
-            "disgust": disgust,
-            "anger": anger,
-            "happy": happy
-        }
+        """
+        probs = (
+            (await asyncio.to_thread(self.classifier_model, input_ids=ids))
+            .logits
+            .softmax(dim=-1)
+            .squeeze()
+        )
+        """
+        logits: torch.Tensor = (await asyncio.to_thread(self.classifier_model, input_ids=ids)).logits.squeeze()
+        return dict(zip(labels, logits.softmax(dim=-1).tolist()))
     
     @torch.no_grad()
     async def iter_sentences_emotions(self):
