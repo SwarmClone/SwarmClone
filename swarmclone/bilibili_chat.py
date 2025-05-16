@@ -30,7 +30,6 @@ class BiliBiliChat(ModuleBase):
                     user=user,
                     content=msg,
                 )
-                        
             )
 
     async def run(self):
