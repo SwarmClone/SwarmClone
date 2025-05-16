@@ -114,8 +114,11 @@ class LLMBase(ModuleBase):
                     if isinstance(task, ASRActivated):
                         self._switch_to_waiting4asr()
                     elif not self.chat_queue.empty():
-                        chat = (await self.chat_queue.get()).get_value(self)
-                        self._switch_to_generating({'role': 'chat', 'content': f'{chat["user"]}：{chat["content"]}'})
+                        try:
+                            chat = self.chat_queue.get_nowait().get_value(self)
+                            self._switch_to_generating({'role': 'chat', 'content': f'{chat["user"]}：{chat["content"]}'})
+                        except asyncio.QueueEmpty:
+                            pass
                     elif time.perf_counter() - self.timer > 10:
                         self._switch_to_generating({'role': 'system', 'content': '请随便说点什么吧！'})
                 case LLMState.GENERATING:
@@ -137,8 +140,7 @@ class LLMBase(ModuleBase):
                         self._switch_to_idle()
                     elif task is not None and isinstance(task, ASRActivated):
                         self._switch_to_waiting4asr()
-                case _:
-                    await asyncio.sleep(0.1)
+            await asyncio.sleep(0.1) # 避免卡死事件循环
     
     async def start_generating(self) -> None:
         iterator = self.iter_sentences_emotions()
