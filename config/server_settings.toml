@@ -9,6 +9,7 @@ port = 8002
 [llm]
 port = 8003
 device = "cuda"
+idle_time = 30
 
 [llm.minilm2]
 model_path = "~/.swarmclone/llm/MiniLM2/MiniLM2-nGPT-0.4b-dialogue"

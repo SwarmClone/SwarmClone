@@ -7,6 +7,7 @@ from enum import Enum
 from uuid import uuid4
 from .constants import *
 from .messages import *
+from .config import config
 
 class ModuleBase:
     def __init__(self, module_role: ModuleRoles, name: str):
@@ -119,7 +120,7 @@ class LLMBase(ModuleBase):
                             self._switch_to_generating({'role': 'chat', 'content': f'{chat["user"]}：{chat["content"]}'})
                         except asyncio.QueueEmpty:
                             pass
-                    elif time.perf_counter() - self.timer > 10:
+                    elif time.perf_counter() - self.timer > config.llm.idle_time:
                         self._switch_to_generating({'role': 'system', 'content': '请随便说点什么吧！'})
                 case LLMState.GENERATING:
                     if isinstance(task, ASRActivated):
