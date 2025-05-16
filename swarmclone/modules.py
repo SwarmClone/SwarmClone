@@ -2,6 +2,7 @@ from __future__ import annotations # 为了延迟注解评估
 
 import asyncio
 import time
+import random
 from enum import Enum
 from uuid import uuid4
 from .constants import *
@@ -56,6 +57,9 @@ class LLMBase(ModuleBase):
         self.history: list[dict[str, str]] = []
         self.generated_text = ""
         self.generate_task: asyncio.Task | None = None
+        self.chat_maxsize = 20
+        self.chat_size_threshold = 10
+        self.chat_queue: asyncio.Queue[ChatMessage] = asyncio.Queue(maxsize=self.chat_maxsize)
     
     def _switch_to_generating(self, new_round: dict):
         self.state = LLMState.GENERATING
@@ -94,10 +98,24 @@ class LLMBase(ModuleBase):
             except asyncio.QueueEmpty:
                 task = None
             
+            if isinstance(task, ChatMessage):
+                if (qsize := self.chat_queue.qsize()) < self.chat_size_threshold:
+                    prob = 1
+                else:
+                    prob = 1 - (qsize - self.chat_size_threshold) / (self.chat_maxsize - self.chat_size_threshold)
+                if random.random() < prob:
+                    try:
+                        self.chat_queue.put_nowait(task)
+                    except asyncio.QueueFull:
+                        pass
+
             match self.state:
                 case LLMState.IDLE:
                     if isinstance(task, ASRActivated):
                         self._switch_to_waiting4asr()
+                    elif not self.chat_queue.empty():
+                        chat = (await self.chat_queue.get()).get_value(self)
+                        self._switch_to_generating({'role': 'chat', 'content': f'{chat["user"]}：{chat["content"]}'})
                     elif time.perf_counter() - self.timer > 10:
                         self._switch_to_generating({'role': 'system', 'content': '请随便说点什么吧！'})
                 case LLMState.GENERATING:
@@ -119,7 +137,8 @@ class LLMBase(ModuleBase):
                         self._switch_to_idle()
                     elif task is not None and isinstance(task, ASRActivated):
                         self._switch_to_waiting4asr()
-            await asyncio.sleep(0.1)
+                case _:
+                    await asyncio.sleep(0.1)
     
     async def start_generating(self) -> None:
         iterator = self.iter_sentences_emotions()
