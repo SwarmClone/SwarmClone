@@ -177,7 +177,7 @@ class LLMBase(ModuleBase):
         }
         迭代直到本次回复完毕即可
         """
-        yield "", {"like": 0, "disgust": 0, "anger": 0, "happy": 0, "sad": 0, "neutral": 1}
+        yield "", {"like": 0, "disgust": 0, "anger": 0, "happy": 0, "sad": 0, "neutral": 1.}
 
 class LLMDummy(LLMBase):
     def __init__(self):
@@ -186,7 +186,7 @@ class LLMDummy(LLMBase):
     async def iter_sentences_emotions(self):
         sentences = ["This is a test sentence.", f"I received user prompt {self.history[-1]['content']}"]
         for sentence in sentences:
-            yield sentence, {'like': 0, 'disgust': 0, 'anger': 0, 'happy': 0, 'sad': 0, 'neutral': 1}
+            yield sentence, {'like': 0, 'disgust': 0, 'anger': 0, 'happy': 0, 'sad': 0, 'neutral': 1.}
 
 class FrontendDummy(ModuleBase):
     def __init__(self):
