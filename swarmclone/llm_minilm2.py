@@ -141,7 +141,7 @@ class LLMMiniLM2(LLMBase):
                 except queue.Empty:
                     await asyncio.sleep(0.05)
                     continue
-                except queue.StopIteration:
+                except StopIteration:
                     break
                 generating_sentence += t
                 self.generated_text += t
