@@ -1,6 +1,7 @@
 import asyncio
 import re
 import os
+import queue
 import torch
 from transformers import ( # type: ignore
     AutoModelForCausalLM,
@@ -119,7 +120,7 @@ class LLMMiniLM2(LLMBase):
     async def iter_sentences_emotions(self):
         text = self.tokenizer.apply_chat_template(self.history, tokenize=False, add_generation_prompt=True)
         model_inputs = self.tokenizer([text], return_tensors="pt").to(self.device)
-        streamer = TextIteratorStreamer(self.tokenizer, skip_prompt=True, skip_special_tokens=True)
+        streamer = TextIteratorStreamer(self.tokenizer, skip_prompt=True, skip_special_tokens=True, timeout=0)
         loop = asyncio.get_event_loop()
         generation_task = loop.create_task(
             asyncio.to_thread(
@@ -132,11 +133,16 @@ class LLMMiniLM2(LLMBase):
                 )
             )
         )
-        await asyncio.sleep(0.05)
         generating_sentence = ""
         try:
-            for t in streamer:
-                await asyncio.sleep(0.05)
+            while True: # 等待第一个token防止后续生成被阻塞
+                try:
+                    t = next(streamer)
+                except queue.Empty:
+                    await asyncio.sleep(0.05)
+                    continue
+                except queue.StopIteration:
+                    break
                 generating_sentence += t
                 self.generated_text += t
                 if (sentences := split_text(generating_sentence))[:-1]:

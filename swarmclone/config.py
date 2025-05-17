@@ -163,7 +163,7 @@ class GlobalConfig:
             try:
                 with open(absolute_path, "rb") as f:
                     self._toml_data = tomli.load(f)
-                print(f"配置文件内容: {self._toml_data}")
+                print(f"配置文件加载成功")
             except FileNotFoundError as e:
                 raise FileNotFoundError(f"配置文件未找到: {absolute_path}") from e
             except tomli.TOMLDecodeError as e:

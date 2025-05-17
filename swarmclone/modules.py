@@ -93,7 +93,6 @@ class LLMBase(ModuleBase):
             
     async def run(self):
         while True:
-            print(self.state)
             try:
                 task = self.task_queue.get_nowait()
                 print(self.state, task)
