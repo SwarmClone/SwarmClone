@@ -75,7 +75,7 @@ class LLMMiniLM2(LLMBase):
                     abs_classifier_path,
                     torch_dtype="auto",
                     trust_remote_code=True
-                ).to(config.llm.device)
+                ).to("cpu")
                 classifier_tokenizer = AutoTokenizer.from_pretrained(
                     abs_classifier_path,
                     padding_side="left",
@@ -101,8 +101,9 @@ class LLMMiniLM2(LLMBase):
     
     @torch.no_grad()
     async def get_emotion(self, text: str) -> dict[str, float]:
+        print(text)
         labels = ['neutral', 'like', 'sad', 'disgust', 'anger', 'happy']
-        ids = self.classifier_tokenizer([text], return_tensors="pt").input_ids.to(self.device)
+        ids = self.classifier_tokenizer([text], return_tensors="pt")['input_ids']
         """
         probs = (
             (await asyncio.to_thread(self.classifier_model, input_ids=ids))
@@ -135,6 +136,7 @@ class LLMMiniLM2(LLMBase):
         generating_sentence = ""
         try:
             for t in streamer:
+                await asyncio.sleep(0.05)
                 generating_sentence += t
                 self.generated_text += t
                 if (sentences := split_text(generating_sentence))[:-1]:
