@@ -11,5 +11,5 @@ if __name__ == "__main__":
     controller.register(FrontendSocket())
     controller.register(TTSCosyvoice())
     controller.register(LLMMiniLM2())
-    controller.register(BiliBiliChat())
+    # controller.register(BiliBiliChat())
     controller.start()
