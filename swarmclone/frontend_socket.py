@@ -48,9 +48,9 @@ class FrontendSocket(ModuleBase):
         dict = {
             "message_type": task.message_type.value,
             "source": task.source.role.value,
-            **task.kwargs
+            **task.get_value(self)
         }
-        if isinstance(task, TTSAudio):
+        if isinstance(task, TTSAlignedAudio):
             dict["data"] = base64.b64encode(dict["data"]).decode('utf-8')#UnicodeDecodeError: 'utf-8' codec can't decode byte 0x81 in position 1: invalid start byte
         massage = (
             json.dumps(dict).replace(config.panel.server.requests_separator, "") + # 防止在不应出现的地方出现分隔符
