@@ -89,8 +89,6 @@ class TTSCosyvoice(ModuleBase):
                 content = task.get_value(self).get("content", None)
                 emotions = task.get_value(self).get("emotion", None)
                 await self.generate_sentence(id, content, emotions)
-            elif isinstance(task, LLMEOS):
-                await self.results_queue.put(TTSFinished(self))
 
     async def preprocess_tasks(self) -> None:
         while True:
@@ -146,8 +144,5 @@ class TTSCosyvoice(ModuleBase):
             with open(audio_name, "rb") as f:
                 audio_data = f.read()
         await self.results_queue.put(TTSAlignedAudio(self, id, audio_data, intervals))
-        
 
-    async def process_task(self, task: Message | None) -> Message | None:
-        # 不应被调用
-        raise NotImplementedError
+        return None # 别让mypy报错

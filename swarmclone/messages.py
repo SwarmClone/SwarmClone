@@ -89,51 +89,18 @@ class LLMMessage(Message):
             emotion=emotion
         )
 
-class TTSFinished(Message):
+class AudioFinished(Message):
     """
-    TTS 结束信号
+    音频播放完毕信号
     """
     def __init__(self, source: ModuleBase):
         super().__init__(
             MessageType.SIGNAL,
             source,
-            destinations=[ModuleRoles.FRONTEND, ModuleRoles.LLM],
-            name="TTSFinished"
+            destinations=[ModuleRoles.LLM],
+            name="AudioFinished"
         )
-
-class TTSAlignment(Message):
-    """
-    TTS 对齐信息
-    .id：消息的 id（uuid）
-    .token：当前 token
-    .duration：当前 token 的时长
-    """
-    def __init__(self, source: ModuleBase, id: str, token: str, duration: float):
-        super().__init__(
-            MessageType.DATA,
-            source,
-            destinations=[ModuleRoles.FRONTEND],
-            id=id,
-            token=token,
-            duration=duration
-        )
-
-class TTSAudio(Message):
-    """
-    TTS 对齐信息
-    .id：消息的 id（uuid）
-    .audio_data：bytes 音频数据
-    """
-    def __init__(self, source: ModuleBase, id: str, audio_data: bytes):
-        super().__init__(
-            MessageType.DATA,
-            source,
-            destinations=[ModuleRoles.FRONTEND],
-            id=id,
-            data=audio_data
-        )
-        
-        
+ 
 class TTSAlignedAudio(Message):
     """
     TTS 对齐信息
@@ -155,7 +122,6 @@ class TTSAlignedAudio(Message):
             data=audio_data,
             align_data=align_data
         )
-        
 
 class ChatMessage(Message):
     """

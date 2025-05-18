@@ -137,7 +137,7 @@ class LLMBase(ModuleBase):
                             'content': f"{speaker_name}：{content}"
                         })
                 case LLMState.WAITING4TTS:
-                    if task is not None and isinstance(task, TTSFinished):
+                    if task is not None and isinstance(task, AudioFinished):
                         self._switch_to_idle()
                     elif task is not None and isinstance(task, ASRActivated):
                         self._switch_to_waiting4asr()
