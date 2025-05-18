@@ -145,16 +145,8 @@ class TTSCosyvoice(ModuleBase):
             # 音频数据
             with open(audio_name, "rb") as f:
                 audio_data = f.read()
-        await self.results_queue.put(TTSAudio(self, id, audio_data))
-        # 对齐数据
-        for interval in intervals:
-            await self.results_queue.put(
-                TTSAlignment(self,
-                id=id,
-                token=interval["token"],
-                duration=interval["duration"])
-            )
-        return None
+        await self.results_queue.put(TTSAlignedAudio(self, id, audio_data, intervals))
+        
 
     async def process_task(self, task: Message | None) -> Message | None:
         # 不应被调用
