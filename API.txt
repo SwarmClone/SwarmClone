@@ -6,3 +6,6 @@ asr_dummy: {
     "content": "some message"
 } 
 -> return {"status": OK}
+
+/api/get_version, method = ['GET']
+-> return {"version": "xxxx"}

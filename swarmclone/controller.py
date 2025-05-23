@@ -39,6 +39,8 @@ class Controller:
         
         /:      根路由
         /api:   API路由
+        /assets: 静态资源路由
+        /api/get_version: 获取版本信息
         """
         self.app.mount("/assets", StaticFiles(directory="panel/dist/assets"), name="assets")
         
