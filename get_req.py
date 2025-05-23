@@ -12,7 +12,7 @@ requirements = {
             "transformers==4.47.1",
             "tokenizers==0.21.0",
             # asr
-            "sherpa-onnx==1.10.41",
+            "sherpa-onnx==1.12.0",
             "sounddevice==0.5.1",
             "soundfile==0.13.0",
             "playsound==1.3.0",
