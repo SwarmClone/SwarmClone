@@ -15,7 +15,6 @@ requirements = {
             "sherpa-onnx==1.12.0",
             "sounddevice==0.5.1",
             "soundfile==0.13.0",
-            "playsound==1.3.0",
             # tts
             "http://pixelstonelab.com:5005/sc_cosyvoice-0.2.0-py3-none-any.whl",
             "spacy-pkuseg",
@@ -23,8 +22,8 @@ requirements = {
             "hanziconv",
             "spacy",
             "textgrid",
-            "pygame",
             "zhconv",
+            "joblib==1.4.2",
             # panel
             "fastapi",
             "uvicorn",
