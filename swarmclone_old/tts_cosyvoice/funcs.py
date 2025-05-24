@@ -4,6 +4,7 @@ import torch
 from typing import List, Optional
 
 from pathlib import Path
+from ..request_parser import *
 from cosyvoice.cli.cosyvoice import CosyVoice   # type: ignore
 from cosyvoice.utils.file_utils import load_wav   # type: ignore
 
@@ -16,7 +17,12 @@ emotion_to_prompt = {
 }
 
 
-def get_emotion_prompt(emotions):
+def is_panel_ready(sock: socket.socket):
+    msg = sock.recv(1024)
+    return loads(msg.decode())[0] == PANEL_START
+
+
+def get_emotion_prompt(emotions: EmotionType):
     emotions_top2 = sorted(emotions.items(), key=lambda x: x[1], reverse=True)[:2]
     if emotions_top2[0][0] == "neutral":
         return "neutral"
@@ -26,7 +32,7 @@ def get_emotion_prompt(emotions):
         return f"With a tone of {emotions_top2[0][0]} and {emotions_top2[1][0]}"
 
 @torch.no_grad()
-def tts_generate(tts: List[CosyVoice], s: str, tune: str, emotions, is_linux: bool):
+def tts_generate(tts: List[CosyVoice], s: str, tune: str, emotions: EmotionType, is_linux: bool):
     """tts生成
 
     Args:

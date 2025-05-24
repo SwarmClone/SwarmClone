@@ -144,10 +144,25 @@ class GlobalConfig:
     )
     NUM_WORKERS: int = 4
     DEVICE: str = "cuda"
-    CUSTOM_SETTINGS_PATH: str = "./config/custom_settings.toml"
-    DEFAULT_SETTINGS_PATH: str = "./config/server_settings.toml"
-    CONFIG_FILE: str = CUSTOM_SETTINGS_PATH if os.path.exists(CUSTOM_SETTINGS_PATH) else DEFAULT_SETTINGS_PATH
+    CONFIG_FILE: str = "./config/server_settings.toml"
     
+    # 模块启动命令
+    START_ASR_COMMAND: List[str] = field(
+        default_factory=lambda: ["python", "-m", "swarmclone.asr_dummy"]
+    )
+    START_TTS_COMMAND: List[str] = field(
+        default_factory=lambda: ["python", "-m", "swarmclone.tts_dummy"]
+    )
+    START_LLM_COMMAND: List[str] = field(
+        default_factory=lambda: ["python", "-m", "swarmclone.model_qwen"]
+    )
+    START_FRONTEND_COMMAND: List[str] = field(
+        default_factory=lambda: ["python", "-m", "swarmclone.frontend_dummy"]
+    )
+    START_PANEL_COMMAND: List[str] = field(
+        default_factory=lambda: ["python", "-m", "swarmclone.panel"]
+    )
+
     # 运行时属性
     _toml_data: dict = field(default_factory=dict)
     _lock: threading.Lock = field(default_factory=threading.Lock, init=False)
@@ -163,7 +178,7 @@ class GlobalConfig:
             try:
                 with open(absolute_path, "rb") as f:
                     self._toml_data = tomli.load(f)
-                print(f"配置文件加载成功")
+                print(f"配置文件内容: {self._toml_data}")
             except FileNotFoundError as e:
                 raise FileNotFoundError(f"配置文件未找到: {absolute_path}") from e
             except tomli.TOMLDecodeError as e:

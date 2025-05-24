@@ -43,16 +43,14 @@ def download_file(url, dest_path):
 def download_model_and_dict(tts_config):
     mfa_model_path = os.path.expanduser(os.path.join(tts_config.model_path, "mfa"))
     os.makedirs(mfa_model_path, exist_ok=True)
-    files = [
-            ["https://github.com/MontrealCorpusTools/mfa-models/releases/download/acoustic-mandarin_mfa-v3.0.0/mandarin_mfa.zip", 
+    files = [["https://github.com/MontrealCorpusTools/mfa-models/releases/download/acoustic-mandarin_mfa-v3.0.0/mandarin_mfa.zip", 
               os.path.join(mfa_model_path, "mandarin_mfa.zip")], 
             ["https://github.com/MontrealCorpusTools/mfa-models/releases/download/dictionary-mandarin_china_mfa-v3.0.0/mandarin_china_mfa.dict", 
               os.path.join(mfa_model_path, "mandarin_china_mfa.dict")],
-            # ["https://github.com/MontrealCorpusTools/mfa-models/releases/download/acoustic-english_mfa-v3.1.0/english_mfa.zip", 
-            #   os.path.join(mfa_model_path, "english_mfa.zip")], 
-            # ["https://github.com/MontrealCorpusTools/mfa-models/releases/download/dictionary-english_mfa-v3.1.0/english_mfa.dict", 
-            #   os.path.join(mfa_model_path, "english_mfa.dict")]
-            ]
+            ["https://github.com/MontrealCorpusTools/mfa-models/releases/download/acoustic-english_mfa-v3.1.0/english_mfa.zip", 
+              os.path.join(mfa_model_path, "english_mfa.zip")], 
+            ["https://github.com/MontrealCorpusTools/mfa-models/releases/download/dictionary-english_mfa-v3.1.0/english_mfa.dict", 
+              os.path.join(mfa_model_path, "english_mfa.dict")]]
     for file in files:
         if not os.path.exists(file[1]):
             download_file(file[0], file[1])
