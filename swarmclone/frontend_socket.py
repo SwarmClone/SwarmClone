@@ -37,20 +37,19 @@ class FrontendSocket(ModuleBase):
             for addr in to_remove:
                 del self.clientdict[addr]
 
-    async def handle_client(self, reader:asyncio.StreamReader, writer:asyncio.StreamWriter, ):
+    async def handle_client(self, reader:asyncio.StreamReader, writer:asyncio.StreamWriter):
         addr = writer.get_extra_info('peername')
         print(f"客户端已连接：{addr}")
         self.clientdict[addr[1]] = writer
         while True:
-            data =  await reader.read(1024)
+            data = await reader.read(1024)
             print(f"消息来自：{addr}")
             if not data:
                 break
-            message = json.load(data.decode(), object_hook=dict[str, Any])
+            message = json.loads(data.decode(), object_hook=dict[str, Any])
             if message["message_type"] == "Signal":
-                self.results_queue.put(AudioFinished)
+                await self.results_queue.put(AudioFinished(self))
 
-    
     def load(self, task: Message) -> str:
         dict = {
             "message_type": task.message_type.value,
@@ -64,7 +63,3 @@ class FrontendSocket(ModuleBase):
             config.panel.server.requests_separator
         )
         return massage
-    
-    async def process_task(self, task: Message | None) -> Message | None:
-    # 不应被调用
-        raise NotImplementedError
