@@ -1,7 +1,7 @@
 import asyncio
 import json
 import base64
- 
+from typing import Any
 from .config import config
 from .modules import ModuleRoles, ModuleBase
 from .messages import *
@@ -14,35 +14,42 @@ class FrontendSocket(ModuleBase):
 
     async def run(self):
         loop = asyncio.get_running_loop()
-        loop.create_task(self.preprocess_tasks())
         self.server = await asyncio.start_server(self.handle_client,config.panel.server.host, config.panel.frontend.port)
+        loop.create_task(self.SendToFrontend())
         async with self.server:
             await self.server.serve_forever()
     
-    async def preprocess_tasks(self):
+    async def SendToFrontend(self):
         while True:
-            if self.clientdict:
-                task = await self.task_queue.get()
-                to_remove = []
-                message = self.load(task)
-                for addr, client in self.clientdict.items():
-                    try:
-                        client.write(message.encode('utf-8'))
-                        await client.drain()
-                        print(f"消息已发送给 {addr}")
-                    except ConnectionResetError:
-                        print(f"客户端 {addr} 已断开连接")
-                        client.close()
-                        to_remove.append(addr)
-                for addr in to_remove:
-                    del self.clientdict[addr]
-            else:
-                await asyncio.sleep(0.01)
+            task = await self.task_queue.get()
+            print(type(task))
+            to_remove = []
+            message = self.load(task)
+            for addr, client in self.clientdict.items():
+                try:
+                    client.write(message.encode('utf-8'))
+                    await client.drain()
+                    print(f"消息已发送给 {addr}")
+                except ConnectionResetError:
+                    print(f"客户端 {addr} 已断开连接")
+                    client.close()
+                    to_remove.append(addr)
+            for addr in to_remove:
+                del self.clientdict[addr]
 
-    def handle_client(self, reader:asyncio.StreamReader, writer:asyncio.StreamWriter) -> None:
+    async def handle_client(self, reader:asyncio.StreamReader, writer:asyncio.StreamWriter, ):
         addr = writer.get_extra_info('peername')
         print(f"客户端已连接：{addr}")
         self.clientdict[addr[1]] = writer
+        while True:
+            data =  await reader.read(1024)
+            print(f"消息来自：{addr}")
+            if not data:
+                break
+            message = json.load(data.decode(), object_hook=dict[str, Any])
+            if message["message_type"] == "Signal":
+                self.results_queue.put(AudioFinished)
+
     
     def load(self, task: Message) -> str:
         dict = {
