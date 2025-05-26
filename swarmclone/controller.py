@@ -105,7 +105,10 @@ class Controller:
             loop="asyncio"
         )
         server = uvicorn.Server(config)
-        loop.run_until_complete(server.serve())
+        try:
+            loop.run_until_complete(server.serve())
+        except KeyboardInterrupt:
+            print("关闭服务器...")
     
     async def handle_module(self, module: ModuleBase):
         while True:
