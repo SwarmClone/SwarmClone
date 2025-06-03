@@ -10,11 +10,11 @@ from .asr import ASRSherpa
 
 if __name__ == "__main__":
     ## TODO：从命令行接收配置文件、模块列表等参数
-    controller = Controller(config=Config())#("config/custom_settings.toml"))
+    controller = Controller(config=Config("config/custom_settings.toml"))
     controller.register_module(FrontendSocket)
-    # controller.register_module(TTSCosyvoice)
-    # controller.register_module(LLMMiniLM2)
-    # controller.register_module(BiliBiliChat)
-    # controller.register_module(ASRRemote)
+    controller.register_module(TTSCosyvoice)
+    controller.register_module(LLMMiniLM2)
+    controller.register_module(BiliBiliChat)
+    controller.register_module(ASRRemote)
     controller.register_module(ASRSherpa)
     controller.start()
