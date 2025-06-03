@@ -15,6 +15,6 @@ if __name__ == "__main__":
     controller.register_module(TTSCosyvoice)
     controller.register_module(LLMMiniLM2)
     controller.register_module(BiliBiliChat)
-    controller.register_module(ASRRemote)
+    # controller.register_module(ASRRemote)
     controller.register_module(ASRSherpa)
     controller.start()
