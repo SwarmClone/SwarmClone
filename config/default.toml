@@ -37,6 +37,9 @@ hotwords_score = 1.5
 blank_penalty = 0.0
 vadmodel_path = "~/.swarmclone/vad/"
 
+[asr.userdb]
+"DeveloperA" = "12345"
+
 [tts]
 port = 8005
 
