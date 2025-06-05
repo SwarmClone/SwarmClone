@@ -1,9 +1,8 @@
-import sys
 import os
 from pathlib import Path
-import sounddevice as sd # type: ignore
-import sherpa_onnx # type: ignore
-
+import sherpa_onnx 
+from typing import Any
+from ..config import ConfigSection
 
 def assert_file_exists(filename: str):
     assert Path(filename).is_file(), (
@@ -12,9 +11,10 @@ def assert_file_exists(filename: str):
         "https://github.com/snakers4/silero-vad/raw/master/src/silero_vad/data/silero_vad.onnx"
     )
 
-def create_detector(asr_config):
+def create_detector(asr_config: ConfigSection | Any):
     download_models(asr_config)
-    model_path = Path(os.path.expanduser(asr_config.vadmodel_path))
+    assert isinstance((vadmodel_path := asr_config.vadmodel_path), str)
+    model_path = Path(os.path.expanduser(vadmodel_path))
     model_file = str(model_path / "silero_vad.onnx")
     print(f"Loading model from {model_path}")
 
@@ -35,7 +35,7 @@ def create_detector(asr_config):
 
     return vad
 
-def download_models(asr_config):
+def download_models(asr_config: ConfigSection | Any):
     """
     下载模型、解压模型
     """
@@ -46,8 +46,9 @@ def download_models(asr_config):
         print(f"VADMODELPATH not set, using default {asr_config.vadmodel_path}")
     """
 
+    assert isinstance((vadmodel_path := asr_config.vadmodel_path), str)
     # 使用expanduser将～转换为绝对路径
-    model_path = Path(os.path.expanduser(asr_config.vadmodel_path))
+    model_path = Path(os.path.expanduser(vadmodel_path))
     model_path.mkdir(parents=True, exist_ok=True)
 
     

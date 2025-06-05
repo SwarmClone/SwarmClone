@@ -1,8 +1,8 @@
-import sys
 import os
 from pathlib import Path
-import sounddevice as sd # type: ignore
-import sherpa_onnx # type: ignore
+from typing import Any
+import sherpa_onnx 
+from ..config import ConfigSection
 
 def assert_file_exists(filename: str):
     assert Path(filename).is_file(), (
@@ -11,10 +11,11 @@ def assert_file_exists(filename: str):
         "https://k2-fsa.github.io/sherpa/onnx/pretrained_models/index.html to download it"
     )
 
-def create_recognizer(asr_config):
+def create_recognizer(asr_config: ConfigSection | Any):
     download_models(asr_config)
+    assert isinstance((model_path := asr_config.model_path), str)
     if asr_config.model == "paraformer":
-        model_path = Path(os.path.expanduser(asr_config.model_path)) / "sherpa-onnx-streaming-paraformer-bilingual-zh-en"
+        model_path = Path(os.path.expanduser(model_path)) / "sherpa-onnx-streaming-paraformer-bilingual-zh-en"
         tokens = str(model_path / "tokens.txt")
         if asr_config.quantized == "int8":
             encoder = str(model_path / "encoder.int8.onnx")
@@ -44,7 +45,7 @@ def create_recognizer(asr_config):
             rule3_min_utterance_length=300,  # it essentially disables this rule
         )
     elif asr_config.model == "zipformer":
-        model_path = Path(os.path.expanduser(asr_config.model_path)) / "sherpa-onnx-streaming-zipformer-bilingual-zh-en-2023-02-20"
+        model_path = Path(os.path.expanduser(model_path)) / "sherpa-onnx-streaming-zipformer-bilingual-zh-en-2023-02-20"
         tokens = str(model_path / "tokens.txt")
         if asr_config.quantized == "int8":
             encoder = str(model_path / "encoder-epoch-99-avg-1.int8.onnx")
@@ -64,6 +65,11 @@ def create_recognizer(asr_config):
         assert_file_exists(joiner)
         assert_file_exists(tokens)
         
+        assert isinstance((decoding_method := asr_config.decoding_method), str)
+        assert isinstance((provider := asr_config.provider), str)
+        assert isinstance((hotwords_file := asr_config.hotwords_file), str)
+        assert isinstance((hotwords_score := asr_config.hotwords_score), float)
+        assert isinstance((blank_penalty := asr_config.blank_penalty), float)
         recognizer = sherpa_onnx.OnlineRecognizer.from_transducer(
             tokens=tokens,
             encoder=encoder,
@@ -76,11 +82,11 @@ def create_recognizer(asr_config):
             rule1_min_trailing_silence=2.4,
             rule2_min_trailing_silence=1.2,
             rule3_min_utterance_length=300,  # it essentially disables this rule
-            decoding_method=asr_config.decoding_method,
-            provider=asr_config.provider,
-            hotwords_file=asr_config.hotwords_file,
-            hotwords_score=asr_config.hotwords_score,
-            blank_penalty=asr_config.blank_penalty,
+            decoding_method=decoding_method,
+            provider=provider,
+            hotwords_file=hotwords_file,
+            hotwords_score=hotwords_score,
+            blank_penalty=blank_penalty,
         )
     else:
         # print(f"Model {asr_config.model} not supported")
@@ -88,7 +94,7 @@ def create_recognizer(asr_config):
 
     return recognizer
 
-def download_models(asr_config):
+def download_models(asr_config: ConfigSection | Any):
     """
     下载模型、解压模型
     """
@@ -103,7 +109,8 @@ def download_models(asr_config):
     """
 
     # 使用expanduser将～转换为绝对路径
-    model_path = Path(os.path.expanduser(asr_config.model_path))
+    assert isinstance((model_path := asr_config.model_path), str)
+    model_path = Path(os.path.expanduser(model_path))
     model_path.mkdir(parents=True, exist_ok=True)
 
     if asr_config.model == "paraformer":

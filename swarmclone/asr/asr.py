@@ -21,9 +21,12 @@ class ASRSherpa(ModuleBase):
         self.userdb = config.asr.userdb
         self.clientdict = {}
         self.speech_started = False
+        self.server = None
 
     async def run(self):
-        self.server = await asyncio.start_server(self.handle_client, self.config.panel.server.host, self.config.asr.port)
+        assert isinstance((host := self.config.panel.server.host), str)
+        assert isinstance((port := self.config.panel.frontend.port), int)
+        self.server = await asyncio.start_server(self.handle_client, host, port)
         async with self.server:
             await self.server.serve_forever()
 
@@ -33,6 +36,7 @@ class ASRSherpa(ModuleBase):
             checkmessage = json.loads(check.decode(), object_hook=dict[str, Any])
         except(UnicodeDecodeError):
             print("不是可接受的鉴权信息")
+            return
         try:
             password = getattr(self.userdb, checkmessage['name'])
         except(AttributeError):
