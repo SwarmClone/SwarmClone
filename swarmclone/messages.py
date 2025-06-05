@@ -1,7 +1,6 @@
 from __future__ import annotations # 为了延迟注解评估
 
-from enum import Enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from .constants import MessageType, ModuleRoles
 
 if TYPE_CHECKING:
@@ -10,11 +9,11 @@ if TYPE_CHECKING:
 class Message:
     def __init__(self, message_type: MessageType,
                  source: ModuleBase, destinations: list[ModuleRoles],
-                 **kwargs):
-        self.message_type = message_type
-        self.kwargs = kwargs
-        self.source = source
-        self.destinations = destinations
+                 **kwargs: Any):
+        self.message_type: MessageType = message_type
+        self.kwargs: dict[str, Any] = kwargs
+        self.source: ModuleBase = source
+        self.destinations: list[ModuleRoles] = destinations
         print(f"{source} -> {self} -> {destinations}")
     
     def __repr__(self):
@@ -26,7 +25,7 @@ class Message:
         kwrepr = kwrepr[:-2] + "}"
         return f"{self.message_type.value} {kwrepr}"
     
-    def get_value(self, getter: ModuleBase) -> dict:
+    def get_value(self, getter: ModuleBase) -> dict[str, Any]:
         if not getter.role in self.destinations:
             print(f"{getter} <x {self} (-> {[destination.value for destination in self.destinations]})")
             return {}
@@ -79,7 +78,7 @@ class LLMMessage(Message):
     .id：消息的 id（uuid）
     .emotion：情感信息。含有like disgust anger happy sad neutral五个情感的概率
     """
-    def __init__(self, source: ModuleBase, content: str, id: str, emotion: dict):
+    def __init__(self, source: ModuleBase, content: str, id: str, emotion: dict[str, float]):
         super().__init__(
             MessageType.DATA,
             source,
@@ -112,7 +111,7 @@ class TTSAlignedAudio(Message):
                  source: ModuleBase, 
                  id: str, 
                  audio_data: bytes, 
-                 align_data: list[dict[str, float]]
+                 align_data: list[dict[str, str | float]]
                  ):
         super().__init__(
             MessageType.DATA,

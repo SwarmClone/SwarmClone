@@ -1,6 +1,6 @@
 import json
 import asyncio
-import queue
+from typing import Any
 from .messages import *
 from .modules import *
 from .config import Config
@@ -8,10 +8,13 @@ from .config import Config
 class ASRRemote(ModuleBase):
     def __init__(self, config: Config):
         super().__init__(ModuleRoles.ASR, "ASRRemote", config)
-        self.server = None
+        self.server: asyncio.Server | None = None
         self.clientdict: dict[str, asyncio.StreamWriter] = {}
     
     async def run(self):
+        assert isinstance(self.config.panel.server.host, str)
+        assert isinstance(self.config.asr.port, int)
+        
         self.server = await asyncio.start_server(
             self.handle_client,
             self.config.panel.server.host,
@@ -55,12 +58,15 @@ class ASRRemote(ModuleBase):
                         }
                     }:
                         await self.results_queue.put(ASRMessage(self, user, content))
+                    case _:
+                        pass
 
 class Loader: # loads的进一步封装
     def __init__(self, config: Config):
-        self.sep = config.panel.server.requests_separator
-        self.request_str = ""
-        self.requests: list[dict] = []
+        assert isinstance(config.panel.server.requests_separator, str)
+        self.sep: str = config.panel.server.requests_separator
+        self.request_str: str = ""
+        self.requests: list[dict[str, Any]] = []
     
     def update(self, request_str: str) -> None:
         self.request_str += request_str
@@ -78,6 +84,6 @@ class Loader: # loads的进一步封装
                     print(f"Invalid JSON format: {request_string}")
         self.request_str = left
     
-    def get_requests(self) -> list[dict]:
+    def get_requests(self) -> list[dict[str, Any]]:
         requests, self.requests = self.requests, []
         return requests

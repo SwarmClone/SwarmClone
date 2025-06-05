@@ -15,7 +15,7 @@ from .config import Config
 from .modules import *
 from .messages import *
 
-def split_text(s, separators="。？！～.?!~\n\r") -> list[str]: # By DeepSeek
+def split_text(s: str, separators: str="。？！～.?!~\n\r") -> list[str]: # By DeepSeek
     # 构建正则表达式模式
     separators_class = ''.join(map(re.escape, separators))
     pattern = re.compile(rf'([{separators_class}]+)')
@@ -39,10 +39,12 @@ def split_text(s, separators="。？！～.?!~\n\r") -> list[str]: # By DeepSeek
 class LLMMiniLM2(LLMBase):
     def __init__(self, config: Config):
         super().__init__("LLMMiniLM2", config)
+        assert isinstance((llm_model_path := config.llm.minilm2.model_path), str)
+        assert isinstance((classifier_model_path := config.llm.emotionclassification.model_path), str)
 
         successful = False
-        abs_model_path = os.path.expanduser(config.llm.minilm2.model_path)
-        abs_classifier_path = os.path.expanduser(config.llm.emotionclassification.model_path)
+        abs_model_path = os.path.expanduser(llm_model_path)
+        abs_classifier_path = os.path.expanduser(classifier_model_path)
         while not successful: # 加载大语言模型
             try:
                 print(f"正在从{abs_model_path}加载语言模型……")
@@ -57,13 +59,16 @@ class LLMMiniLM2(LLMBase):
                     trust_remote_code=True
                 )
                 successful = True
+                self.model = model
+                self.tokenizer = tokenizer  # 移除类型注解以兼容所有使用场景
             except Exception as e:
                 print(e)
                 choice = input("加载模型失败，是否下载模型？(Y/n)")
                 if choice.lower() != "n":
                     from modelscope.hub.snapshot_download import snapshot_download # type: ignore
+                    assert isinstance((model_id := config.llm.minilm2.model_id), str)
                     snapshot_download(
-                        repo_id=config.llm.minilm2.model_id,
+                        repo_id=model_id,
                         repo_type="model",
                         local_dir=abs_model_path
                     )
@@ -83,22 +88,22 @@ class LLMMiniLM2(LLMBase):
                     trust_remote_code=True
                 )
                 successful = True
+                self.classifier_model = classifier_model
+                self.classifier_tokenizer = classifier_tokenizer
             except Exception as e:
                 print(e)
                 choice = input("加载模型失败，是否下载模型？(Y/n)")
                 if choice.lower() != "n":
                     from huggingface_hub import snapshot_download # type: ignore
+                    assert isinstance((model_id := config.llm.emotionclassification.model_id), str)
                     snapshot_download(
-                        repo_id=config.llm.emotionclassification.model_id,
+                        repo_id=model_id,
                         repo_type="model",
                         local_dir=abs_classifier_path
                     )
-
-        self.model = model
-        self.tokenizer = tokenizer
-        self.classifier_model = classifier_model
-        self.classifier_tokenizer = classifier_tokenizer
-        self.device = config.llm.device
+        
+        assert isinstance((device := config.llm.device), str)
+        self.device: str = device
     
     @torch.no_grad()
     async def get_emotion(self, text: str) -> dict[str, float]:
@@ -119,6 +124,7 @@ class LLMMiniLM2(LLMBase):
     @torch.no_grad()
     async def iter_sentences_emotions(self):
         text = self.tokenizer.apply_chat_template(self.history, tokenize=False, add_generation_prompt=True)
+        assert isinstance(text, str)
         model_inputs = self.tokenizer([text], return_tensors="pt").to(self.device)
         streamer = TextIteratorStreamer(self.tokenizer, skip_prompt=True, skip_special_tokens=True, timeout=0)
         loop = asyncio.get_event_loop()
@@ -137,7 +143,7 @@ class LLMMiniLM2(LLMBase):
         try:
             while True: # 等待第一个token防止后续生成被阻塞
                 try:
-                    t = next(streamer)
+                    t: str = next(streamer)
                 except queue.Empty:
                     await asyncio.sleep(0.05)
                     continue

@@ -1,10 +1,7 @@
 import os
 import sys
-import base64
 import warnings
 import shutil
-import socket
-import threading
 import tempfile
 import asyncio
 from time import time
@@ -16,7 +13,7 @@ from ..config import Config
 from ..modules import ModuleRoles, ModuleBase
 from ..messages import *
 
-from cosyvoice.cli.cosyvoice import CosyVoice   # type: ignore
+from cosyvoice.cli.cosyvoice import CosyVoice 
 from .align import download_model_and_dict, init_mfa_models, align, match_textgrid
 from .funcs import tts_generate
 
@@ -29,31 +26,40 @@ warnings.filterwarnings("ignore", category=FutureWarning, message=r".*weights_no
 is_linux = sys.platform.startswith("linux")
 def init_tts(config: Config):
     # TTS Model 初始化
+    assert isinstance((model_path := config.tts.cosyvoice.model_path), str)
+    assert isinstance((sft_model := config.tts.cosyvoice.sft_model), str)
+    assert isinstance((ins_model := config.tts.cosyvoice.ins_model), str)
+    assert isinstance((fp16 := config.tts.cosyvoice.float16), bool)
+    full_model_path: str = os.path.expanduser(model_path)
     try:
-        model_path = os.path.expanduser(config.tts.cosyvoice.model_path)
         if is_linux:
             print(f" * 将使用 {config.tts.cosyvoice.ins_model} & {config.tts.cosyvoice.sft_model} 进行生成。")
-            cosyvoice_sft = CosyVoice(os.path.join(model_path, config.tts.cosyvoice.sft_model), fp16=config.tts.cosyvoice.float16)
-            cosyvoice_ins = CosyVoice(os.path.join(model_path, config.tts.cosyvoice.ins_model), fp16=config.tts.cosyvoice.float16)
+            cosyvoice_sft = CosyVoice(os.path.join(full_model_path, sft_model), fp16=fp16)
+            cosyvoice_ins = CosyVoice(os.path.join(full_model_path, ins_model), fp16=fp16)
         else:
             print(f" * 将使用 {config.tts.cosyvoice.ins_model} 进行生成。")
             cosyvoice_sft = None
-            cosyvoice_ins = CosyVoice(os.path.join(model_path, config.tts.cosyvoice.ins_model), fp16=config.tts.cosyvoice.float16)
+            cosyvoice_ins = CosyVoice(os.path.join(full_model_path, ins_model), fp16=fp16)
     except Exception as e:
         err_msg = str(e).lower()
         if ("file" in err_msg) and ("doesn't" in err_msg) and ("exist" in err_msg):
             catch = input(" * CosyVoice TTS 发生了错误，这可能是由于模型下载不完全导致的，是否清理缓存TTS模型？[y/n] ")
             if catch.strip().lower() == "y":
-                shutil.rmtree(os.path.expanduser(config.tts.cosyvoice.model_path), ignore_errors=True)
+                shutil.rmtree(full_model_path, ignore_errors=True)
                 print(" * 清理完成，请重新运行该模块。")
                 sys.exit(0)
             else:
                 raise
         else:
             raise
+    
+    return cosyvoice_sft, cosyvoice_ins
 
-    # MFA MODEL 初始化
-    mfa_dir = os.path.expanduser(os.path.join(config.tts.cosyvoice.model_path, "mfa"))
+def init_mfa(config: Config):
+    # MFA 初始化
+    assert isinstance((model_path := config.tts.cosyvoice.model_path), str)
+    full_model_path: str = os.path.expanduser(model_path)
+    mfa_dir = os.path.join(full_model_path, "mfa")
     if not (
         os.path.exists(mfa_dir) and
         os.path.exists(os.path.join(mfa_dir, "mandarin_china_mfa.dict")) and
@@ -67,16 +73,14 @@ def init_tts(config: Config):
     # TODO: 英文还需要检查其他一些依赖问题
     # en_acoustic, en_lexicon, en_tokenizer, en_aligner = init_mfa_models(tts_config, lang="en-US")
 
-    return {"tts": (cosyvoice_sft, cosyvoice_ins), "mfa": (zh_acoustic, zh_lexicon, zh_tokenizer, zh_aligner)}
+    return zh_acoustic, zh_lexicon, zh_tokenizer, zh_aligner
 
 
 class TTSCosyvoice(ModuleBase):
     def __init__(self, config: Config):
         super().__init__(ModuleRoles.TTS, "TTSCosyvoice", config)
-        init = init_tts(config)
-        self.cosyvoice_sft, self.cosyvoice_ins = init["tts"]
-        self.zh_acoustic, self.zh_lexicon, self.zh_tokenizer, self.zh_aligner = init["mfa"]
-        del init
+        self.cosyvoice_sft, self.cosyvoice_ins = init_tts(config)
+        self.zh_acoustic, self.zh_lexicon, self.zh_tokenizer, self.zh_aligner = init_mfa(config)
         self.processed_queue: asyncio.Queue[Message] = asyncio.Queue(maxsize=128)
 
     async def run(self):
@@ -88,6 +92,9 @@ class TTSCosyvoice(ModuleBase):
                 id = task.get_value(self).get("id", None)
                 content = task.get_value(self).get("content", None)
                 emotions = task.get_value(self).get("emotion", None)
+                assert isinstance(id, str)
+                assert isinstance(content, str)
+                assert isinstance(emotions, dict)
                 await self.generate_sentence(id, content, emotions)
 
     async def preprocess_tasks(self) -> None:
@@ -100,13 +107,14 @@ class TTSCosyvoice(ModuleBase):
                 await self.processed_queue.put(task)
 
     @torch.no_grad()
-    async def generate_sentence(self, id: str, content: str, emotions: dict) -> Message | None:
+    async def generate_sentence(self, id: str, content: str, emotions: dict[str, float]) -> Message | None:
         try:
+            assert isinstance((tune := self.config.tts.cosyvoice.tune), str)
             output = await asyncio.to_thread(
                 tts_generate,
-                tts=[self.cosyvoice_ins] if not is_linux else [self.cosyvoice_sft, self.cosyvoice_ins],
+                tts=[self.cosyvoice_sft, self.cosyvoice_ins],
                 s=content.strip(),
-                tune=self.config.tts.cosyvoice.tune,
+                tune=tune,
                 emotions=emotions,
                 is_linux=is_linux
             )
@@ -148,5 +156,3 @@ class TTSCosyvoice(ModuleBase):
             with open(audio_name, "rb") as f:
                 audio_data = f.read()
         await self.results_queue.put(TTSAlignedAudio(self, id, audio_data, intervals))
-
-        return None # 别让mypy报错

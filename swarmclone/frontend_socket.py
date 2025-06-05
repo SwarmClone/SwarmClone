@@ -10,14 +10,16 @@ class FrontendSocket(ModuleBase):
     def __init__(self, config: Config):
         super().__init__(ModuleRoles.FRONTEND, "FrontendSocket", config)
         self.clientdict: dict[int, asyncio.StreamWriter] = {}
-        self.server = None
+        self.server: asyncio.Server | None = None
 
     async def run(self):
+        assert isinstance((host := self.config.panel.server.host), str)
+        assert isinstance((port := self.config.panel.frontend.port), int)
         loop = asyncio.get_running_loop()
         self.server = await asyncio.start_server(
             self.handle_client,
-            self.config.panel.server.host, 
-            self.config.panel.frontend.port
+            host, 
+            port
         )
         loop.create_task(self.SendToFrontend())
         async with self.server:
@@ -55,16 +57,17 @@ class FrontendSocket(ModuleBase):
                 await self.results_queue.put(AudioFinished(self))
 
     def load(self, task: Message) -> str:
-        dict = {
+        d = {
             "message_type": task.message_type.value,
             "source": task.source.role.value,
             **task.get_value(self)
         }
         if isinstance(task, TTSAlignedAudio):
-            dict["data"] = base64.b64encode(dict["data"]).decode('utf-8')#UnicodeDecodeError: 'utf-8' codec can't decode byte 0x81 in position 1: invalid start byte
-        separator = self.config.panel.server.requests_separator
+            assert isinstance(d["data"], bytes)
+            d["data"] = base64.b64encode(d["data"]).decode('utf-8')
+        assert isinstance((separator := self.config.panel.server.requests_separator), str)
         massage = (
-            json.dumps(dict).replace(separator, "") + # 防止在不应出现的地方出现分隔符
+            json.dumps(d).replace(separator, "") + # 防止在不应出现的地方出现分隔符
             separator
         )
         return massage

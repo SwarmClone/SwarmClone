@@ -1,14 +1,14 @@
 import os
 import tomli ## TODO: 升级到Python 3.11然后可以使用tomlib
-from typing import Dict, List
+from typing import Any, Callable
 
 class ConfigSection:
     """配置节代理类"""
-    def __init__(self, data: dict, path: str = ""):
-        self._data = data
-        self._path = path
+    def __init__(self, data: dict[str, Any], path: str = ""):
+        self._data: dict[str, Any] = data
+        self._path: str = path
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> "ConfigSection" | Any:
         if name not in self._data:
             full_path = f"{self._path}.{name}" if self._path else name
             available_sections = '\n'.join(self._data.keys())
@@ -31,20 +31,20 @@ class ConfigSection:
 
 class Config:
     def __init__(self, custom_settings_path: str | None = None):
-        self._toml_data: dict = {}
+        self._toml_data: dict[str, Any] = {}
 
         default_settings_path: str = "./config/default.toml"
         self.load_config(default_settings_path)
         if custom_settings_path:
             self.load_config(custom_settings_path)
 
-    def load_config(self, path: str):
+    def load_config(self, path: str) -> None:
         """加载配置文件"""
-        extend_path = lambda x: os.path.abspath(os.path.expanduser(x))
-        path = extend_path(path)
-        print(f"正在加载配置文件: {path}")
+        extend_path: Callable[[str], str] = lambda x: os.path.abspath(os.path.expanduser(x))
+        full_path = extend_path(path)
+        print(f"正在加载配置文件: {full_path}")
         try:
-            with open(path, "rb") as f:
+            with open(full_path, "rb") as f:
                 toml_data = tomli.load(f)
                 for k, v in toml_data.items():
                     if k in self._toml_data and self._toml_data[k] != v:
@@ -52,11 +52,11 @@ class Config:
                     self._toml_data[k] = v
             print(f"配置文件加载成功")
         except FileNotFoundError as e:
-            raise FileNotFoundError(f"配置文件未找到: {path}") from e
+            raise FileNotFoundError(f"配置文件未找到: {full_path}") from e
         except tomli.TOMLDecodeError as e:
             raise RuntimeError(f"配置文件格式错误: {str(e)}") from e
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> ConfigSection:
         """代理访问TOML配置节"""
         if name.startswith("_"):
             raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")

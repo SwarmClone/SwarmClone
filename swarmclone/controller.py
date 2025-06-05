@@ -4,7 +4,7 @@
 import asyncio
 
 import uvicorn
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse, HTMLResponse
 
@@ -24,17 +24,17 @@ class Controller:
             ModuleRoles.PLUGIN: [],
             ModuleRoles.TTS: [],
         }
-        self.app = FastAPI(title="Zhiluo Controller")
+        self.app: FastAPI = FastAPI(title="Zhiluo Controller")
         self.register_routes()
         self.load(config or Config())
     
     def load(self, config: Config):
-        self.config = config
+        self.config: Config = config
         for (_, modules) in self.modules.items():
             for module in modules:
                 module.config = config
 
-    def register_module(self, module_class: type[ModuleBase], **kwargs):
+    def register_module(self, module_class: type[ModuleBase], **kwargs: Any):
         """
         注册模块
         module_class: 模块类
@@ -47,6 +47,8 @@ class Controller:
             case ModuleRoles.LLM:
                 if len(self.modules[module.role]) > 0:
                     raise RuntimeError("只能注册一个LLM模块")
+            case _:
+                pass
         self.modules[module.role].append(module)
                    
     def register_routes(self):
@@ -106,10 +108,10 @@ class Controller:
     def start(self):
         loop = asyncio.get_event_loop()
         for (module_role, modules) in self.modules.items():
-            for module in modules:
+            for i, module in enumerate(modules):
                 loop.create_task(module.run())
                 loop.create_task(self.handle_module(module))
-                print(f"{module}已启动")
+                print(f"{module}已启动（{i + 1}/{len(modules)}）")
             if len(modules) > 0:
                 print(f"{module_role.value}模块已启动")
                 
