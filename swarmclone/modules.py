@@ -53,6 +53,8 @@ class LLMBase(ModuleBase):
         self.waiting4asr_start_time: float = time.time()
         self.waiting4tts_start_time: float = time.time()
         self.asr_counter = 0 # 有多少人在说话？
+        self.about_to_sing = False # 是否准备播放歌曲？
+        self.song_id: str = ""
     
     def _switch_to_generating(self):
         self.state = LLMState.GENERATING
@@ -84,6 +86,10 @@ class LLMBase(ModuleBase):
         self.generate_task = None
         self.state = LLMState.WAITING4TTS
         self.waiting4tts_start_time = time.time()
+    
+    def _switch_to_singing(self):
+        self.state = LLMState.SINGING
+        self.about_to_sing = False
             
     async def run(self):
         assert isinstance((idle_timeout := self.config.llm.idle_time), float | int), idle_timeout
@@ -105,11 +111,16 @@ class LLMBase(ModuleBase):
                         self.chat_queue.put_nowait(task)
                     except asyncio.QueueFull:
                         pass
+            if isinstance(task, StartSinging):
+                self.about_to_sing = True
+                self.song_id = task.get_value(self)["song_id"]
 
             match self.state:
                 case LLMState.IDLE:
                     if isinstance(task, ASRActivated):
                         self._switch_to_waiting4asr()
+                    elif self.about_to_sing:
+                        self._switch_to_singing()
                     elif not self.chat_queue.empty():
                         try:
                             chat = self.chat_queue.get_nowait().get_value(self) # 逐条回复弹幕
@@ -120,15 +131,17 @@ class LLMBase(ModuleBase):
                     elif time.time() - self.idle_start_time > idle_timeout:
                         self.history.append({'role': 'system', 'content': '请随便说点什么吧！'})
                         self._switch_to_generating()
+
                 case LLMState.GENERATING:
                     if isinstance(task, ASRActivated):
                         self._switch_to_waiting4asr()
                     if self.generate_task is not None and self.generate_task.done():
                         self._switch_to_waiting4tts()
+
                 case LLMState.WAITING4ASR:
                     if time.time() - self.waiting4asr_start_time > self.asr_timeout:
                         self._switch_to_idle() # ASR超时，回到待机
-                    if task is not None and isinstance(task, ASRMessage):
+                    if isinstance(task, ASRMessage):
                         message_value = task.get_value(self)
                         speaker_name = message_value["speaker_name"]
                         content = message_value["message"]
@@ -137,17 +150,23 @@ class LLMBase(ModuleBase):
                             'content': f"{speaker_name}：{content}"
                         })
                         self.asr_counter -= 1 # 有人说话完毕，计数器-1
-                    if task is not None and isinstance(task, ASRActivated):
+                    if isinstance(task, ASRActivated):
                         self.asr_counter += 1 # 有人开始说话，计数器+1
                     if self.asr_counter <= 0: # 所有人说话完毕，开始生成
                         self._switch_to_generating()
+
                 case LLMState.WAITING4TTS:
                     if time.time() - self.waiting4tts_start_time > self.tts_timeout:
                         self._switch_to_idle() # 太久没有TTS完成信息，说明TTS生成失败，回到待机
-                    if task is not None and isinstance(task, AudioFinished):
+                    if isinstance(task, AudioFinished):
                         self._switch_to_idle()
-                    elif task is not None and isinstance(task, ASRActivated):
+                    elif isinstance(task, ASRActivated):
                         self._switch_to_waiting4asr()
+                
+                case LLMState.SINGING:
+                    if isinstance(task, FinishedSinging):
+                        self._switch_to_idle()
+
             await asyncio.sleep(0.1) # 避免卡死事件循环
     
     async def start_generating(self) -> None:
