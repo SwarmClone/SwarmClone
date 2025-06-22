@@ -90,6 +90,9 @@ class LLMBase(ModuleBase):
     def _switch_to_singing(self):
         self.state = LLMState.SINGING
         self.about_to_sing = False
+        self.history += [
+            {'role': 'system', 'content': f'你唱了一首名为{self.song_id}的歌。'}
+        ]
             
     async def run(self):
         assert isinstance((idle_timeout := self.config.llm.idle_time), float | int), idle_timeout
@@ -102,6 +105,7 @@ class LLMBase(ModuleBase):
                 task = None
             
             if isinstance(task, ChatMessage):
+                # 若小于一定阈值则回复每一条信息，若超过则逐渐降低回复概率
                 if (qsize := self.chat_queue.qsize()) < self.chat_size_threshold:
                     prob = 1
                 else:
