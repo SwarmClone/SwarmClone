@@ -159,7 +159,7 @@ class ReadyToSing(Message):
         super().__init__(
             MessageType.SIGNAL,
             source,
-            destinations=[ModuleRoles.FRONTEND, ModuleRoles.LLM],
+            destinations=[ModuleRoles.FRONTEND],
             song_id=song_id
         )
 
