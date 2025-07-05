@@ -53,10 +53,8 @@ class LLMBase(ModuleBase):
         self.waiting4asr_start_time: float = time.time()
         self.waiting4tts_start_time: float = time.time()
         self.asr_counter = 0 # 有多少人在说话？
-<<<<<<< HEAD
         self.about_to_sing = False # 是否准备播放歌曲？
         self.song_id: str = ""
-=======
         assert isinstance((chat_role := self.config.llm.main_model.chat_role), str)
         self.chat_role = chat_role
         assert isinstance((asr_role := self.config.llm.main_model.asr_role), str)
@@ -67,8 +65,7 @@ class LLMBase(ModuleBase):
         self.asr_template = asr_template
         assert isinstance((system_prompt := self.config.llm.main_model.system_prompt), str)
         if system_prompt:
-            self.history += [{'role': 'system', 'content': system_prompt}]
->>>>>>> main
+            self._add_system_history(system_prompt)
     
     def _switch_to_generating(self):
         self.state = LLMState.GENERATING
