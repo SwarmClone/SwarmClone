@@ -6,6 +6,7 @@ from .frontend_socket import FrontendSocket
 from .llm_minilm2 import LLMMiniLM2
 from .bilibili_chat import BiliBiliChat
 from .asr import ASRSherpa
+from .plugins import *
 
 if __name__ == "__main__":
     ## TODO：从命令行接收配置文件、模块列表等参数
@@ -15,4 +16,5 @@ if __name__ == "__main__":
     controller.register_module(LLMMiniLM2)
     controller.register_module(BiliBiliChat)
     controller.register_module(ASRSherpa)
+    controller.register_module(ScheduledPlaylist)
     controller.start()

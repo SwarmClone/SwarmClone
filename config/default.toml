@@ -67,3 +67,6 @@ dedeuserid=""
 ac_time_value=""
 #credential参数的获取请参考 https://nemo2011.github.io/bilibili-api/#/get-credential
 #获取完整弹幕信息仅需要sessdata
+
+[playlist]
+path="~/.swarmclone/playlist.json"

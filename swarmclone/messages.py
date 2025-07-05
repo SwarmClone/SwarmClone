@@ -141,12 +141,14 @@ class StartSinging(Message):
     """
     开始播放歌曲
     """
-    def __init__(self, source: ModuleBase, song_id: str):
+    def __init__(self, source: ModuleBase, song_id: str, song_path: str, subtitle_path: str):
         super().__init__(
-            MessageType.SIGNAL,
+            MessageType.DATA,
             source,
             destinations=[ModuleRoles.FRONTEND, ModuleRoles.LLM],
-            song_id=song_id
+            song_id=song_id,
+            song_path=song_path,
+            subtitle_path=subtitle_path
         )
 
 class FinishedSinging(Message):
