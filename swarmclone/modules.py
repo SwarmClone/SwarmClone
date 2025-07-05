@@ -140,7 +140,7 @@ class LLMBase(ModuleBase):
                         self.chat_queue.put_nowait(task)
                     except asyncio.QueueFull:
                         pass
-            if isinstance(task, StartSinging):
+            if isinstance(task, SongInfo):
                 self.about_to_sing = True
                 self.song_id = task.get_value(self)["song_id"]
 
@@ -149,6 +149,9 @@ class LLMBase(ModuleBase):
                     if isinstance(task, ASRActivated):
                         self._switch_to_waiting4asr()
                     elif self.about_to_sing:
+                        await self.results_queue.put(
+                            ReadyToSing(self, self.song_id)
+                        )
                         self._switch_to_singing()
                     elif not self.chat_queue.empty():
                         try:

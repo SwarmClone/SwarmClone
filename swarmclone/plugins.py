@@ -17,4 +17,4 @@ class ScheduledPlaylist(ModuleBase):
         for song_id, song_info in self.playlist.items():
             if time() >= song_info["start_time"]:
                 del self.playlist[song_id]
-                return StartSinging(self, song_id, song_info["file_name"], song_info["subtitle"])
+                return SongInfo(self, song_id, song_info["file_name"], song_info["subtitle"])

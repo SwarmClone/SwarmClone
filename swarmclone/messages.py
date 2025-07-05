@@ -137,9 +137,9 @@ class ChatMessage(Message):
             content=content
         )
 
-class StartSinging(Message):
+class SongInfo(Message):
     """
-    开始播放歌曲
+    歌曲信息
     """
     def __init__(self, source: ModuleBase, song_id: str, song_path: str, subtitle_path: str):
         super().__init__(
@@ -149,6 +149,18 @@ class StartSinging(Message):
             song_id=song_id,
             song_path=song_path,
             subtitle_path=subtitle_path
+        )
+
+class ReadyToSing(Message):
+    """
+    开始播放歌曲
+    """
+    def __init__(self, source: ModuleBase, song_id: str):
+        super().__init__(
+            MessageType.SIGNAL,
+            source,
+            destinations=[ModuleRoles.FRONTEND, ModuleRoles.LLM],
+            song_id=song_id
         )
 
 class FinishedSinging(Message):
