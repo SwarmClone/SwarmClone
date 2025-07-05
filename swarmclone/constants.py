@@ -25,3 +25,4 @@ class LLMState(Enum):
     GENERATING = "Generating"
     WAITING4TTS = "Waiting for TTS"
     WAITING4ASR = "Waiting for ASR"
+    SINGING = "Singing"
