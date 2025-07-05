@@ -79,7 +79,8 @@ class TTSCosyvoice(ModuleBase):
     def __init__(self, config: Config):
         super().__init__(ModuleRoles.TTS, "TTSCosyvoice", config)
         self.cosyvoice_models = init_tts(config)
-        self.zh_acoustic, self.zh_lexicon, self.zh_tokenizer, self.zh_aligner = init_mfa(config)
+        if config.tts.do_alignment:
+            self.zh_acoustic, self.zh_lexicon, self.zh_tokenizer, self.zh_aligner = init_mfa(config)
         self.processed_queue: asyncio.Queue[Message] = asyncio.Queue(maxsize=128)
 
     async def run(self):
@@ -135,6 +136,7 @@ class TTSCosyvoice(ModuleBase):
 
             try:
                 if not generate_succedded: raise Exception("生成没有成功，跳过对齐")
+                if not self.config.tts.do_alignment: raise Exception("对齐已禁用")
                 await asyncio.to_thread(
                     align, 
                     audio_name, 
@@ -149,7 +151,10 @@ class TTSCosyvoice(ModuleBase):
                 print(f" * MFA 对齐失败: {align_err}")
                 info = torchaudio.info(audio_name)
                 duration = info.num_frames / info.sample_rate
-                intervals = [{"token": content + " ", "duration": duration}]
+                intervals = [
+                    {"token": word, "duration": duration / len(word)} # 无对齐时逐字匀速弹出
+                    for word in content ## TODO：也许利用LLM的tokenizer？
+                ]
 
             # 音频数据
             with open(audio_name, "rb") as f:

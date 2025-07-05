@@ -14,6 +14,7 @@ from transformers import ( # type: ignore
 from .config import Config
 from .modules import *
 from .messages import *
+from .utils import download_model
 
 def split_text(s: str, separators: str="。？！～.?!~\n\r") -> list[str]: # By DeepSeek
     # 构建正则表达式模式
@@ -36,11 +37,13 @@ def split_text(s: str, separators: str="。？！～.?!~\n\r") -> list[str]: # B
     
     return result
 
-class LLMMiniLM2(LLMBase):
+class LLMTransformers(LLMBase):
     def __init__(self, config: Config):
-        super().__init__("LLMMiniLM2", config)
-        assert isinstance((llm_model_path := config.llm.minilm2.model_path), str)
+        super().__init__("LLMTransformers", config)
+        assert isinstance((llm_model_path := config.llm.main_model.model_path), str)
         assert isinstance((classifier_model_path := config.llm.emotionclassification.model_path), str)
+        assert isinstance((stop_string := config.llm.main_model.stop_string), str)
+        self.stop_string = stop_string
 
         successful = False
         abs_model_path = os.path.expanduser(llm_model_path)
@@ -65,13 +68,9 @@ class LLMMiniLM2(LLMBase):
                 print(e)
                 choice = input("加载模型失败，是否下载模型？(Y/n)")
                 if choice.lower() != "n":
-                    from modelscope.hub.snapshot_download import snapshot_download # type: ignore
-                    assert isinstance((model_id := config.llm.minilm2.model_id), str)
-                    snapshot_download(
-                        repo_id=model_id,
-                        repo_type="model",
-                        local_dir=abs_model_path
-                    )
+                    assert isinstance((model_id := config.llm.main_model.model_id), str)
+                    assert isinstance((model_source := config.llm.main_model.model_source), str)
+                    download_model(model_id, model_source, abs_model_path)
 
         successful = False
         while not successful: # 加载情感分类模型
@@ -94,32 +93,27 @@ class LLMMiniLM2(LLMBase):
                 print(e)
                 choice = input("加载模型失败，是否下载模型？(Y/n)")
                 if choice.lower() != "n":
-                    from huggingface_hub import snapshot_download # type: ignore
                     assert isinstance((model_id := config.llm.emotionclassification.model_id), str)
-                    snapshot_download(
-                        repo_id=model_id,
-                        repo_type="model",
-                        local_dir=abs_classifier_path
-                    )
+                    assert isinstance((model_source := config.llm.emotionclassification.model_source), str)
+                    download_model(model_id, model_source, abs_classifier_path)
         
         assert isinstance((device := config.llm.device), str)
         self.device: str = device
+        assert isinstance((temperature := config.llm.main_model.temperature), float) and temperature >= 0 and temperature <= 1
+        self.temperature = temperature
     
     @torch.no_grad()
     async def get_emotion(self, text: str) -> dict[str, float]:
         print(text)
         labels = ['neutral', 'like', 'sad', 'disgust', 'anger', 'happy']
         ids = self.classifier_tokenizer([text], return_tensors="pt")['input_ids']
-        """
         probs = (
             (await asyncio.to_thread(self.classifier_model, input_ids=ids))
             .logits
             .softmax(dim=-1)
             .squeeze()
         )
-        """
-        logits: torch.Tensor = (await asyncio.to_thread(self.classifier_model, input_ids=ids)).logits.squeeze()
-        return dict(zip(labels, logits.softmax(dim=-1).tolist()))
+        return dict(zip(labels, probs.tolist()))
     
     @torch.no_grad()
     async def iter_sentences_emotions(self):
@@ -135,8 +129,9 @@ class LLMMiniLM2(LLMBase):
                 max_new_tokens=512,
                 streamer=streamer,
                 stopping_criteria=StoppingCriteriaList(
-                    [StopStringCriteria(self.tokenizer, "\n" * 3)]
-                )
+                    [StopStringCriteria(self.tokenizer, self.stop_string)] if self.stop_string else []
+                ),
+                temperature=self.temperature
             )
         )
         generating_sentence = ""
@@ -157,6 +152,6 @@ class LLMMiniLM2(LLMBase):
                             yield sentence, await self.get_emotion(sentence)
                     generating_sentence = sentences[-1]
         finally: # 被中断或者生成完毕
-            yield generating_sentence, await self.get_emotion(generating_sentence)
             if not generation_task.done():
                 generation_task.cancel()
+            yield generating_sentence, await self.get_emotion(generating_sentence)

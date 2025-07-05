@@ -31,12 +31,14 @@ requirements = {
             "loguru",
             # config
             "tomli",
-            # MiniLM2
+            # LLM
             "modelscope",
             # Bilibili Chat
             "bilibili-api-python",
             # FastAPI Controller
-            "fastapi"
+            "fastapi",
+            # API LLM
+            "openai"
         ],
         "linux": [
             # tts

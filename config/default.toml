@@ -11,17 +11,23 @@ port = 8003
 device = "cuda"
 idle_time = 30
 
-[llm.minilm2]
+[llm.main_model]
 model_path = "~/.swarmclone/llm/MiniLM2/MiniLM2-nGPT-0.4b-dialogue"
-model_id = "KyvYang/MiniLM2-nGPT-0.4b-dialogue" # Modelscope
-
-[llm.qwen2]
-model_path = "~/.swarmclone/llm/Qwen/Qwen2.5-0.5B-Instruct"
-model_id = "Qwen/Qwen2.5-0.5B-Instruct" # Huggingface
+model_id = "KyvYang/MiniLM2-nGPT-0.4b-dialogue"
+model_source = "modelscope" # 模型来源平台，如果以openai+开头则认为是openai风格的网络api，openai+后的内容被认为是openai的api地址
+api_key = "" # openai的api key
+system_prompt = "你是一个名为知络的人工智能虚拟主播。你将与弹幕（以“弹幕-【用户名】：【内容】”信息格式呈现）和你的开发者或其他主播（以“【用户名】：【内容】”信息格式呈现）进行互动。"
+chat_role = "chat" # MiniLM2有专门的弹幕角色
+chat_template = "弹幕-{name}：{content}"
+asr_role = "user"
+asr_template = "{name}：{content}"
+stop_string = "\n\n\n"
+temperature = 0.7
 
 [llm.emotionclassification]
 model_path = "~/.swarmclone/llm/EmotionClassification/SWCBiLSTM"
-model_id = "YamadaMano/SWCBiLSTM" # Huggingface
+model_id = "MomoiaMoia/SWCBiLSTM"
+model_source = "modelscope"
 
 [asr]
 port = 8004
@@ -49,6 +55,7 @@ ins_model = "CosyVoice-300M-Instruct"
 tune = "知络_1.2"
 model_path = "~/.swarmclone/tts_cosy_voice"
 float16 = true
+do_alignment = false
 
 [unity_frontend]
 port = 8006
