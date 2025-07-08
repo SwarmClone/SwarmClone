@@ -136,3 +136,40 @@ class ChatMessage(Message):
             user=user,
             content=content
         )
+
+class SongInfo(Message):
+    """
+    歌曲信息
+    """
+    def __init__(self, source: ModuleBase, song_id: str, song_path: str, subtitle_path: str):
+        super().__init__(
+            MessageType.DATA,
+            source,
+            destinations=[ModuleRoles.FRONTEND, ModuleRoles.LLM],
+            song_id=song_id,
+            song_path=song_path,
+            subtitle_path=subtitle_path
+        )
+
+class ReadyToSing(Message):
+    """
+    开始播放歌曲
+    """
+    def __init__(self, source: ModuleBase, song_id: str):
+        super().__init__(
+            MessageType.SIGNAL,
+            source,
+            destinations=[ModuleRoles.FRONTEND],
+            song_id=song_id
+        )
+
+class FinishedSinging(Message):
+    """
+    完成播放歌曲
+    """
+    def __init__(self, source: ModuleBase):
+        super().__init__(
+            MessageType.SIGNAL,
+            source,
+            destinations=[ModuleRoles.LLM]
+        )
