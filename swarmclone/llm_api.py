@@ -8,7 +8,7 @@ from openai.types.chat import (
     ChatCompletionAssistantMessageParam,
     ChatCompletionSystemMessageParam
 )
-from transformers import ( # type: ignore
+from transformers import (
     AutoModelForSequenceClassification,
     AutoTokenizer
 )

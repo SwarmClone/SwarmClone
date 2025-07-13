@@ -3,7 +3,7 @@ import re
 import os
 import queue
 import torch
-from transformers import ( # type: ignore
+from transformers import (
     AutoModelForCausalLM,
     AutoModelForSequenceClassification,
     AutoTokenizer,

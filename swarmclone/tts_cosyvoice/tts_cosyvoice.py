@@ -7,14 +7,14 @@ import asyncio
 from time import time
 
 import torch
-import torchaudio # type: ignore
+import torchaudio
+import jieba
 
 from ..config import Config
 from ..modules import ModuleRoles, ModuleBase
 from ..messages import *
 
 from cosyvoice.cli.cosyvoice import CosyVoice 
-from .align import download_model_and_dict, init_mfa_models, align, match_textgrid
 from .funcs import tts_generate
 
 # 忽略警告
@@ -54,33 +54,10 @@ def init_tts(config: Config):
     
     return cosyvoice_sft, cosyvoice_ins
 
-def init_mfa(config: Config):
-    # MFA 初始化
-    assert isinstance((model_path := config.tts.cosyvoice.model_path), str)
-    full_model_path: str = os.path.expanduser(model_path)
-    mfa_dir = os.path.join(full_model_path, "mfa")
-    if not (
-        os.path.exists(mfa_dir) and
-        os.path.exists(os.path.join(mfa_dir, "mandarin_china_mfa.dict")) and
-        os.path.exists(os.path.join(mfa_dir, "mandarin_mfa.zip"))
-        # os.path.exists(os.path.join(mfa_dir, "english_mfa.zip")) and
-        # os.path.exists(os.path.join(mfa_dir, "english_mfa.dict"))
-        ):
-        print(" * SwarmClone 使用 Montreal Forced Aligner 进行对齐，开始下载: ")
-        download_model_and_dict(config.tts.cosyvoice)
-    zh_acoustic, zh_lexicon, zh_tokenizer, zh_aligner = init_mfa_models(config.tts.cosyvoice, lang="zh-CN")
-    # TODO: 英文还需要检查其他一些依赖问题
-    # en_acoustic, en_lexicon, en_tokenizer, en_aligner = init_mfa_models(tts_config, lang="en-US")
-
-    return zh_acoustic, zh_lexicon, zh_tokenizer, zh_aligner
-
-
 class TTSCosyvoice(ModuleBase):
     def __init__(self, config: Config):
         super().__init__(ModuleRoles.TTS, "TTSCosyvoice", config)
         self.cosyvoice_models = init_tts(config)
-        if config.tts.do_alignment:
-            self.zh_acoustic, self.zh_lexicon, self.zh_tokenizer, self.zh_aligner = init_mfa(config)
         self.processed_queue: asyncio.Queue[Message] = asyncio.Queue(maxsize=128)
 
     async def run(self):
@@ -118,43 +95,22 @@ class TTSCosyvoice(ModuleBase):
                 emotions=emotions,
                 is_linux=is_linux
             )
-            generate_succedded = True
         except Exception as e:
             output = torch.zeros((1, 22050))
             print(f" * 错误: {e}")
             print(f" * 生成时出错，跳过了 '{content}'。")
-            generate_succedded = False
             
         # 音频文件
         with tempfile.TemporaryDirectory() as temp_dir:
+            # 进行匀速对齐
             audio_name = os.path.join(temp_dir, f"voice{time()}.wav")
-            txt_name = audio_name.replace(".wav", ".txt")
-            align_name = audio_name.replace(".wav", ".TextGrid")
-
             torchaudio.save(audio_name, output, 22050)
-            open(txt_name, "w", encoding="utf-8").write(str(content))
-
-            try:
-                if not generate_succedded: raise Exception("生成没有成功，跳过对齐")
-                if not self.config.tts.do_alignment: raise Exception("对齐已禁用")
-                await asyncio.to_thread(
-                    align, 
-                    audio_name, 
-                    txt_name, 
-                    self.zh_acoustic, 
-                    self.zh_lexicon,
-                    self.zh_tokenizer, 
-                    self.zh_aligner
-                )
-                intervals = await asyncio.to_thread(match_textgrid, align_name, txt_name)
-            except Exception as align_err:
-                print(f" * MFA 对齐失败: {align_err}")
-                info = torchaudio.info(audio_name)
-                duration = info.num_frames / info.sample_rate
-                intervals = [
-                    {"token": word, "duration": duration / len(word)} # 无对齐时逐字匀速弹出
-                    for word in content ## TODO：也许利用LLM的tokenizer？
-                ]
+            info = torchaudio.info(audio_name)
+            duration = info.num_frames / info.sample_rate
+            intervals = [
+                {"token": word, "duration": duration / len(word)}
+                for word in jieba.cut(content)
+            ]
 
             # 音频数据
             with open(audio_name, "rb") as f:

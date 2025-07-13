@@ -1,0 +1,69 @@
+[project]
+name = "swarmclone"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.nv]
+preview = true
+
+[dependency-groups]
+linux = [
+    "accelerate>=1.8.1",
+    "bilibili-api-python>=17.3.0",
+    "dragonmapper>=0.3.0",
+    "fastapi>=0.115.14",
+    "hanziconv>=0.3.2",
+    "joblib==1.4.2",
+    "loguru>=0.7.3",
+    "matplotlib>=3.10.3",
+    "modelscope>=1.22.3",
+    "openai>=1.95.1",
+    "playsound",
+    "sc-cosyvoice",
+    "sherpa-onnx>=1.12.6",
+    "sounddevice>=0.5.2",
+    "soundfile>=0.13.1",
+    "spacy-pkuseg>=1.0.0",
+    "textgrid>=1.6.1",
+    "tomli>=2.2.1",
+    "tqdm>=4.67.1",
+    "transformers>=4.48.3",
+    "ttsfrd",
+    "ttsfrd-dependency",
+    "uvicorn>=0.35.0",
+    "zhconv>=1.4.3",
+]
+windows = [
+    "accelerate>=1.8.1",
+    "bilibili-api-python>=17.3.0",
+    "dragonmapper>=0.3.0",
+    "fastapi>=0.115.14",
+    "hanziconv>=0.3.2",
+    "joblib==1.4.2",
+    "loguru>=0.7.3",
+    "matplotlib>=3.10.3",
+    "modelscope>=1.22.3",
+    "openai>=1.95.1",
+    "playsound",
+    "pynini>=2.1.6",
+    "sc-cosyvoice",
+    "sherpa-onnx>=1.12.6",
+    "sounddevice>=0.5.2",
+    "soundfile>=0.13.1",
+    "spacy-pkuseg>=1.0.0",
+    "textgrid>=1.6.1",
+    "tomli>=2.2.1",
+    "tqdm>=4.67.1",
+    "transformers>=4.48.3",
+    "uvicorn>=0.35.0",
+    "zhconv>=1.4.3",
+]
+
+[tool.uv.sources]
+ttsfrd = { url = "http://pixelstonelab.com:5005/ttsfrd-0.4.2-cp310-cp310-linux_x86_64.whl" }
+ttsfrd-dependency = { url = "http://pixelstonelab.com:5005/ttsfrd_dependency-0.1-py3-none-any.whl" }
+sc-cosyvoice = { url = "http://pixelstonelab.com:5005/sc_cosyvoice-0.2.0-py3-none-any.whl" }
+playsound = { url = "https://www.piwheels.org/simple/playsound/playsound-1.3.0-py3-none-any.whl" }

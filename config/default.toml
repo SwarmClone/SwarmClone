@@ -9,20 +9,20 @@ port = 8002
 [llm]
 port = 8003
 device = "cuda"
-idle_time = 30
+idle_time = inf
 
 [llm.main_model]
-model_path = "~/.swarmclone/llm/MiniLM2/MiniLM2-nGPT-0.4b-dialogue"
-model_id = "KyvYang/MiniLM2-nGPT-0.4b-dialogue"
-model_source = "modelscope" # 模型来源平台，如果以openai+开头则认为是openai风格的网络api，openai+后的内容被认为是openai的api地址
-api_key = "" # openai的api key
-system_prompt = "你是一个名为知络的人工智能虚拟主播。你将与弹幕（以“弹幕-【用户名】：【内容】”信息格式呈现）和你的开发者或其他主播（以“【用户名】：【内容】”信息格式呈现）进行互动。"
-chat_role = "chat" # MiniLM2有专门的弹幕角色
-chat_template = "弹幕-{name}：{content}"
+model_path = "~/.swarmclone/llm/MiniLM2/MiniLM2-nGPT-0.4b-instruct"
+model_id = "deepseek-chat"
+model_source = "openai+https://api.deepseek.com" # 模型来源平台，如果以openai+开头则认为是openai风格的网络api，openai+后的内容被认为是openai的api地址
+api_key = "PLACE HOLDER" # openai的api key
+system_prompt = "你是一个名为知络的人工智能虚拟主播。你将与弹幕（以“【用户名】：【内容】”信息格式呈现）和你的开发者或其他主播（以“【用户名】：【内容】”信息格式呈现）进行互动。"
+chat_role = "user" # MiniLM2有专门的弹幕角色
+chat_template = "{user}：{content}"
 asr_role = "user"
-asr_template = "{name}：{content}"
+asr_template = "{user}：{content}"
 stop_string = "\n\n\n"
-temperature = 0.7
+temperature = 0.2
 
 [llm.emotionclassification]
 model_path = "~/.swarmclone/llm/EmotionClassification/SWCBiLSTM"
@@ -55,7 +55,6 @@ ins_model = "CosyVoice-300M-Instruct"
 tune = "知络_1.2"
 model_path = "~/.swarmclone/tts_cosy_voice"
 float16 = true
-do_alignment = false
 
 [unity_frontend]
 port = 8006
@@ -77,3 +76,8 @@ ac_time_value=""
 
 [playlist]
 path="~/.swarmclone/playlist.json"
+
+[chat.ncatbot]
+target_group_id = "PLACE HOLDER" # QQ群号
+bot_id = "PLACE HOLDER" # QQ机器人QQ号
+root_id = "PLACE HOLDER" # 管理员QQ号
