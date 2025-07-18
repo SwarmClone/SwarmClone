@@ -15,7 +15,5 @@ from .ncatbot_modules import *
 if __name__ == "__main__":
     print(f"{module_classes=}")
     controller = Controller()
-    controller.add_module(FrontendLive2D())
-    controller.add_module(LLMDummy())
     controller.run()
     pass

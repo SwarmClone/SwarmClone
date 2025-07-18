@@ -48,10 +48,7 @@ def escape_all(s: str) -> str: # By Kimi-K2 & Doubao-Seed-1.6
             '\r': r'\r',
             '\t': r'\t',
             '\b': r'\b',
-            '\f': r'\f',
-            '\\': r'\\',
-            '\"': r'\"',
-            '\'': r'\'',
+            '\f': r'\f'
         }.get(c, c.encode('unicode_escape').decode('ascii'))
 
     # 预编译正则表达式，匹配非打印字符和特定特殊字符

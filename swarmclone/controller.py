@@ -12,6 +12,7 @@ import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 from .modules import *
 from .constants import *
@@ -62,6 +63,13 @@ class Controller:
         /api/get_status: 获取状态(GET)
         """
         self.app.mount("/assets", StaticFiles(directory="panel/dist/assets"), name="assets")
+
+        self.app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_methods=["*"],
+            allow_headers=["*"]
+        )
         
         @self.app.get("/")
         async def root():
@@ -202,7 +210,7 @@ class Controller:
                         })
             return JSONResponse(config)
         
-        @self.app.post("/api/start", response_class=JSONResponse)
+        @self.app.post("/start", response_class=JSONResponse)
         async def start(request: Request) -> JSONResponse:
             """
             {
@@ -241,6 +249,7 @@ class Controller:
                         try:
                             module = module_class(**module_config)
                         except Exception as e:
+                            print(f"ERR: {e}")
                             return JSONResponse({"error": str(e)}, 500)
                         self.add_module(module)
             if missing_modules:
