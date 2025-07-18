@@ -58,6 +58,7 @@ def escape_all(s: str) -> str: # By Kimi-K2 & Doubao-Seed-1.6
 
 import ast
 def unescape_all(s: str) -> str: # By Kimi-K2 & KyvYang
+    s = s.replace("\"", "\\\"")
     return ast.literal_eval(f'"{s}"')
 
 import torch
