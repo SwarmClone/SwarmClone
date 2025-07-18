@@ -46,19 +46,30 @@ class ChatRecordWidget(QTextEdit):
         self.setStyleSheet("background: transparent; color: white; font: 20px; padding: 20px;")
         self.setAcceptRichText(True)
         self.setReadOnly(True)
+        self.appendRecord("系统", "开始")
 
-    def paintEvent(self, e: QPaintEvent, /) -> None:
-        # 绘制背景
-        painter = QPainter(self)
+    def paintEvent(self, event): # By: Kimi-K2
+        # 1. 在 viewport 上绘制背景
+        painter = QPainter(self.viewport())
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
         brush = QBrush(QColor(0, 0, 0, 200))
         painter.setBrush(brush)
         painter.setPen(QPen(Qt.PenStyle.NoPen))
-        painter.drawRoundedRect(self.rect(), 12, 12)
-        return super().paintEvent(e)
+
+        # 2. 用 viewport 的 rect（可减去滚动条的 margin）
+        rect = self.viewport().rect()
+        painter.drawRoundedRect(rect, 12, 12)
+
+        # 3. 继续让父类完成文本本身的绘制
+        super().paintEvent(event)
     
     def appendRecord(self, name: str, content: str):
         self.append(f"<b>{name}</b>: {markdown(content)}")
+        cursor = self.textCursor()
+        cursor.movePosition(cursor.MoveOperation.End)
+        self.setTextCursor(cursor)
+        self.ensureCursorVisible()
 
 class Live2DWidget(QOpenGLWidget):
     def __init__(self, model_path: str):
@@ -105,19 +116,19 @@ class FrontendWindow(QMainWindow):
         # -----------------------+ 聊天 (400, 900)
         # 【此处字幕】(400, 100)   | 记录
         widget = QWidget()
-        widget.setFixedWidth(400)
         self.setCentralWidget(widget)
         layout = QHBoxLayout(widget)
 
         # 左侧：Live2D 与字幕
         left = QWidget()
+        left.setFixedWidth(400)
         layout.addWidget(left)
         layout_left = QVBoxLayout(left)
         # 左上：Live2D
         self.live2d_widget = Live2DWidget(model_path)
         layout_left.addWidget(self.live2d_widget)
         # 左下：字幕
-        self.label = ModelLabel("Hello, Live2D!")
+        self.label = ModelLabel("")
         layout_left.addWidget(self.label)
 
         # 右侧：聊天记录
@@ -188,6 +199,7 @@ class FrontendLive2D(ModuleBase):
         asyncio.create_task(qt_poller(self.app))
         try:
             while True:
+                await asyncio.sleep(1 / 60)
                 try:
                     task = self.task_queue.get_nowait()
                 except asyncio.QueueEmpty:
