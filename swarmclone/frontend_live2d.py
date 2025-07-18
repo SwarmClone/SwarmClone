@@ -65,7 +65,11 @@ class ChatRecordWidget(QTextEdit):
         super().paintEvent(event)
     
     def appendRecord(self, name: str, content: str):
-        self.append(f"<b>{name}</b>: {markdown(content)}")
+        processed_content = markdown(content).strip()
+        # Remove <p> tags that markdown might add, as they cause line breaks
+        if processed_content.startswith('<p>') and processed_content.endswith('</p>'):
+            processed_content = processed_content[3:-4]
+        self.append(f"<b>{name}</b>: {processed_content}")
         cursor = self.textCursor()
         cursor.movePosition(cursor.MoveOperation.End)
         self.setTextCursor(cursor)
