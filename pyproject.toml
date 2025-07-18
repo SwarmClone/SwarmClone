@@ -46,6 +46,7 @@ linux = [
     "pyside6>=6.9.1",
     "markdown>=3.8.2",
     "srt>=3.5.3",
+    "pygame>=2.6.1",
 ]
 windows = [
     "jieba>=0.42.1",
@@ -78,6 +79,7 @@ windows = [
     "pyside6>=6.9.1",
     "markdown>=3.8.2",
     "srt>=3.5.3",
+    "pygame>=2.6.1",
 ]
 
 [tool.uv.sources]

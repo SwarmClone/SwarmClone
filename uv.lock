@@ -3095,6 +3095,42 @@ wheels = [
 ]
 
 [[package]]
+name = "pygame"
+version = "2.6.1"
+source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
+sdist = { url = "https://mirrors.aliyun.com/pypi/packages/49/cc/08bba60f00541f62aaa252ce0cfbd60aebd04616c0b9574f755b583e45ae/pygame-2.6.1.tar.gz", hash = "sha256:56fb02ead529cee00d415c3e007f75e0780c655909aaa8e8bf616ee09c9feb1f" }
+wheels = [
+    { url = "https://mirrors.aliyun.com/pypi/packages/54/0b/334c7c50a2979e15f2a027a41d1ca78ee730d5b1c7f7f4b26d7cb899839d/pygame-2.6.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:9beeb647e555afb5657111fa83acb74b99ad88761108eaea66472e8b8547b55b" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/dc/48/f8b1069788d1bd42e63a960d74d3355242480b750173a42b2749687578ca/pygame-2.6.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:10e3d2a55f001f6c0a6eb44aa79ea7607091c9352b946692acedb2ac1482f1c9" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/bc/33/a1310386b8913ce1bdb90c33fa536970e299ad57eb35785f1d71ea1e2ad3/pygame-2.6.1-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:816e85000c5d8b02a42b9834f761a5925ef3377d2924e3a7c4c143d2990ce5b8" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/88/0f/4e37b115056e43714e7550054dd3cd7f4d552da54d7fc58a2fb1407acda5/pygame-2.6.1-cp310-cp310-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:8a78fd030d98faab4a8e27878536fdff7518d3e062a72761c552f624ebba5a5f" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/11/b3/de6ed93ae483cf3bac8f950a955e83f7ffe59651fd804d100fff65d66d6c/pygame-2.6.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:da3ad64d685f84a34ebe5daacb39fff14f1251acb34c098d760d63fee768f50c" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/d3/05/d86440aa879708c41844bafc6b3eb42c6d8cf54082482499b53139133e2a/pygame-2.6.1-cp310-cp310-win32.whl", hash = "sha256:9dd5c054d4bd875a8caf978b82672f02bec332f52a833a76899220c460bb4b58" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/38/88/8de61324775cf2c844a51d8db14a8a6d2a9092312f27678f6eaa3a460376/pygame-2.6.1-cp310-cp310-win_amd64.whl", hash = "sha256:00827aba089355925902d533f9c41e79a799641f03746c50a374dc5c3362e43d" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/c4/ca/8f367cb9fe734c4f6f6400e045593beea2635cd736158f9fabf58ee14e3c/pygame-2.6.1-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:20349195326a5e82a16e351ed93465a7845a7e2a9af55b7bc1b2110ea3e344e1" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/83/47/6edf2f890139616b3219be9cfcc8f0cb8f42eb15efd59597927e390538cb/pygame-2.6.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:f3935459109da4bb0b3901da9904f0a3e52028a3332a355d298b1673a334cf21" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/00/9e/0d8aa8cf93db2d2ee38ebaf1c7b61d0df36ded27eb726221719c150c673d/pygame-2.6.1-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c31dbdb5d0217f32764797d21c2752e258e5fb7e895326538d82b5f75a0cd856" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/d7/9e/d06adaa5cc65876bcd7a24f59f67e07f7e4194e6298130024ed3fb22c456/pygame-2.6.1-cp311-cp311-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:173badf82fa198e6888017bea40f511cb28e69ecdd5a72b214e81e4dcd66c3b1" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/7a/a1/9ae2852ebd3a7cc7d9ae7ff7919ab983e4a5c1b7a14e840732f23b2b48f6/pygame-2.6.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ce8cc108b92de9b149b344ad2e25eedbe773af0dc41dfb24d1f07f679b558c60" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/31/df/6788fd2e9a864d0496a77670e44a7c012184b7a5382866ab0e60c55c0f28/pygame-2.6.1-cp311-cp311-win32.whl", hash = "sha256:811e7b925146d8149d79193652cbb83e0eca0aae66476b1cb310f0f4226b8b5c" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/d2/55/ca3eb851aeef4f6f2e98a360c201f0d00bd1ba2eb98e2c7850d80aabc526/pygame-2.6.1-cp311-cp311-win_amd64.whl", hash = "sha256:91476902426facd4bb0dad4dc3b2573bc82c95c71b135e0daaea072ed528d299" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/92/16/2c602c332f45ff9526d61f6bd764db5096ff9035433e2172e2d2cadae8db/pygame-2.6.1-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:4ee7f2771f588c966fa2fa8b829be26698c9b4836f82ede5e4edc1a68594942e" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/cd/53/77ccbc384b251c6e34bfd2e734c638233922449a7844e3c7a11ef91cee39/pygame-2.6.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:c8040ea2ab18c6b255af706ec01355c8a6b08dc48d77fd4ee783f8fc46a843bf" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/06/be/3ed337583f010696c3b3435e89a74fb29d0c74d0931e8f33c0a4246307a9/pygame-2.6.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c47a6938de93fa610accd4969e638c2aebcb29b2fca518a84c3a39d91ab47116" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/fd/ca/b015586a450db59313535662991b34d24c1f0c0dc149cc5f496573900f4e/pygame-2.6.1-cp312-cp312-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:33006f784e1c7d7e466fcb61d5489da59cc5f7eb098712f792a225df1d4e229d" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/b9/f2/d31e6ad42d657af07be2ffd779190353f759a07b51232b9e1d724f2cda46/pygame-2.6.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:1206125f14cae22c44565c9d333607f1d9f59487b1f1432945dfc809aeaa3e88" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/f3/42/8ea2a6979e6fa971702fece1747e862e2256d4a8558fe0da6364dd946c53/pygame-2.6.1-cp312-cp312-win32.whl", hash = "sha256:84fc4054e25262140d09d39e094f6880d730199710829902f0d8ceae0213379e" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/5f/90/7d766d54bb95939725e9a9361f9c06b0cfbe3fe100aa35400f0a461a278a/pygame-2.6.1-cp312-cp312-win_amd64.whl", hash = "sha256:3a9e7396be0d9633831c3f8d5d82dd63ba373ad65599628294b7a4f8a5a01a65" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/e1/91/718acf3e2a9d08a6ddcc96bd02a6f63c99ee7ba14afeaff2a51c987df0b9/pygame-2.6.1-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:ae6039f3a55d800db80e8010f387557b528d34d534435e0871326804df2a62f2" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/0e/c6/9cb315de851a7682d9c7568a41ea042ee98d668cb8deadc1dafcab6116f0/pygame-2.6.1-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:2a3a1288e2e9b1e5834e425bedd5ba01a3cd4902b5c2bff8ed4a740ccfe98171" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/9f/8f/617a1196e31ae3b46be6949fbaa95b8c93ce15e0544266198c2266cc1b4d/pygame-2.6.1-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:27eb17e3dc9640e4b4683074f1890e2e879827447770470c2aba9f125f74510b" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/3b/87/2851a564e40a2dad353f1c6e143465d445dab18a95281f9ea458b94f3608/pygame-2.6.1-cp313-cp313-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:4c1623180e70a03c4a734deb9bac50fc9c82942ae84a3a220779062128e75f3b" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/85/b5/aa23aa2e70bcba42c989c02e7228273c30f3b44b9b264abb93eaeff43ad7/pygame-2.6.1-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ef07c0103d79492c21fced9ad68c11c32efa6801ca1920ebfd0f15fb46c78b1c" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/a6/06/29e939b34d3f1354738c7d201c51c250ad7abefefaf6f8332d962ff67c4b/pygame-2.6.1-cp313-cp313-win32.whl", hash = "sha256:3acd8c009317190c2bfd81db681ecef47d5eb108c2151d09596d9c7ea9df5c0e" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/7e/11/17f7f319ca91824b86557e9303e3b7a71991ef17fd45286bf47d7f0a38e6/pygame-2.6.1-cp313-cp313-win_amd64.whl", hash = "sha256:813af4fba5d0b2cb8e58f5d95f7910295c34067dcc290d34f1be59c48bd1ea6a" },
+]
+
+[[package]]
 name = "pygments"
 version = "2.19.2"
 source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
@@ -3308,15 +3344,6 @@ wheels = [
     { url = "https://mirrors.aliyun.com/pypi/packages/fe/0f/25911a9f080464c59fab9027482f822b86bf0608957a5fcc6eaac85aa515/PyYAML-6.0.2-cp313-cp313-musllinux_1_1_x86_64.whl", hash = "sha256:68ccc6023a3400877818152ad9a1033e3db8625d899c72eacb5a668902e4d652" },
     { url = "https://mirrors.aliyun.com/pypi/packages/14/0d/e2c3b43bbce3cf6bd97c840b46088a3031085179e596d4929729d8d68270/PyYAML-6.0.2-cp313-cp313-win32.whl", hash = "sha256:bc2fa7c6b47d6bc618dd7fb02ef6fdedb1090ec036abab80d4681424b84c1183" },
     { url = "https://mirrors.aliyun.com/pypi/packages/fa/de/02b54f42487e3d3c6efb3f89428677074ca7bf43aae402517bc7cca949f3/PyYAML-6.0.2-cp313-cp313-win_amd64.whl", hash = "sha256:8388ee1976c416731879ac16da0aff3f63b286ffdd57cdeb95f3f2e085687563" },
-]
-
-[[package]]
-name = "qasync"
-version = "0.27.1"
-source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
-sdist = { url = "https://mirrors.aliyun.com/pypi/packages/1c/e0/7c7c973f52e1765d6ddfc41e9272294f65d5d52b8f5f5eae92adf411ad46/qasync-0.27.1.tar.gz", hash = "sha256:8dc768fd1ee5de1044c7c305eccf2d39d24d87803ea71189d4024fb475f4985f" }
-wheels = [
-    { url = "https://mirrors.aliyun.com/pypi/packages/51/06/bc628aa2981bcfd452a08ee435b812fd3eee4ada8acb8a76c4a09d1a5a77/qasync-0.27.1-py3-none-any.whl", hash = "sha256:5d57335723bc7d9b328dadd8cb2ed7978640e4bf2da184889ce50ee3ad2602c7" },
 ]
 
 [[package]]
@@ -4061,8 +4088,8 @@ linux = [
     { name = "modelscope" },
     { name = "openai" },
     { name = "playsound" },
+    { name = "pygame" },
     { name = "pyside6" },
-    { name = "qasync" },
     { name = "sc-cosyvoice" },
     { name = "sherpa-onnx" },
     { name = "sounddevice" },
@@ -4095,6 +4122,7 @@ windows = [
     { name = "modelscope" },
     { name = "openai" },
     { name = "playsound" },
+    { name = "pygame" },
     { name = "pynini" },
     { name = "pyside6" },
     { name = "sc-cosyvoice" },
@@ -4132,8 +4160,8 @@ linux = [
     { name = "modelscope", specifier = ">=1.22.3" },
     { name = "openai", specifier = ">=1.95.1" },
     { name = "playsound", url = "https://www.piwheels.org/simple/playsound/playsound-1.3.0-py3-none-any.whl" },
+    { name = "pygame", specifier = ">=2.6.1" },
     { name = "pyside6", specifier = ">=6.9.1" },
-    { name = "qasync", specifier = ">=0.27.1" },
     { name = "sc-cosyvoice", url = "http://pixelstonelab.com:5005/sc_cosyvoice-0.2.0-py3-none-any.whl" },
     { name = "sherpa-onnx", specifier = ">=1.12.6" },
     { name = "sounddevice", specifier = ">=0.5.2" },
@@ -4166,6 +4194,7 @@ windows = [
     { name = "modelscope", specifier = ">=1.22.3" },
     { name = "openai", specifier = ">=1.95.1" },
     { name = "playsound", url = "https://www.piwheels.org/simple/playsound/playsound-1.3.0-py3-none-any.whl" },
+    { name = "pygame", specifier = ">=2.6.1" },
     { name = "pynini", specifier = ">=2.1.6" },
     { name = "pyside6", specifier = ">=6.9.1" },
     { name = "sc-cosyvoice", url = "http://pixelstonelab.com:5005/sc_cosyvoice-0.2.0-py3-none-any.whl" },
