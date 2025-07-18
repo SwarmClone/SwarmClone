@@ -211,7 +211,9 @@ class FrontendLive2D(ModuleBase):
                     for message in self.message_queue:
                         self.label_buffer += message["message"]
                     self.message_queue.clear()
-                    self.window.chat_record_widget.appendRecord("Model", self.label_buffer)
+                    if self.label_buffer.strip():
+                        self.window.chat_record_widget.appendRecord("Model", self.label_buffer)
+                        self.label_buffer = ""
                 
                 elif isinstance(task, ASRMessage):
                     # 若接收到 ASR 信息，则马上加入聊天记录
