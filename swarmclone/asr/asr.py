@@ -23,7 +23,7 @@ class ASRSherpaConfig(ModuleConfig):
         "min": 1,
         "max": 65535
     })
-    userdb: dict[str, str] = field(default_factory=lambda : {"DeveloperA": "12345"}, metadata={
+    userdb: str = field(default='{"DeveloperA": "12345"}', metadata={
         "required": False,
         "desc": "用户名以及密码（按JSON格式输入，用户名作为key，密码作为value）"
     })
@@ -98,7 +98,7 @@ class ASRSherpa(ModuleBase):
         self.stream = self.recognizer.create_stream()
         self.sample_rate = 16000
         self.samples_per_read = int(0.1 * self.sample_rate)
-        self.userdb = self.config.userdb
+        self.userdb = json.loads(self.config.userdb)
         self.clientdict = {}
         self.server = None
 

@@ -11,6 +11,7 @@ import asyncio
 @dataclass
 class MyModuleConfig(ModuleConfig):
     # 此处填写模块配置项
+    # 模块配置项仅支持：字符串、数值、布尔值
     my_config: str = field(default="这是默认值", metadata={
         "required": True, # 是否必填？未提供则为False
         "desc": "这里是配置项介绍", # 配置项介绍，未提供则为空
