@@ -41,7 +41,9 @@ linux = [
     "uvicorn>=0.35.0",
     "zhconv>=1.4.3",
     "torchaudio",
-    "torch"
+    "torch",
+    "live2d-py>=0.5.3.4",
+    "pyside6>=6.9.1"
 ]
 windows = [
     "jieba>=0.42.1",
@@ -69,7 +71,9 @@ windows = [
     "uvicorn>=0.35.0",
     "zhconv>=1.4.3",
     "torchaudio",
-    "torch"
+    "torch",
+    "live2d-py>=0.5.3.4",
+    "pyside6>=6.9.1",
 ]
 
 [tool.uv.sources]

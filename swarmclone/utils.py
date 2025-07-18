@@ -70,3 +70,30 @@ def get_devices() -> dict[str, str]:
         devices[f"cuda:{i}"] = f"cuda:{i} " + torch.cuda.get_device_name(i)
     devices['cpu'] = 'CPU'
     return devices
+
+import pathlib
+import json
+def get_live2d_models() -> dict[str, str]:
+    """
+    res/ 目录下 *.json 文件：
+    {
+        "name": "模型名称",
+        "path": "相对于本目录的模型文件（.model3.json/.model.json）路径"
+    }
+    """
+    res_dir = pathlib.Path("./res")
+    models: dict[str, str] = {}
+    for file in res_dir.glob("*.json"):
+        try:
+            data = json.load(open(file))
+            name = data['name']
+            if not isinstance(name, str):
+                raise TypeError("模型名称必须为字符串")
+            path = res_dir / pathlib.Path(data['path'])
+            if not path.is_file():
+                raise FileNotFoundError(f"模型文件不存在：{path}")
+        except Exception as e:
+            print(f"{file} 不是正确的模型导入文件：{e}")
+            continue
+        models[name] = str(path)
+    return models

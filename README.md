@@ -19,7 +19,7 @@
 $ pip install uv
 ```
 随后安装torch以及torchaudio：
-```
+```console
 $ UV_TORCH_BACKEND=auto uv pip install torch torchaudio
 ```
 随后，根据你的操作系统安装不同的依赖：

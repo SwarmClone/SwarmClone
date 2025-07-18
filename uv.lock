@@ -1633,6 +1633,30 @@ wheels = [
 ]
 
 [[package]]
+name = "live2d-py"
+version = "0.5.3.4"
+source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
+dependencies = [
+    { name = "numpy" },
+    { name = "pillow" },
+    { name = "pyopengl" },
+]
+sdist = { url = "https://mirrors.aliyun.com/pypi/packages/c5/6c/604a25fcba9d2458bdaad60a3ba9ca6817db97d497723e145463057891e0/live2d_py-0.5.3.4.tar.gz", hash = "sha256:a3fcfef8670d240a6627941c0fc22f05e1fc7391941c1a4af3b10b2ac56a76a5" }
+wheels = [
+    { url = "https://mirrors.aliyun.com/pypi/packages/74/1e/9b6e7351e9d6380f3897d02dd9219080077dbfcb0b6d8345a7bf8c15caa5/live2d_py-0.5.3.4-cp310-cp310-win32.whl", hash = "sha256:b8c0f17745cddeb3251f499609416de0121fbd3ae04c524d893a5348ba381833" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/55/4a/e03f020335cccc37b32555729455e13bf9bc8ed228aac79d79687e9b0757/live2d_py-0.5.3.4-cp310-cp310-win_amd64.whl", hash = "sha256:c8547f6be4670fce4b505a3f17d043f4be6dc2d31340d93a9c66c6f434198b92" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/26/46/58c7816ced86857e7b6e4248aa75cf1a5aea79072f99e7230afc3a3e02f9/live2d_py-0.5.3.4-cp311-cp311-macosx_14_0_universal2.whl", hash = "sha256:3e108631a575aeee2f670c924fb85beffe0031235d098acdec347bfe9f2e58c7" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/2b/7a/c94429fc2c0df85e1d49dcd1d7605c87395b65f9e93945194cb4713a57ba/live2d_py-0.5.3.4-cp311-cp311-win32.whl", hash = "sha256:64cfe4eee78667931c730adf280c8f9b39f6eaf4afefd812a0ed629914feaeff" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/9b/2a/f7b165f788e18afd4dab7696d156f5de5a384b48fb6fb1db61c7f75eb1f7/live2d_py-0.5.3.4-cp311-cp311-win_amd64.whl", hash = "sha256:6f62fe57afd15bf1ec4c14a9ff49f162b09c573971a23238071d36844e6ca135" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/71/32/4ac1517a2c2fdc41601c632d2c7eb6d849c8c1470792043a3508154bfa47/live2d_py-0.5.3.4-cp312-cp312-macosx_14_0_universal2.whl", hash = "sha256:31d2742deaa7bd5817eb17c9cb5e00975fb54f3bc96e54f70488f52521b30b22" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/6e/9a/455c38251af9d64884b4ca07d4ede518e6b6b9d91c942f57b93d65bb1d93/live2d_py-0.5.3.4-cp312-cp312-win32.whl", hash = "sha256:8fc5d3464f2e0f049b7c9a9664befe8aeba44562e69d9297188fe3eb178570eb" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/e6/29/1af50f409840068c1f963563d5d3005ba6032e240aee873b2aa4e71216fb/live2d_py-0.5.3.4-cp312-cp312-win_amd64.whl", hash = "sha256:6453b655cc7060f0ee36f526a922b1b1d09ba746c5e953fbf45d6974adf1a360" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/57/18/f5612b20e8f6ed7f23a507c54f5885fe5fa38573b32fbb544b84f5b29cda/live2d_py-0.5.3.4-cp313-cp313-macosx_14_0_universal2.whl", hash = "sha256:15bddd8c3c580e696386e87f1aa115ef8f76d78f0c434410b66ca1fdcf31ba5d" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/e1/50/f7793c69648a92ea6611f9885593766db3113faec06f607715d99d3acd38/live2d_py-0.5.3.4-cp313-cp313-win32.whl", hash = "sha256:a549390bb8adba4f1b24a64dc303260308fb069c53d0b95d30800257716abce6" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/43/19/23edc59f5413210dcd42b4ad0fd6cb70f1a7751ddffdf5b420d454bd25c3/live2d_py-0.5.3.4-cp313-cp313-win_amd64.whl", hash = "sha256:1d8221276f232fe6fa49b2484c1718fa8c7ffd2b12080f5018b43cb8746826b7" },
+]
+
+[[package]]
 name = "llvmlite"
 version = "0.44.0"
 source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
@@ -3101,6 +3125,15 @@ wheels = [
 ]
 
 [[package]]
+name = "pyopengl"
+version = "3.1.9"
+source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
+sdist = { url = "https://mirrors.aliyun.com/pypi/packages/c0/42/71080db298df3ddb7e3090bfea8fd7c300894d8b10954c22f8719bd434eb/pyopengl-3.1.9.tar.gz", hash = "sha256:28ebd82c5f4491a418aeca9672dffb3adbe7d33b39eada4548a5b4e8c03f60c8" }
+wheels = [
+    { url = "https://mirrors.aliyun.com/pypi/packages/92/44/8634af40b0db528b5b37e901c0dc67321354880d251bf8965901d57693a5/PyOpenGL-3.1.9-py3-none-any.whl", hash = "sha256:15995fd3b0deb991376805da36137a4ae5aba6ddbb5e29ac1f35462d130a3f77" },
+]
+
+[[package]]
 name = "pyparsing"
 version = "3.2.3"
 source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
@@ -3116,6 +3149,54 @@ source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
 sdist = { url = "https://mirrors.aliyun.com/pypi/packages/0f/49/4cea918a08f02817aabae639e3d0ac046fef9f9180518a3ad394e22da148/pyreadline3-3.5.4.tar.gz", hash = "sha256:8d57d53039a1c75adba8e50dd3d992b28143480816187ea5efbd5c78e6c885b7" }
 wheels = [
     { url = "https://mirrors.aliyun.com/pypi/packages/5a/dc/491b7661614ab97483abf2056be1deee4dc2490ecbf7bff9ab5cdbac86e1/pyreadline3-3.5.4-py3-none-any.whl", hash = "sha256:eaf8e6cc3c49bcccf145fc6067ba8643d1df34d604a1ec0eccbf7a18e6d3fae6" },
+]
+
+[[package]]
+name = "pyside6"
+version = "6.9.1"
+source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
+dependencies = [
+    { name = "pyside6-addons" },
+    { name = "pyside6-essentials" },
+    { name = "shiboken6" },
+]
+wheels = [
+    { url = "https://mirrors.aliyun.com/pypi/packages/14/91/8e9c7f7e90431297de9856e90a156ade9420977e26d87996909c63f30bd2/PySide6-6.9.1-cp39-abi3-macosx_12_0_universal2.whl", hash = "sha256:f843ef39970a2f79757810fffd7b8e93ac42a3de9ea62f2a03648cde57648aed" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/d7/ff/04d1b6b30edd24d761cc30d964860f997bdf37d06620694bf9aab35eec3a/PySide6-6.9.1-cp39-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:db44ac08b8f7ac1b421bc1c6a44200d03f08d80dc7b3f68dfdb1684f30f41c17" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/3c/b4/ca076c55c11a8e473363e05aa82c5c03dd7ba8f17b77cc9311ce17213193/PySide6-6.9.1-cp39-abi3-manylinux_2_39_aarch64.whl", hash = "sha256:531a6e67c429b045674d57fe9864b711eb59e4cded753c2640982e368fd468d1" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/83/ff/95c941f53b0faebc27dbe361d8e971b77f504b9cf36f8f5d750fd82cd6fc/PySide6-6.9.1-cp39-abi3-win_amd64.whl", hash = "sha256:c82dbb7d32bbdd465e01059174f71bddc97de152ab71bded3f1907c40f9a5f16" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/d1/ef/0aa5e910fa4e9770db6b45c23e360a52313922e0ca71fc060a57db613de1/PySide6-6.9.1-cp39-abi3-win_arm64.whl", hash = "sha256:1525d63dc6dc425b8c2dc5bc01a8cb1d67530401449f3a3490c09a14c095b9f9" },
+]
+
+[[package]]
+name = "pyside6-addons"
+version = "6.9.1"
+source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
+dependencies = [
+    { name = "pyside6-essentials" },
+    { name = "shiboken6" },
+]
+wheels = [
+    { url = "https://mirrors.aliyun.com/pypi/packages/e7/e2/39b9e04335d7ac782b6459bf7abec90c36b8efaac5a88ef818e972c59387/PySide6_Addons-6.9.1-cp39-abi3-macosx_12_0_universal2.whl", hash = "sha256:7be0708fa89715c282541fca47e2ba97c0c8d2886e0236ef994b2dd8f52aacdd" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/cf/6f/691d7039a6f7943522a770b713ecd85fa169688dfdd65ddd4db1699d01b6/PySide6_Addons-6.9.1-cp39-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:da7869b02e3599d26546fad582db4656060786bc5ec8ece5ec9ee8aa8b42371c" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/9d/08/a264db09ad35819643d910cd4c73a86f72f23b7092f8ebc7e51dcca53a86/PySide6_Addons-6.9.1-cp39-abi3-manylinux_2_39_aarch64.whl", hash = "sha256:53fd08c8152b6ba8c435458afd189835ba905793a5077a2bb0b1b11222b375d4" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/84/be/a849402f7e73d137b5ae8b4370a49b0cf0e0c02f028b845782cb743e4995/PySide6_Addons-6.9.1-cp39-abi3-win_amd64.whl", hash = "sha256:cd93a3a5e3886cd958f3a5acc7c061c24f10a394ce9f4ce657ac394544ca7ec2" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/2a/f1/1bb6b5859aff4e2b3f5ef789b9cee200811a9f469f04d9aa7425e816622b/PySide6_Addons-6.9.1-cp39-abi3-win_arm64.whl", hash = "sha256:4f589631bdceb518080ae9c9fa288e64f092cd5bebe25adc8ad89e8eadd4db29" },
+]
+
+[[package]]
+name = "pyside6-essentials"
+version = "6.9.1"
+source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
+dependencies = [
+    { name = "shiboken6" },
+]
+wheels = [
+    { url = "https://mirrors.aliyun.com/pypi/packages/8a/59/714874db9ef3bbbbda654fd3223248969bea02ec1a5bfdd1c941c4e97749/PySide6_Essentials-6.9.1-cp39-abi3-macosx_12_0_universal2.whl", hash = "sha256:ed43435a70e018e1c22efcaf34a9430b83cfcad716dba661b03de21c13322fab" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/59/6a/ea0db68d40a1c487fd255634896f4e37b6560e3ef1f57ca5139bf6509b1f/PySide6_Essentials-6.9.1-cp39-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:e5da48883f006c6206ef85874db74ddebcdf69b0281bd4f1642b1c5ac1d54aea" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/5b/2f/4243630d1733522638c4967d36018c38719d8b84f5246bf3d4c010e0aa9d/PySide6_Essentials-6.9.1-cp39-abi3-manylinux_2_39_aarch64.whl", hash = "sha256:e46a2801c9c6098025515fd0af6c594b9e9c951842f68b8f6f3da9858b9b26c2" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/0d/a9/a8e0209ba9116f2c2db990cfb79f2edbd5a3a428013be2df1f1cddd660a9/PySide6_Essentials-6.9.1-cp39-abi3-win_amd64.whl", hash = "sha256:ad1ac94011492dba33051bc33db1c76a7d6f815a81c01422cb6220273b369145" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/d0/e4/23268c57e775a1a4d2843d288a9583a47f2e4b3977a9ae93cb9ded1a4ea5/PySide6_Essentials-6.9.1-cp39-abi3-win_arm64.whl", hash = "sha256:35c2c2bb4a88db74d11e638cf917524ff35785883f10b439ead07960a5733aa4" },
 ]
 
 [[package]]
@@ -3753,6 +3834,18 @@ wheels = [
 ]
 
 [[package]]
+name = "shiboken6"
+version = "6.9.1"
+source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
+wheels = [
+    { url = "https://mirrors.aliyun.com/pypi/packages/98/98/34d4d25b79055959b171420d47fcc10121aefcbb261c91d5491252830e31/shiboken6-6.9.1-cp39-abi3-macosx_12_0_universal2.whl", hash = "sha256:40e92afc88da06b5100c56b761e59837ff282166e9531268f3d910b6128e621e" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/5a/07/53b2532ecd42ff925feb06b7bb16917f5f99f9c3470f0815c256789d818b/shiboken6-6.9.1-cp39-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:efcdfa8655d34aaf8d7a0c7724def3440bd46db02f5ad3b1785db5f6ccb0a8ff" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/5e/b0/75b86ee3f7b044e6a87fbe7abefd1948ca4ae5fcde8321f4986a1d9eaa5e/shiboken6-6.9.1-cp39-abi3-manylinux_2_39_aarch64.whl", hash = "sha256:efcf75d48a29ae072d0bf54b3cd5a59ae91bb6b3ab7459e17c769355486c2e0b" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/30/56/00af281275aab4c79e22e0ea65feede0a5c6da3b84e86b21a4a0071e0744/shiboken6-6.9.1-cp39-abi3-win_amd64.whl", hash = "sha256:209ccf02c135bd70321143dcbc5023ae0c056aa4850a845955dd2f9b2ff280a9" },
+    { url = "https://mirrors.aliyun.com/pypi/packages/de/ce/6ccd382fbe1a96926c5514afa6f2c42da3a9a8482e61f8dfc6068a9ca64f/shiboken6-6.9.1-cp39-abi3-win_arm64.whl", hash = "sha256:2a39997ce275ced7853defc89d3a1f19a11c90991ac6eef3435a69bb0b7ff1de" },
+]
+
+[[package]]
 name = "six"
 version = "1.17.0"
 source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
@@ -3932,6 +4025,10 @@ wheels = [
 name = "swarmclone"
 version = "0.1.0"
 source = { virtual = "." }
+dependencies = [
+    { name = "live2d-py" },
+    { name = "pyside6" },
+]
 
 [package.dev-dependencies]
 dev = [
@@ -3997,6 +4094,10 @@ windows = [
 ]
 
 [package.metadata]
+requires-dist = [
+    { name = "live2d-py", specifier = ">=0.5.3.4" },
+    { name = "pyside6", specifier = ">=6.9.1" },
+]
 
 [package.metadata.requires-dev]
 dev = [{ name = "ipython", specifier = ">=8.37.0" }]
