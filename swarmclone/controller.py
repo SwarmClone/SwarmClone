@@ -58,8 +58,7 @@ class Controller:
         /assets: 静态资源路由(GET)
         /api/get_version: 获取版本信息(GET)
         /api/startup_param: 获取配置信息(GET)
-        /api/load_config: 加载配置信息(POST)
-        /api/startup: 启动(POST)
+        /api/start: 加载配置信息并启动(POST)
         /api/get_status: 获取状态(GET)
         """
         self.app.mount("/assets", StaticFiles(directory="panel/dist/assets"), name="assets")
@@ -102,14 +101,6 @@ class Controller:
                             item["loaded"] = True
             return JSONResponse(status)
 
-        @self.app.post("/api/startup")
-        async def startup(request: Request):
-            try:
-                self.start_modules()
-            except Exception as e:
-                return JSONResponse({"error": str(e)}, 500)
-            return JSONResponse({"status": "OK"})
-        
         @self.app.get("/api/startup_param", response_class=JSONResponse)
         async def get_startup_param() -> JSONResponse:
             """
@@ -142,6 +133,8 @@ class Controller:
             for role, role_module_classes in module_classes.items():
                 config.append({"role_name": role.value, "modules": []})
                 for module_name, module_class in role_module_classes.items():
+                    if "dummy" in module_name.lower():
+                        continue # 占位模块不应被展示出来
                     config[-1]["modules"].append({
                         "module_name": module_name,
                         "desc": module_class.__doc__ or "",
@@ -209,39 +202,33 @@ class Controller:
                         })
             return JSONResponse(config)
         
-        @self.app.post("/api/load_config", response_class=JSONResponse)
-        async def load_config(request: Request) -> JSONResponse:
+        @self.app.post("/api/start", response_class=JSONResponse)
+        async def start(request: Request) -> JSONResponse:
             """
-            [
-                {
-                    "role_name":【模块角色】,
-                    "modules":[
-                        {
-                            "module_name":【模块名字】
-                            "config":[
-                                {
-                                    "name":【配置项名字】,
-                                    "value":【配置值】
-                                },...
-                            ]
-                        },...
-                    ]
-                },...
-            ]
+            {
+                "cfg": {
+                    "模块角色": {
+                        "模块名称": {
+                            "配置项": "配置值", ...
+                        }, ...
+                    }, ...
+                },
+                "selected": [
+                    "选中模块名称", ...
+                ]
+            }
             """
             data = await request.json()
             self.clear_modules()
             missing_modules: list[str] = []
-            for role in data:
-                role_name = role["role_name"]
-                role_modules = role["modules"]
-                for module in role_modules:
-                    module_name = module["module_name"]
-                    module_config = module["config"]
+            cfg = data["cfg"]
+            for role in cfg.keys():
+                for module in cfg[role].keys():
+                    module_config = cfg[role][module]
                     try:
-                        module_class = module_classes[ModuleRoles(role_name)][module_name]
+                        module_class = module_classes[ModuleRoles(role)][module]
                     except KeyError:
-                        missing_modules.append(module_name)
+                        missing_modules.append(module)
                         continue
                     
                     if not missing_modules: # 如果已有缺少模块就不再尝试加载更多模块
@@ -258,6 +245,7 @@ class Controller:
                         self.add_module(module)
             if missing_modules:
                 return JSONResponse(missing_modules, 404)
+            self.start_modules()
             return JSONResponse({"status": "OK"})
 
         @self.app.post("/api")

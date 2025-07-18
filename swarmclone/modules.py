@@ -264,8 +264,8 @@ class LLMBase(ModuleBase):
 
 class LLMDummy(LLMBase):
     role: ModuleRoles = ModuleRoles.LLM
-    def __init__(self):
-        super().__init__()
+    def __init__(self, config: LLMBaseConfig | None = None, **kwargs):
+        super().__init__(config, **kwargs)
 
     async def iter_sentences_emotions(self):
         sentences = ["This is a test sentence.", f"I received user prompt {self.history[-1]['content']}"]
@@ -274,8 +274,8 @@ class LLMDummy(LLMBase):
 
 class FrontendDummy(ModuleBase):
     role: ModuleRoles = ModuleRoles.FRONTEND
-    def __init__(self):
-        super().__init__()
+    def __init__(self, config: ModuleConfig | None, **kwargs):
+        super().__init__(config, **kwargs)
 
     async def process_task(self, task: Message | None) -> Message | None:
         if task is not None:
