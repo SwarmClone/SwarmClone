@@ -181,3 +181,6 @@ Dockerfile
 *_Data
 custom_settings.toml
 *.debug
+
+# Claude Code
+CLAUDE.md
