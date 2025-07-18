@@ -89,6 +89,10 @@ def get_live2d_models() -> dict[str, str]:
             name = data['name']
             if not isinstance(name, str):
                 raise TypeError("模型名称必须为字符串")
+            if not isinstance(data["path"], str):
+                raise TypeError("模型文件路径必须为字符串")
+            if not data["path"].endswith(".model.json") and not data["path"].endswith(".model3.json"):
+                raise ValueError("模型文件扩展名必须为.model.json或.model3.json")
             path = res_dir / pathlib.Path(data['path'])
             if not path.is_file():
                 raise FileNotFoundError(f"模型文件不存在：{path}")
