@@ -134,9 +134,10 @@ class TTSCosyvoice(ModuleBase):
             torchaudio.save(audio_name, output, 22050)
             info = torchaudio.info(audio_name)
             duration = info.num_frames / info.sample_rate
+            words = [*jieba.cut(content)]
             intervals = [
-                {"token": word, "duration": duration / len(word)}
-                for word in jieba.cut(content)
+                {"token": word, "duration": duration / len(words)}
+                for word in words
             ]
 
             # 音频数据
