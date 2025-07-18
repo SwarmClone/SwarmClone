@@ -10,6 +10,11 @@ from PySide6.QtOpenGLWidgets import QOpenGLWidget
 from PySide6.QtGui import *
 from PySide6.QtCore import QTimerEvent, Qt
 from OpenGL.GL import *
+import pygame
+from markdown import markdown
+import time
+from io import BytesIO
+from typing import Any
 
 available_models = get_live2d_models()
 
@@ -23,6 +28,7 @@ class ModelLabel(QLabel):
         super().__init__(text)
         self.setStyleSheet("background: transparent; color: white; font: 20px; padding: 20px;")
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setTextFormat(Qt.TextFormat.RichText)
         self.setFixedHeight(100)
     
     def paintEvent(self, event: QPaintEvent, /) -> None:
@@ -33,6 +39,26 @@ class ModelLabel(QLabel):
         painter.setPen(QPen(Qt.PenStyle.NoPen))
         painter.drawRoundedRect(self.rect(), 12, 12)
         return super().paintEvent(event)
+
+class ChatRecordWidget(QTextEdit):
+    def __init__(self):
+        super().__init__()
+        self.setStyleSheet("background: transparent; color: white; font: 20px; padding: 20px;")
+        self.setAcceptRichText(True)
+        self.setReadOnly(True)
+
+    def paintEvent(self, e: QPaintEvent, /) -> None:
+        # 绘制背景
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        brush = QBrush(QColor(0, 0, 0, 200))
+        painter.setBrush(brush)
+        painter.setPen(QPen(Qt.PenStyle.NoPen))
+        painter.drawRoundedRect(self.rect(), 12, 12)
+        return super().paintEvent(e)
+    
+    def appendRecord(self, name: str, content: str):
+        self.append(f"<b>{name}</b>: {markdown(content)}")
 
 class Live2DWidget(QOpenGLWidget):
     def __init__(self, model_path: str):
@@ -74,20 +100,29 @@ class FrontendWindow(QMainWindow):
     def __init__(self, model_path: str):
         super().__init__()
         self.setWindowTitle("Live2D")
-        self.resize(500, 900)
-        # 【Live2D形象】(500, 800)
-        # ------------
-        # 【此处字幕】(500, 100)
+        self.resize(800, 900)
+        # 【Live2D形象】(400, 800) | 此处是
+        # -----------------------+ 聊天 (400, 900)
+        # 【此处字幕】(400, 100)   | 记录
         widget = QWidget()
+        widget.setFixedWidth(400)
         self.setCentralWidget(widget)
+        layout = QHBoxLayout(widget)
 
-        layout = QVBoxLayout(widget)
-        
+        # 左侧：Live2D 与字幕
+        left = QWidget()
+        layout.addWidget(left)
+        layout_left = QVBoxLayout(left)
+        # 左上：Live2D
         self.live2d_widget = Live2DWidget(model_path)
-        layout.addWidget(self.live2d_widget)
-
+        layout_left.addWidget(self.live2d_widget)
+        # 左下：字幕
         self.label = ModelLabel("Hello, Live2D!")
-        layout.addWidget(self.label)
+        layout_left.addWidget(self.label)
+
+        # 右侧：聊天记录
+        self.chat_record_widget = ChatRecordWidget()
+        layout.addWidget(self.chat_record_widget)
 
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
@@ -121,25 +156,148 @@ class FrontendLive2D(ModuleBase):
     config: config_class
     def __init__(self, config: config_class | None = None, **kwargs):
         super().__init__(config, **kwargs)
+        pygame.mixer.init()
         self.model_path = self.config.model
         self.app = QApplication([])
         self.window = FrontendWindow(self.model_path)
+        self.align_t0: float = float("inf")
+        self.song_info: dict[str, dict[str, str]] = {}
+        self.singing = False
+        self.label_buffer = ""
+        self.message_queue: list[Any] = []
+        """
+        [
+            {
+                "id": 【消息ID】,
+                "message": 【消息内容】,
+                "aligned_audio": {
+                    "data": 【音频字节串】,
+                    "align_data": [
+                        {
+                            "token": 【这一段对应的文本】,
+                            "duration": 【这一段的持续时间】
+                        }, ...
+                    ]
+                }
+            }, ...
+        ]
+        """
     
     async def run(self):
         self.window.show()
         asyncio.create_task(qt_poller(self.app))
-        i = 0
-        while True:
-            try:
-                await asyncio.sleep(1)
-                self.window.label.setText(str(i := i + 1))
-            except asyncio.CancelledError:
-                self.window.live2d_widget.live2d.dispose()
-                self.app.quit()
-                return
+        try:
+            while True:
+                try:
+                    task = self.task_queue.get_nowait()
+                except asyncio.QueueEmpty:
+                    task = None
+                
+                # 处理消息部分
+                if isinstance(task, ASRActivated) and not self.singing:
+                    # 如果收到了 ASR 激活信息，则马上清空当前消息
+                    for message in self.message_queue:
+                        self.label_buffer += message["message"]
+                    self.message_queue.clear()
+                    self.window.chat_record_widget.appendRecord("Model", self.label_buffer)
+                
+                elif isinstance(task, ASRMessage):
+                    # 若接收到 ASR 信息，则马上加入聊天记录
+                    data = task.get_value(self)
+                    self.window.chat_record_widget.appendRecord(data["speaker_name"], data["message"])
+                
+                elif isinstance(task, LLMMessage):
+                    # 若接收到 LLM 信息，接受进新消息中并标注为未生成音频
+                    data = task.get_value(self)
+                    self.message_queue.append({"id": data["id"], "message": data["message"], "aligned_audio": None})
+                
+                elif isinstance(task, LLMEOS):
+                    # 若接收到 LLM 停止信息，则加入停止标记进队列中
+                    self.message_queue.append({"id": None, "aligned_audio": None})
+                
+                elif isinstance(task, TTSAlignedAudio):
+                    # 若接收到 TTS 对齐信息，将对应消息标注为已生成音频
+                    data = task.get_value(self)
+                    for data_index, message_id in enumerate(self.message_queue):
+                        if message_id["id"] == data["id"] and message_id["aligned_audio"] is None:
+                            message_id["aligned_audio"] = {
+                                "data": data["data"],
+                                "align_data": data["align_data"]
+                            }
+                            break
+                    # 若后面的信息先收到了生成音频，则将前面的消息缺失的音频信息用缺省值代替
+                    for i in range(data_index):
+                        if self.message_queue[i]["aligned_audio"] is None:
+                            self.message_queue[i]["aligned_audio"] = b""
+                
+                elif isinstance(task, SongInfo):
+                    # 接收歌曲相关信息
+                    data = task.get_value(self)
+                    self.song_info[data["song_id"]] = {"song_path": data["song_path"], "subtitle_path": data["subtitle_path"]}
+                
+                elif isinstance(task, ReadyToSing):
+                    # 准备好播放歌曲时直接开始播放
+                    self.message_queue.clear()
+                    data = task.get_value(self)
+                    song_id = data["song_id"]
+                    if not song_id in self.song_info:
+                        await self.results_queue.put(FinishedSinging(self)) # 歌曲不存在，直接当作播放完成
+                    else:
+                        self.singing = True
+                        self.align_t0 = time.time()
+                        align_data = parse_srt_to_list(open(self.song_info[song_id]["subtitle_path"]).read())
+                        self.message_queue.append({
+                            "message": f"Model 唱了 {song_id}",
+                            "aligned_audio": {
+                                "data": open(self.song_info[song_id]["song_path"], "rb").read(),
+                                "align_data": align_data
+                            }
+                        })
+                        self.message_queue.append({
+                            "message": None,
+                            "aligned_audio": None
+                        })
+                
+                # 更新字幕部分
+                if self.message_queue:
+                    if self.message_queue[0]["aligned_audio"] is not None:
+                        # 如果已经生成了音频，则进行对齐展示
+                        if self.message_queue[0]["aligned_audio"]["data"] is not None:
+                            # 如果还没有播放音频（音频项还有数据）则播放音频并清空其数据，同时开始计时
+                            pygame.mixer.music.stop()
+                            if self.message_queue[0]["aligned_audio"]["data"]: # 可能存有缺省值，只在确定有音频时播放
+                                pygame.mixer.music.load(BytesIO(self.message_queue[0]["aligned_audio"]["data"]))
+                                pygame.mixer.music.play()
+                            self.message_queue[0]["aligned_audio"]["data"] = None
+                            self.align_t0 = time.time()
+                        if time.time() - self.align_t0 > self.message_queue[0]["aligned_audio"]["align_data"][0]["duration"]:
+                            # 如果计时时间达到了最近一项对齐数据的时间，则展示这条数据并清除这条数据
+                            self.label_buffer += self.message_queue[0]["aligned_audio"]["align_data"][0]["token"]
+                            self.align_t0 += self.message_queue[0]["aligned_audio"]["align_data"][0]["duration"]
+                            self.message_queue[0]["aligned_audio"]["align_data"].pop(0)
+                            if not self.message_queue[0]["aligned_audio"]["align_data"]:
+                                # 如果已经将所有对齐数据播放完毕，则清除这条数据
+                                self.message_queue.pop(0)
+                            # 展示字幕
+                            self.window.label.setText(markdown(self.label_buffer))
+                    if self.message_queue[0]["id"] is None:
+                        # 遇到停止生成标记，说明一段完整信息已经播放完毕
+                        self.message_queue.pop(0)
+                        self.window.chat_record_widget.appendRecord("Model", self.label_buffer)
+                        self.label_buffer = ""
+                        self.window.label.setText("")
+                        if self.singing:
+                            await self.results_queue.put(FinishedSinging(self))
+                            self.singing = False
+                        else:
+                            await self.results_queue.put(AudioFinished(self))
+                
+        finally:
+            self.window.live2d_widget.live2d.dispose()
+            self.app.quit()
 
 """
-若你使用的是 NVIDIA GPU 且出现了着色器编译失败的情况，请通过Zink来使用 Vulkan 代替 OpenGL ，此处以 Arch Linux 为例子：
+若你使用的是 NVIDIA GPU 且出现了着色器编译失败的情况，请通过 Zink 来使用 Vulkan 代替 OpenGL ，此处以 Arch Linux 为例子：
 env __GLX_VENDOR_LIBRARY_NAME=mesa __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json MESA_LOADER_DRIVER_OVERRIDE=zink GALLIUM_DRIVER=zink python -m swarmclone
 若你使用的是 Wayland ，且出现了无法拖动窗口的情况，请通过 XWayland 来使用 X11 代替 Wayland：
 QT_QPA_PLATFORM="xcb" python -m swarmclone

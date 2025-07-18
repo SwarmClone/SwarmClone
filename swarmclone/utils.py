@@ -101,3 +101,41 @@ def get_live2d_models() -> dict[str, str]:
             continue
         models[name] = str(path)
     return models
+
+import srt
+def parse_srt_to_list(srt_text: str) -> list[dict[str, float | str]]: # By: Kimi-K2
+    """
+    把 SRT 全文转换成：
+    [{'token': <歌词>, 'duration': <秒>}, ...]
+    若字幕间有空档，用空字符串占位。
+    """
+    subs = list(srt.parse(srt_text))
+    if not subs:          # 空字幕直接返回
+        return []
+
+    result: list[dict[str, float | str]] = []
+    total_expected = subs[-1].end.total_seconds()  # 歌曲总长度
+    cursor = 0.0
+
+    for sub in subs:
+        start = sub.start.total_seconds()
+        end   = sub.end.total_seconds()
+
+        # 处理字幕开始前的空白
+        gap = start - cursor
+        if gap > 1e-4:      # 出现超过 0.1 ms 的空白
+            result.append({'token': '', 'duration': gap})
+
+        # 字幕本身
+        result.append({'token': sub.content.replace('\n', ' ').strip(),
+                       'duration': end - start})
+        cursor = end
+
+    # 处理最后一段空白（如果存在）
+    trailing_gap = total_expected - cursor
+    if trailing_gap > 1e-4:
+        result.append({'token': '', 'duration': trailing_gap})
+
+    # 校验：所有 duration 之和必须等于 total_expected
+    assert abs(sum(item['duration'] for item in result) - total_expected) < 1e-4
+    return result

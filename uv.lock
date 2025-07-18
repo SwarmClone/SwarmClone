@@ -4005,6 +4005,12 @@ wheels = [
 ]
 
 [[package]]
+name = "srt"
+version = "3.5.3"
+source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
+sdist = { url = "https://mirrors.aliyun.com/pypi/packages/66/b7/4a1bc231e0681ebf339337b0cd05b91dc6a0d701fa852bb812e244b7a030/srt-3.5.3.tar.gz", hash = "sha256:4884315043a4f0740fd1f878ed6caa376ac06d70e135f306a6dc44632eed0cc0" }
+
+[[package]]
 name = "stack-data"
 version = "0.6.3"
 source = { registry = "https://mirrors.aliyun.com/pypi/simple/" }
@@ -4050,6 +4056,7 @@ linux = [
     { name = "joblib" },
     { name = "live2d-py" },
     { name = "loguru" },
+    { name = "markdown" },
     { name = "matplotlib" },
     { name = "modelscope" },
     { name = "openai" },
@@ -4061,6 +4068,7 @@ linux = [
     { name = "sounddevice" },
     { name = "soundfile" },
     { name = "spacy-pkuseg" },
+    { name = "srt" },
     { name = "textgrid" },
     { name = "tomli" },
     { name = "torch" },
@@ -4082,6 +4090,7 @@ windows = [
     { name = "joblib" },
     { name = "live2d-py" },
     { name = "loguru" },
+    { name = "markdown" },
     { name = "matplotlib" },
     { name = "modelscope" },
     { name = "openai" },
@@ -4093,6 +4102,7 @@ windows = [
     { name = "sounddevice" },
     { name = "soundfile" },
     { name = "spacy-pkuseg" },
+    { name = "srt" },
     { name = "textgrid" },
     { name = "tomli" },
     { name = "torch" },
@@ -4117,6 +4127,7 @@ linux = [
     { name = "joblib", specifier = "==1.4.2" },
     { name = "live2d-py", specifier = ">=0.5.3.4" },
     { name = "loguru", specifier = ">=0.7.3" },
+    { name = "markdown", specifier = ">=3.8.2" },
     { name = "matplotlib", specifier = ">=3.10.3" },
     { name = "modelscope", specifier = ">=1.22.3" },
     { name = "openai", specifier = ">=1.95.1" },
@@ -4128,6 +4139,7 @@ linux = [
     { name = "sounddevice", specifier = ">=0.5.2" },
     { name = "soundfile", specifier = ">=0.13.1" },
     { name = "spacy-pkuseg", specifier = ">=1.0.0" },
+    { name = "srt", specifier = ">=3.5.3" },
     { name = "textgrid", specifier = ">=1.6.1" },
     { name = "tomli", specifier = ">=2.2.1" },
     { name = "torch" },
@@ -4149,6 +4161,7 @@ windows = [
     { name = "joblib", specifier = "==1.4.2" },
     { name = "live2d-py", specifier = ">=0.5.3.4" },
     { name = "loguru", specifier = ">=0.7.3" },
+    { name = "markdown", specifier = ">=3.8.2" },
     { name = "matplotlib", specifier = ">=3.10.3" },
     { name = "modelscope", specifier = ">=1.22.3" },
     { name = "openai", specifier = ">=1.95.1" },
@@ -4160,6 +4173,7 @@ windows = [
     { name = "sounddevice", specifier = ">=0.5.2" },
     { name = "soundfile", specifier = ">=0.13.1" },
     { name = "spacy-pkuseg", specifier = ">=1.0.0" },
+    { name = "srt", specifier = ">=3.5.3" },
     { name = "textgrid", specifier = ">=1.6.1" },
     { name = "tomli", specifier = ">=2.2.1" },
     { name = "torch" },

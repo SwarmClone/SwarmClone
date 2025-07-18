@@ -44,7 +44,8 @@ linux = [
     "torch",
     "live2d-py>=0.5.3.4",
     "pyside6>=6.9.1",
-    "qasync>=0.27.1",
+    "markdown>=3.8.2",
+    "srt>=3.5.3",
 ]
 windows = [
     "jieba>=0.42.1",
@@ -75,6 +76,8 @@ windows = [
     "torch",
     "live2d-py>=0.5.3.4",
     "pyside6>=6.9.1",
+    "markdown>=3.8.2",
+    "srt>=3.5.3",
 ]
 
 [tool.uv.sources]
