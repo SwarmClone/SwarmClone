@@ -31,9 +31,9 @@ class NCatBotChat(ModuleBase):
     role: ModuleRoles = ModuleRoles.CHAT
     config_class = NCatBotChatConfig
     """从NCatBot获取消息并作为Chat信息发送给主控"""
-    def __init__(self, config: NCatBotChatConfig | None = None, **kwargs):
-        super().__init__()
-        self.config = self.config_class(**kwargs) if config is None else config
+    config: config_class
+    def __init__(self, config: config_class | None = None, **kwargs):
+        super().__init__(config, **kwargs)
         assert available, "NCatBotChat requires ncatbot to be installed"
         lock = Lock()
         lock.acquire()
@@ -104,10 +104,10 @@ class NCatBotFrontendConfig(ModuleConfig):
 class NCatBotFrontend(ModuleBase):
     role: ModuleRoles = ModuleRoles.FRONTEND
     config_class = NCatBotFrontendConfig
+    config: config_class
     """接受LLM的信息并发送到目标群中"""
-    def __init__(self, config: NCatBotFrontendConfig | None = None, **kwargs):
-        super().__init__()
-        self.config = self.config_class(**kwargs) if config is None else config
+    def __init__(self, config: config_class | None = None, **kwargs):
+        super().__init__(config, **kwargs)
         self.llm_buffer = ""
     
     def get_sleep_time(self) -> float:

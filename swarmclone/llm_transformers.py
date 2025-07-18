@@ -76,8 +76,9 @@ class LLMTransformersConfig(LLMBaseConfig):
 class LLMTransformers(LLMBase):
     role: ModuleRoles = ModuleRoles.LLM
     config_class = LLMTransformersConfig
-    def __init__(self, config: LLMTransformersConfig | None = None, **kwargs):
-        super().__init__(**kwargs)
+    config: config_class
+    def __init__(self, config: config_class | None = None, **kwargs):
+        super().__init__(config, **kwargs)
         self.config = self.config_class(**kwargs) if config is None else config
         self.stop_string = self.config.stop_string
 

@@ -64,9 +64,9 @@ class LLMOpenAIConfig(LLMBaseConfig):
 class LLMOpenAI(LLMBase):
     role: ModuleRoles = ModuleRoles.LLM
     config_class = LLMOpenAIConfig
-    def __init__(self, config: LLMOpenAIConfig | None = None, **kwargs):
-        super().__init__()
-        self.config = self.config_class(**kwargs) if config is None else config
+    config: config_class
+    def __init__(self, config: config_class | None = None, **kwargs):
+        super().__init__(config, **kwargs)
         abs_classifier_path = os.path.expanduser(self.config.classifier_model_path)
         successful = False
         while not successful: # 加载情感分类模型

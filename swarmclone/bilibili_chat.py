@@ -32,14 +32,13 @@ class BiliBiliChatConfig(ModuleConfig):
 class BiliBiliChat(ModuleBase):
     role: ModuleRoles = ModuleRoles.CHAT
     config_class = BiliBiliChatConfig
-    def __init__(self, config: BiliBiliChatConfig | None = None, **kwargs):
-        super().__init__()
-        self.config = self.config_class(**kwargs) if config is None else config
+    config: config_class
+    def __init__(self, config: config_class | None = None, **kwargs):
+        super().__init__(config, **kwargs)
         try:
             from bilibili_api import live, Credential
         except ImportError:
             raise ImportError("请安装bilibili-api-python")
-        self.config: BiliBiliChatConfig = BiliBiliChatConfig(**kwargs)
         self.credential: Credential = Credential(
             sessdata=self.config.sessdata or None,
             bili_jct=self.config.bili_jct or None,

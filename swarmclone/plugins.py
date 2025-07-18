@@ -15,9 +15,9 @@ class ScheduledPlaylistConfig(ModuleConfig):
 class ScheduledPlaylist(ModuleBase):
     role: ModuleRoles = ModuleRoles.PLUGIN
     config_class = ScheduledPlaylistConfig
-    def __init__(self, config: ScheduledPlaylistConfig | None = None, **kwargs):
-        super().__init__()
-        self.config = self.config_class(**kwargs) if config is None else config
+    config: config_class
+    def __init__(self, config: config_class | None = None, **kwargs):
+        super().__init__(config, **kwargs)
         self.playlist = self.config.playlist
     
     async def process_task(self, task: Message | None) -> Message | None:

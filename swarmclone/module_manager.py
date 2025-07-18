@@ -28,7 +28,7 @@ class ModuleBase(metaclass=ModuleManager):
     role: ModuleRoles = ModuleRoles.UNSPECIFIED
     config_class = ModuleConfig
     name: str = "ModuleBase" # 会由metaclass自动赋值为类名
-    def __init__(self, config: ModuleConfig | None = None, **kwargs):
+    def __init__(self, config: config_class | None = None, **kwargs):
         self.config = self.config_class(**kwargs) if config is None else config
         self.task_queue: asyncio.Queue[Message] = asyncio.Queue(maxsize=128)
         self.results_queue: asyncio.Queue[Message] = asyncio.Queue(maxsize=128)

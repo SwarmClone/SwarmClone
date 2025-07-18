@@ -3,11 +3,11 @@ import json
 import base64
 from typing import Any
 from dataclasses import dataclass, field
-from .modules import ModuleBase
+from .modules import *
 from .messages import *
 
 @dataclass
-class FrontendSocketConfig:
+class FrontendSocketConfig(ModuleConfig):
     host: str = field(default="0.0.0.0", metadata={
         "required": False,
         "desc": "监听地址，默认监听所有地址，如需仅监听本地地址则设置为127.0.0.1"
@@ -25,9 +25,9 @@ class FrontendSocket(ModuleBase):
     """连接到Unity前端的接口模块"""
     role: ModuleRoles = ModuleRoles.FRONTEND
     config_class = FrontendSocketConfig
-    def __init__(self, config: FrontendSocketConfig | None = None, **kwargs):
-        super().__init__()
-        self.config = self.config_class(**kwargs) if config is None else config
+    config: config_class
+    def __init__(self, config: config_class | None = None, **kwargs):
+        super().__init__(config, **kwargs)
         self.clientdict: dict[int, asyncio.StreamWriter] = {}
         self.server: asyncio.Server | None = None
 

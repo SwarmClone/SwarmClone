@@ -70,15 +70,15 @@ class LLMBaseConfig(ModuleConfig):
 class LLMBase(ModuleBase):
     role: ModuleRoles = ModuleRoles.LLM
     config_class = LLMBaseConfig
-    def __init__(self, config: LLMBaseConfig | None = None, **kwargs):
-        super().__init__()
-        self.config = self.config_class(**kwargs) if config is None else config
+    config: config_class
+    def __init__(self, config: config_class | None = None, **kwargs):
+        super().__init__(config, **kwargs)
         self.state: LLMState = LLMState.IDLE
         self.history: list[dict[str, str]] = []
         self.generated_text: str = ""
         self.generate_task: asyncio.Task[Any] | None = None
-        self.chat_maxsize: int = 20
-        self.chat_size_threshold: int = 10
+        self.chat_maxsize: int = self.config.chat_maxsize
+        self.chat_size_threshold: int = self.config.chat_size_threshold
         self.chat_queue: asyncio.Queue[ChatMessage] = asyncio.Queue(maxsize=self.chat_maxsize)
         self.do_start_topic: bool = self.config.do_start_topic
         self.idle_timeout: int | float = self.config.idle_timeout
