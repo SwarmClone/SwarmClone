@@ -10,10 +10,10 @@ class Message:
     def __init__(self, message_type: MessageType,
                  source: ModuleBase, destinations: list[ModuleRoles],
                  **kwargs: Any):
-        self.message_type: MessageType = message_type
-        self.kwargs: dict[str, Any] = kwargs
-        self.source: ModuleBase = source
-        self.destinations: list[ModuleRoles] = destinations
+        self.message_type: MessageType = message_type # 消息类型，数据型/信号型
+        self.kwargs: dict[str, Any] = kwargs # 消息内容
+        self.source: ModuleBase = source # 消息来源，发送者对象
+        self.destinations: list[ModuleRoles] = destinations # 消息目标，发送到哪几个角色中 ## TODO：支持精确到模块的消息目标
         print(f"{source} -> {self} -> {destinations}")
     
     def __repr__(self):

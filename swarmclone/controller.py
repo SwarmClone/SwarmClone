@@ -127,7 +127,10 @@ class Controller:
                                     "desc":【介绍信息】,
                                     "required":【布尔值，是否必填】,
                                     "default":【默认值】,
-                                    "options":【可选项，无论类型均可提供，若非选择项仍提供选项则说明有预设值可选（比如模型可选deepseek-v3/qwen3之类），若为空则为无选项】
+                                    "options":【可选项，仅对选择项有用，若为空则为无选项】,
+                                    "min":【最小值】,
+                                    "max":【最大值】,
+                                    "step":【步长】 # 对于整数，默认为1，对于小数，默认为0.01
                                 },...
                             ]
                         },...
@@ -189,18 +192,9 @@ class Controller:
                             default = escape_all(default) # 进行转义
                         
                         # 如果有的话，提供最大最小值和步长
-                        if "min" in field.metadata:
-                            minimum = field.metadata["min"]
-                        else:
-                            minimum = None
-                        if "max" in field.metadata:
-                            maximum = field.metadata["max"]
-                        else:
-                            maximum = None
-                        if "step" in field.metadata:
-                            step = field.metadata["step"]
-                        else:
-                            step = None
+                        minimum = field.metadata.get("min")
+                        maximum = field.metadata.get("max")
+                        step = field.metadata.get("step")
 
                         config[-1]["modules"][-1]["config"].append({
                             "name": name,
