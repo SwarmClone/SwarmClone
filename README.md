@@ -13,51 +13,53 @@
 - 见“总技术路线”
 
 ## 如何开始？
+通过
 ### Python 部分
 您需要安装Python3.10，并安装[uv](https://docs.astral.sh/uv/)：
 ```console
-$ pip install uv
+pip install uv
 ```
 随后安装torch以及torchaudio：
 - Windows：
 ```console
->set "UV_TORCH_BACKEND=auto" && uv pip install torch torchaudio  Windows 命令
+set "UV_TORCH_BACKEND=auto"
+uv pip install torch torchaudio
 ```
 - Linux：
 ```console
-$ UV_TORCH_BACKEND=auto uv pip install torch torchaudio # Linux 命令
+UV_TORCH_BACKEND=auto uv pip install torch torchaudio
 ```
 随后，根据你的操作系统安装不同的依赖：
 - Windows：
 ```console
->uv sync --group windows
+uv sync --group windows
 ```
 - Linux：
 ```console
-$ uv sync --group linux
+uv sync --group linux
 ```
 若需要使用qqbot功能，你还需要安装`ncatbot`：
 ```console
-$ uv pip install ncatbot
+uv pip install ncatbot
 ```
 注意此处使用pip是因为ncatbot与其他依赖有已知冲突，若后续使用出现问题请发issue。
 ### Node.js 部分
 您需要安装Node.js和npm，可通过`npm --version`验证Node.js可用。
 首先，下载Panel：
 ```console
-$ git submodule init
-$ git submodule update
+git submodule init
+git submodule update
 ```
 然后，进入Panel目录并安装依赖：
 ```console
-$ cd panel
-$ npm install
-$ npm run build
+cd panel
+npm install
+npm run build
 ```
 ### 启动项目
 首先，回到项目根目录（`panel`目录的父目录）
 ```console
-$ python -m swarmclone
+python -m swarmclone
 ```
 随后进入终端给出的网址即可引入网页控制端。
 ## 如何参与开发？
