@@ -13,7 +13,6 @@
 - 见“总技术路线”
 
 ## 如何开始？
-通过
 ### Python 部分
 您需要安装Python3.10，并安装[uv](https://docs.astral.sh/uv/)：
 ```console
