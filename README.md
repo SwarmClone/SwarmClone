@@ -68,14 +68,26 @@
    cd SwarmClone
    git submodule update --init
    ```
-3. 运行项目环境搭建脚本：
+2. 运行项目环境搭建脚本：
 
    ```console
-   chmod +x ./scripts/*.sh && sudo ./scripts/install-dev.sh && sudo ./scripts/sync.sh
+   chmod +x ./scripts/*.sh && sudo ./scripts/install-dev.sh
+   ```
+   脚本运行完成后会提示：
+   ```console
+   === 安装完成! ===
+   === Installation complete! ===
+   请执行以下命令激活环境:
+   Run the following command to activate environment:
+   source xxx/SwarmClone/.venv/bin/activate
+   ```
+   请根据提示运行该命令激活虚拟环境，然后运行：
+   ```console
+   sudo ./scripts/sync.sh
    ```
    该脚本将自动安装所有依赖项并初始化`python`虚拟环境。
 
-   **注意**：该脚本目前仅支持`Debian`, `Ubuntu`, `Fedora`, `CentOS 7/8`, `Rocky`, `Alma`, `openSUSE`, `Arch`等使用`apt`、`dnf`、`yum`、`zypper`、`pacman`包管理器的Linux发行版。
+   **注意**：项目提供的脚本目前仅支持`Debian`, `Ubuntu`, `Fedora`, `CentOS 7/8`, `Rocky`, `Alma`, `openSUSE`, `Arch`等使用`apt`、`dnf`、`yum`、`zypper`、`pacman`包管理器的Linux发行版。
 
    我们强烈不建议您使用上面列出之外的发行版，因为即使能够成功安装依赖，它们也可能无法正常工作。如果您执意使用其他发行版，请手动安装依赖项。
    依赖项包括：
@@ -98,20 +110,24 @@
    注意此处使用pip是因为ncatbot与其他依赖有已知冲突，若后续使用出现问题请发issue。
 
 ### Node.js 部分
-您需要安装Node.js和npm，可通过`npm --version`验证Node.js可用。
-首先，下载Panel：
-```console
-git submodule init
-git submodule update
-```
-然后，进入Panel目录并安装依赖：
-```console
-cd panel
-npm install
-npm run build
-```
+1. 您需要安装Node.js和npm，可通过`npm --version`验证Node.js可用。
+
+
+   ```console
+   git submodule init
+   git submodule update
+   ```
+
+2. 进入Panel目录并安装依赖：
+
+   ```console
+   cd panel
+   npm install
+   npm run build
+   ```
+
 ### 启动项目
-首先，回到项目根目录（`panel`目录的父目录）
+回到项目根目录（`panel`目录的父目录）执行下面的命令：
 ```console
 python -m swarmclone
 ```

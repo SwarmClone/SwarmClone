@@ -73,7 +73,7 @@
 2. 运行项目环境搭建脚本：
 
    ```console
-   chmod +x ./scripts/install-dev.sh && ./scripts/install-dev.sh
+   chmod +x sudo ./scripts/install-dev.sh && sudo ./scripts/install-dev.sh
    ```
    该脚本将自动安装所有依赖项并初始化`python`虚拟环境。
 3. 检查前端运行环境
