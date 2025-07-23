@@ -2,7 +2,7 @@
 <div align="center">
 <img src="docs/assets/logo.png" width="200" height="200" />
 <br>
-<a href="./docs/README_en.md">English</a>
+<strong>简体中文</strong> | <a href="./docs/README_en.md">English</a>
 <br>
 <h2>一个完全开源、可高度定制的AI虚拟主播开发框架</h2>
 <!-下面这行空行千万别删->
@@ -60,7 +60,7 @@
 
    请确保您的磁盘中有足够的可用空间.
 
-   如果您需要在本地部署所有模型，我们建议您至少留出10GB可用空间。
+   >💡如果您需要在本地部署所有模型，我们建议您至少留出10GB可用空间。
 
    ```console
    git clone https://github.com/SwarmClone/SwarmClone.git
@@ -70,8 +70,7 @@
 
 ### 2. 安装系统依赖：
 
-   如果您使用新创建的WSL2虚拟机配置项目运行环境，此步骤必须执行。
-
+   >💡如果您使用新创建的WSL2虚拟机配置项目运行环境，此步骤必须执行。
    如果您此前安装过这些系统依赖，您可以选择暂时跳过本步骤。若后续操作出现缺少依赖项的报错，您可以在这里核对您是否安装了所有依赖项。
 
    现在，请根据您的Linux发行版选择相应命令执行：
@@ -92,7 +91,7 @@
    ```console
    sudo pacman -Sy --noconfirm base-devel python python-pip cmake mesa glu freeglut git wget
    ```
-   对于使用其他包管理工具的发行版，您需要自行安装上述依赖项。
+   > 💡对于使用其他包管理工具的发行版，您需要自行安装上述依赖项。
 
 ### 3. 设置Python环境
 
@@ -114,7 +113,7 @@
       ```console
       uv sync --group linux --active --no-build-isolation
       ```
-   若需要使用qqbot功能，你还需要安装ncatbot：
+   >💡若需要使用qqbot功能，你还需要安装ncatbot：
       ```console
       uv pip install ncatbot
       ```
@@ -148,7 +147,7 @@ python -m swarmclone
 # 如何参与开发？
 - 您可以加入我们的开发QQ群：1017493942
 
-如果你对AI、虚拟主播、开源开发充满热情，无论你是框架开发者、模型训练师、前端/图形工程师、产品设计师，还是热情的测试者，蜂群克隆（SwarmClone）都欢迎你的加入！让我们共同创造下一代开源AI虚拟直播系统！
+>💡如果你对AI、虚拟主播、开源开发充满热情，无论你是框架开发者、模型训练师、前端/图形工程师、产品设计师，还是热情的测试者，蜂群克隆（SwarmClone）都欢迎你的加入！让我们共同创造下一代开源AI虚拟直播系统！
 
 ---
 

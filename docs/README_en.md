@@ -1,127 +1,128 @@
-# SwarmClone 蜂群克隆计划：打造你的开源AI虚拟主播
-
+# SwarmClone: Build Your Open-Source AI Virtual Streamer
 <div align="center">
-<img src="../docs/assets/logo.png" width="200" height="200" />
+<img src="./assets/logo.png" width="200" height="200" />
 <br>
-    <a href="../README.md">简体中文</a>
+<a href="../README.md">简体中文</a> | <strong>English</strong>
 <br>
-<h2>一个完全开源、可高度定制的AI虚拟主播开发框架</h2>
-<!-下面这行空行千万别删->
+<h2>A Fully Open-Source, Highly Customizable Framework for AI Virtual Streamer Development</h2>
+<!- Do not delete this blank line ->
 
 ![STARS](https://img.shields.io/github/stars/SwarmClone/SwarmClone?color=yellow&label=Github%20Stars)
 [![LICENSE](https://img.shields.io/badge/LICENSE-GPLV3-red)](https://github.com/SwarmClone/SwarmClone/blob/main/LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10~3.12-blue.svg)](https://www.python.org)
 [![Status](https://img.shields.io/badge/Status-Active-brightgreen.svg)]()
-[![QQ群](https://custom-icon-badges.demolab.com/badge/QQ群-1048307485-00BFFF?style=flat&logo=tencent-qq)](https://qm.qq.com/q/8IUfgmDqda)
+[![QQ Group](https://custom-icon-badges.demolab.com/badge/QQ%20Group-1048307485-00BFFF?style=flat&logo=tencent-qq)](https://qm.qq.com/q/8IUfgmDqda)
+
 </div>
 
 ---
 
-# 简介
+# Introduction
 
-这是一个代码完全开源、可高度定制的AI虚拟主播开发框架，致力于为开发者和研究者提供构建智能虚拟主播的全套解决方案。我们的目标是打造一个能够在B站、Twitch等主流直播平台实现高质量实时互动的AI主播系统，同时保持框架的灵活性和可扩展性。
+SwarmClone is a fully open-source-code, highly customizable framework for developing AI-powered virtual streamers. It provides a comprehensive solution for building intelligent virtual streamers capable of real-time interaction on major streaming platforms like Bilibili and Twitch, while maintaining flexibility and extensibility.
 
-### 特色
-1. ✅**自主可控的核心架构**：从底层交互逻辑到上层应用全部开源，开发者可以完全掌控系统行为
-2. ✅**灵活的AI模型支持**：既可以使用我们自主研发的MiniLM2语言模型，也能轻松接入ChatGPT、Claude等第三方LLM，支持本地/API调用
-3. ✅**完善的直播功能**：支持弹幕实时互动、礼物响应、观众点名等核心直播场景
-4. **模块化设计理念**：各功能组件可自由替换，方便开发者按需定制
-
----
-
-# 技术栈与技术路线
-1) 大语言模型搭建（见[MiniLM2](https://github.com/swarmclone/MiniLM2)）*已基本完成*
-2) 微调（数据来源：魔改COIG-CQIA等）*阶段性完成*
-3) 虚拟形象（设定：见`设定.txt`）*进行中*
-4) 直播画面（形式：Unity驱动的Live2D）*进行中*
-5) 技术整合（对语言大模型、语音模型、虚拟形象、语音输入等，统一调度）*进行中*
-6) 接入直播平台
-7) 精进：
-    - 长期记忆RAG
-    - 联网RAG
-    - 与外界主动互动（发评论/私信？）
-    - 多模态（视觉听觉，甚至其他？）
-    - 整活（翻滚/b动静等）
-    - 唱歌
-    - 玩Minecraft、无人深空等游戏
+### Key Features
+1. ✅ **Self-Controlled Architecture**: Fully open-source from core logic to application layer
+2. ✅ **Flexible AI Model Support**: Use our MiniLM2 language model or integrate third-party LLMs (ChatGPT, Claude, etc.) via local/API calls
+3. ✅ **Comprehensive Streaming Features**: Real-time danmu interaction, gift response, viewer mentions, and core streaming scenarios
+4. ✅ **Modular Design**: Components can be freely replaced for custom implementations
 
 ---
 
-# 快速开始
-### Python 部分
-#### 先决条件：
-- 使用Linux或wsl运行环境（推荐Ubuntu 22.04 LTS）
-- Python 3.10~3.12（不建议使用过高的版本，以免发生兼容性问题）
-- Cmake 3.26+
+# Technology Stack & Roadmap
+1) LLM Development ([MiniLM2](https://github.com/swarmclone/MiniLM2)) *Completed*
+2) Fine-Tuning (Data: Modified COIG-CQIA etc.) *Stage Complete*
+3) Virtual Avatar (Character Setup: see `设定.txt`) *In Progress*
+4) Streaming Display (Format: Unity-driven Live2D) *In Progress*
+5) System Integration (LLM, TTS, Avatar, STT coordination) *In Progress*
+6) Platform Integration (Bilibili/Twitch)
+7) Advanced Features:
+    - Long-term Memory (RAG)
+    - Web-connected RAG
+    - Active Interaction (comments/DMs)
+    - Multimodal Capabilities (visual/audio)
+    - Special Effects (animations/emotes)
+    - Singing Voice Synthesis
+    - Game Integration (Minecraft, No Man's Sky)
+
+---
+
+# Quick Start
+#### Prerequisites:
+- Linux or WSL environment (Ubuntu 22.04 LTS recommended)
+- Python 3.10~3.12 (Avoid newer versions due to compatibility risks)
+- CMake 3.26+
 - CUDA 11.6+
-- Node.js 22.0+（推荐直接使用最新版）
+- Node.js 22.0+ (Latest LTS recommended)
 
+⚠️ **Windows Users**: Install [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install) and run within WSL.
 
-如果您是`Windows`用户，您需要安装[WSL2](https://learn.microsoft.com/zh-cn/windows/wsl/install)，并在`WSL2`中使用本项目.
-
-1. 克隆本项目并准备部署：
-
-   请确保您的磁盘中有足够的可用空间.
-
-   如果您需要在本地部署所有模型，我们建议您至少留出10GB可用空间。
-
+### 1. Clone Repository & Prepare:
    ```console
    git clone https://github.com/SwarmClone/SwarmClone.git
    cd SwarmClone
    git submodule update --init
    ```
-2. 运行项目环境搭建脚本：
+   > 💡 Reserve at least 10GB disk space for local model deployments
 
+### 2. Install System Dependencies:
+   **Ubuntu/Debian**
    ```console
-   chmod +x sudo ./scripts/install-dev.sh && sudo ./scripts/install-dev.sh
+   sudo apt update
+   sudo apt install -y build-essential python3 python3-venv python3-pip cmake \
+     libgl1-mesa-dev libglu1-mesa-dev freeglut3-dev git wget
    ```
-   该脚本将自动安装所有依赖项并初始化`python`虚拟环境。
-3. 检查前端运行环境
+   **Fedora/CentOS/RHEL**
+   ```console
+   sudo dnf install -y gcc gcc-c++ make python3 python3-virtualenv python3-pip cmake mesa-libGL-devel mesa-libGLU-devel freeglut-devel git wget
+   ```
 
-   请您运行以下命令，确认自己已经安装了符合要求的`Node.js（22.0+）`和`npm（10.0+）`：
+   **Arch Linux**
    ```console
-   node --version
-   npm --version
+   sudo pacman -Sy --noconfirm base-devel python python-pip cmake mesa glu freeglut git wget
    ```
-4. 进入`panel`目录并安装依赖：
+   
+
+### 3. Configure Python Environment:
+   ```console
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install uv
+   pip install --upgrade pip setuptools wheel
+   UV_TORCH_BACKEND=auto pip install torch torchaudio
+   uv sync --group linux --active --no-build-isolation
+   ```
+   > 💡 For QQ bot functionality: `uv pip install ncatbot`
+
+### 4. Configure Node.js:
    ```console
    cd panel
    npm install
    npm run build
    ```
 
-5. 运行项目：
-   切换到项目根目录并运行命令：
+### 5. Launch Application:
    ```console
+   cd ..  # Return to project root
    python -m swarmclone
    ```
-   该命令将自动启动`uvicorn`服务器，启动成功后，您将看到类似以下内容：
-   ```console
-   INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
-   INFO:     Started reloader process [28520] using statreload
-   INFO:     Started server process [28522]
-   INFO:     Waiting for application startup.
-   INFO:     Application startup complete.
-   ```
-   随后进入终端给出的网址即可打开网页控制端。
+   Access the web control panel via the URL provided in terminal.
 
-6. 若需要使用qqbot功能，你还需要安装`ncatbot`：
-   ```console
-   uv pip install ncatbot
-   ```
-   注意此处使用pip是因为ncatbot与其他依赖有已知冲突，若后续使用出现问题请发issue。
+---
 
-# 如何参与开发？
-- 您可以加入我们的开发QQ群：1017493942
+# Contribution Guidelines
+Join our developer community:
+- QQ Group: 1017493942
 
-如果你对AI、虚拟主播、开源开发充满热情，无论你是框架开发者、模型训练师、前端/图形工程师、产品设计师，还是热情的测试者，蜂群克隆（SwarmClone）都欢迎你的加入！让我们共同创造下一代开源AI虚拟直播系统！
+> 💡 Whether you're a framework developer, model trainer, frontend/graphics engineer, UI/UX designer, or tester – if you're passionate about AI, virtual streaming, and open-source development, SwarmClone welcomes your expertise!
 
+---
 
-# 项目开源协议
+# Open-Source License
+Licensed under **[GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html)**  
+Full text: [LICENSE](/LICENSE)
 
-本项目采用 [**GNU General Public License v3.0**](https://www.gnu.org/licenses/gpl-3.0.en.html)作为开源许可证。  
-完整许可证文本请参阅 [**LICENSE**](/LICENSE) 文件。
+**By using, modifying, or distributing this project, you agree to comply with all GPLv3 terms.**
 
-**在您复制、修改或分发本项目时，即表示您同意并愿意遵守 GPLv3 的全部条款。**
-
-**特别提醒：请尊重开源精神，勿将本项目代码用于闭源倒卖、专利钓鱼或其他损害社区利益的行为。违者将承担相应法律责任并受到社区谴责。**
+**Important Notice:** 
+We uphold the spirit of open-source. Any misuse of this project's code for harmful activities - including closed-source commercialization, patent trolling, or other actions damaging to the community - violates our license and will face legal repercussions and community sanctions.
