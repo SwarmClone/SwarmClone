@@ -87,10 +87,10 @@
       - `uv`
       - `torch torchaudio`（必须使用`uv pip install`安装，安装前须设置`UV_TORCH_BACKEND=auto`）
       
-      然后运行
-         ```console
-         chmod +x ./scripts/*.sh && sudo ./scripts/sync.sh
-         ```
+         然后运行
+            ```console
+            chmod +x ./scripts/*.sh && sudo ./scripts/sync.sh
+            ```
 
 3. 若需要使用qqbot功能，你还需要安装`ncatbot`：
    ```console
