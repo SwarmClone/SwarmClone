@@ -89,7 +89,7 @@
 
    **Arch Linux**
    ```console
-   sudo pacman -Sy --noconfirm base-devel python python-pip cmake mesa glu freeglut git wget
+   sudo pacman -S --noconfirm base-devel python python-pip cmake mesa glu freeglut git wget
    ```
    > 💡对于使用其他包管理工具的发行版，您需要自行安装上述依赖项。
 

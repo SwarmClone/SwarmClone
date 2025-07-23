@@ -79,7 +79,7 @@ SwarmClone is a fully open-source-code, highly customizable framework for develo
 
    **Arch Linux**
    ```console
-   sudo pacman -Sy --noconfirm base-devel python python-pip cmake mesa glu freeglut git wget
+   sudo pacman -S --noconfirm base-devel python python-pip cmake mesa glu freeglut git wget
    ```
    > 💡For Linux distributions using different package management systems, please install the equivalent dependencies manually.
 
