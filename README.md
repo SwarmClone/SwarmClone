@@ -58,11 +58,7 @@
 
 如果您是`Windows`用户，您需要安装[WSL2](https://learn.microsoft.com/zh-cn/windows/wsl/install)，并在`WSL2`中使用本项目.
 
-1. 安装[uv](https://docs.astral.sh/uv/)：
-   ```console
-   pip install uv
-   ```
-2. 克隆本项目并准备部署：
+1. 克隆本项目并准备部署：
 
    请确保您的磁盘中有足够的可用空间.
 
@@ -76,9 +72,25 @@
 3. 运行项目环境搭建脚本：
 
    ```console
-   chmod +x install-dev.sh && ./scripts/install-dev.sh
+   chmod +x ./scripts/*.sh && sudo ./scripts/install-dev.sh && sudo ./scripts/sync.sh
    ```
    该脚本将自动安装所有依赖项并初始化`python`虚拟环境。
+
+   **注意**：该脚本目前仅支持`Debian`, `Ubuntu`, `Fedora`, `CentOS 7/8`, `Rocky`, `Alma`, `openSUSE`, `Arch`等使用`apt`、`dnf`、`yum`、`zypper`、`pacman`包管理器的Linux发行版。
+   
+   我们强烈不建议您使用上面列出之外的发行版，因为即使能够成功安装依赖，它们也可能无法正常工作。如果您执意使用其他发行版，请手动安装依赖项。
+   依赖项包括：
+   - `python3`
+   - `python3-pip`
+   - `python3-venv`
+   - `cmake`
+   - `uv`
+   - `torch torchaudio`（必须使用`uv pip install`安装，安装前须设置`UV_TORCH_BACKEND=auto`）
+   然后运行
+      ```console
+      chmod +x ./scripts/*.sh && sudo ./scripts/sync.sh
+      ```
+
 3. 若需要使用qqbot功能，你还需要安装`ncatbot`：
    ```console
    uv pip install ncatbot
