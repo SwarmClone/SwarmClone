@@ -113,10 +113,7 @@
       ```console
       uv sync --group linux --active --no-build-isolation
       ```
-   >💡若需要使用qqbot功能，你还需要安装ncatbot：
-      ```console
-      uv pip install ncatbot
-      ```
+   >💡若需要使用qqbot功能，你还需要安装ncatbot：`uv pip install ncatbot`
 ### 4. 设置Node.js环境
 
 1. 请确保您安装了符合要求的`Node.js（22.0+）`和`npm（10.0+）`
@@ -147,7 +144,7 @@ python -m swarmclone
 # 如何参与开发？
 - 您可以加入我们的开发QQ群：1017493942
 
->💡如果你对AI、虚拟主播、开源开发充满热情，无论你是框架开发者、模型训练师、前端/图形工程师、产品设计师，还是热情的测试者，蜂群克隆（SwarmClone）都欢迎你的加入！让我们共同创造下一代开源AI虚拟直播系统！
+如果你对AI、虚拟主播、开源开发充满热情，无论你是框架开发者、模型训练师、前端/图形工程师、产品设计师，还是热情的测试者，蜂群克隆（SwarmClone）都欢迎你的加入！让我们共同创造下一代开源AI虚拟直播系统！
 
 ---
 

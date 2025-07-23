@@ -81,7 +81,7 @@ SwarmClone is a fully open-source-code, highly customizable framework for develo
    ```console
    sudo pacman -Sy --noconfirm base-devel python python-pip cmake mesa glu freeglut git wget
    ```
-   
+   > 💡For Linux distributions using different package management systems, please install the equivalent dependencies manually.
 
 ### 3. Configure Python Environment:
    ```console
@@ -114,7 +114,7 @@ SwarmClone is a fully open-source-code, highly customizable framework for develo
 Join our developer community:
 - QQ Group: 1017493942
 
-> 💡 Whether you're a framework developer, model trainer, frontend/graphics engineer, UI/UX designer, or tester – if you're passionate about AI, virtual streaming, and open-source development, SwarmClone welcomes your expertise!
+Whether you're a framework developer, model trainer, frontend/graphics engineer, UI/UX designer, or tester – if you're passionate about AI, virtual streaming, and open-source development, SwarmClone welcomes your expertise!
 
 ---
 
