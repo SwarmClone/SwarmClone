@@ -41,7 +41,7 @@ get_system_python() {
     # 查找Python解释器
     local candidates=()
     
-    for version in 3.12 3.11 3.10; do
+    for version in 3.13 3.12 3.11 3.10; do
         for bin in /usr/bin/python$version /usr/local/bin/python$version; do
             if [[ -x "$bin" ]]; then
                 candidates+=("$bin")

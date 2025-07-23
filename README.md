@@ -9,7 +9,7 @@
 
 ![STARS](https://img.shields.io/github/stars/SwarmClone/SwarmClone?color=yellow&label=Github%20Stars)
 [![LICENSE](https://img.shields.io/badge/LICENSE-GPLV3-red)](https://github.com/SwarmClone/SwarmClone/blob/main/LICENSE)
-[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org)
+[![Python](https://img.shields.io/badge/Python-3.10~3.12-blue.svg)](https://www.python.org)
 [![Status](https://img.shields.io/badge/Status-Active-brightgreen.svg)]()
 [![QQ群](https://custom-icon-badges.demolab.com/badge/QQ群-1048307485-00BFFF?style=flat&logo=tencent-qq)](https://qm.qq.com/q/8IUfgmDqda)
 </div>
@@ -46,25 +46,45 @@
 
 ---
 
-# 如何开始
+# 快速开始
 ### Python 部分
-您需要安装Python3.10，并安装[uv](https://docs.astral.sh/uv/)：
-```console
-pip install uv
-```
-随后安装torch以及torchaudio：
-- Linux：
-```console
-UV_TORCH_BACKEND=auto uv pip install torch torchaudio
-```
-```console
-uv sync --group linux
-```
-若需要使用qqbot功能，你还需要安装`ncatbot`：
-```console
-uv pip install ncatbot
-```
-注意此处使用pip是因为ncatbot与其他依赖有已知冲突，若后续使用出现问题请发issue。
+#### 先决条件：
+- 使用Linux或wsl运行环境（推荐Ubuntu 22.04 LTS）
+- Python 3.10~3.12（不建议使用过高的版本，以免发生兼容性问题）
+- Cmake 3.26+
+- CUDA 11.6+
+- Node.js 22.0+（推荐直接使用最新版）
+
+
+如果您是`Windows`用户，您需要安装[WSL2](https://learn.microsoft.com/zh-cn/windows/wsl/install)，并在`WSL2`中使用本项目.
+
+1. 安装[uv](https://docs.astral.sh/uv/)：
+   ```console
+   pip install uv
+   ```
+2. 克隆本项目并准备部署：
+
+   请确保您的磁盘中有足够的可用空间.
+
+   如果您需要在本地部署所有模型，我们建议您至少留出10GB可用空间。
+
+   ```console
+   git clone https://github.com/SwarmClone/SwarmClone.git
+   cd SwarmClone
+   git submodule update --init
+   ```
+3. 运行项目环境搭建脚本：
+
+   ```console
+   chmod +x install-dev.sh && ./scripts/install-dev.sh
+   ```
+   该脚本将自动安装所有依赖项并初始化`python`虚拟环境。
+3. 若需要使用qqbot功能，你还需要安装`ncatbot`：
+   ```console
+   uv pip install ncatbot
+   ```
+   注意此处使用pip是因为ncatbot与其他依赖有已知冲突，若后续使用出现问题请发issue。
+
 ### Node.js 部分
 您需要安装Node.js和npm，可通过`npm --version`验证Node.js可用。
 首先，下载Panel：
@@ -113,4 +133,4 @@ python -m swarmclone
 
 完整许可证文本请参阅[LICENSE](/LICENSE)文件。我们鼓励开发者遵守开源精神，共同维护健康的开源生态。
 
-**特别提醒**：任何违反木兰许可证的行为，特别是源代码倒卖行为，都将受到社区和法律的严肃对待。请尊重开源开发者的劳动成果。
+**特别提醒**：任何违反许可证的行为，特别是源代码倒卖行为，都将受到社区和法律的严肃对待。请尊重开源开发者的劳动成果。
