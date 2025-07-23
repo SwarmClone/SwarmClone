@@ -101,9 +101,10 @@
       python3 -m venv .venv
       source .venv/bin/activate
       ```
-   2. 升级基础工具
+   2. 安装和升级基础工具
       ```console
-      pip install --upgrade pip setuptools wheel uv
+      pip install uv
+      pip install --upgrade pip setuptools wheel
       ```
    3. 安装PyTorch
       ```console
