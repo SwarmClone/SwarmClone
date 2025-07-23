@@ -113,10 +113,12 @@ python -m swarmclone
 
 # 项目开源协议
 
-本项目采用 [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html) 作为开源许可证。  
-完整许可证文本请参阅 [LICENSE](/LICENSE) 文件。
+本项目采用 [**GNU General Public License v3.0**](https://www.gnu.org/licenses/gpl-3.0.en.html)作为开源许可证。  
+完整许可证文本请参阅 [**LICENSE**](/LICENSE) 文件。
+
+**在您复制、修改或分发本项目时，即表示您同意并愿意遵守 GPLv3 的全部条款。**
 
 **注意**：GPLv3 允许商业使用、修改和分发，但需遵守许可证条款（如保留版权声明、提供源代码等）。  
 任何使用行为均需遵循 GPLv3 的完整规定。
 
-**特别提醒**：请尊重开源精神，勿将本项目代码用于闭源倒卖、专利钓鱼或其他损害社区利益的行为。违者将承担相应法律责任并受到社区谴责。
+**特别提醒：请尊重开源精神，勿将本项目代码用于闭源倒卖、专利钓鱼或其他损害社区利益的行为。违者将承担相应法律责任并受到社区谴责。**
