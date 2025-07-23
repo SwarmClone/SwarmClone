@@ -47,14 +47,13 @@
 ---
 
 # 快速开始
-### Python 部分
 #### 先决条件：
 - 使用Linux或wsl运行环境（推荐Ubuntu 22.04 LTS）
 - Python 3.10~3.12（不建议使用过高的版本，以免发生兼容性问题）
 - Cmake 3.26+
 - CUDA 11.6+
 - Node.js 22.0+（推荐直接使用最新版）
-
+### Python 部分
 
 如果您是`Windows`用户，您需要安装[WSL2](https://learn.microsoft.com/zh-cn/windows/wsl/install)，并在`WSL2`中使用本项目.
 
