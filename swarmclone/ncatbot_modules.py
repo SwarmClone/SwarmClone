@@ -145,4 +145,4 @@ class NCatBotFrontend(ModuleBase):
 
 class NCatBotLLMMessage(Message):
     def __init__(self, source: NCatBotFrontend, content: str):
-        super().__init__(MessageType.DATA, source, [ModuleRoles.CHAT], content=content)
+        super().__init__(MessageType.DATA, source, [NCatBotChat], content=content)
