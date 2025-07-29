@@ -27,6 +27,7 @@ class Controller:
         self.handler_tasks: list[asyncio.Task[Any]] = []
         self.agent: ModuleBase = ControllerDummy()
         self.messages_buffer: deque[Message] = deque(maxlen=200)
+        self.started: bool = False
 
     def add_module(self, module: ModuleBase):
         """
@@ -61,7 +62,7 @@ class Controller:
         /api/stop: 停止运行(POST)
         /api/get_status: 获取状态(GET)
         /api/get_messages: 获取最新信息(GET)
-        /health: 检查是否在线(GET)
+        /api/health: 检查是否在线(GET)
         """
         self.app.mount("/assets", StaticFiles(directory="panel/dist/assets"), name="assets")
 
@@ -76,39 +77,42 @@ class Controller:
         async def root():
             return HTMLResponse(open("panel/dist/index.html").read())
         
-        @self.app.get("/health")
+        @self.app.get("/api/health")
         async def health():
             return JSONResponse({"status": "ok"})
 
         @self.app.get("/api/get_status")
         async def get_status(selected: str = ""):
             """
-            [
-                {
-                    "role_name":【模块角色】,
-                    "modules":[
-                        {
-                            "module_name":【模块名字】,
-                            "running":【布尔值，是否运行】,
-                            "loaded":【布尔值，是否加载】,
-                            "err":【加载错误信息，若无错误则为null，若有错误则为错误信息】
-                        },...
-                    ]
-                },...
-            ]
+            {
+                "started":【布尔值，是否已启动】,
+                "module_status":[
+                    {
+                        "role_name":【模块角色】,
+                        "modules":[
+                            {
+                                "module_name":【模块名字】,
+                                "running":【布尔值，是否运行】,
+                                "loaded":【布尔值，是否加载】,
+                                "err":【加载错误信息，若无错误则为null，若有错误则为错误信息】
+                            },...
+                        ]
+                    },...
+                ]
+            }
             未加载+未运行=加载中
             已加载+未运行=已加载
             已加载+已运行=运行中
             """
             # 找到所有模块类
             names = [s.strip() for s in selected.split(",") if s.strip()]
-            status = []
+            module_status = []
             for role, role_module_classes in module_classes.items():
-                status.append({"role_name": role.value, "modules": []})
+                module_status.append({"role_name": role.value, "modules": []})
                 for module_name, _module_class in role_module_classes.items():
                     if module_name not in names:
                         continue
-                    status[-1]["modules"].append({
+                    module_status[-1]["modules"].append({
                         "module_name": module_name,
                         "running": False,
                         "loaded": False,
@@ -117,14 +121,17 @@ class Controller:
             # 将运行中的模块标记为True
             for role in self.modules:
                 for module in self.modules[role]:
-                    for item in status:
+                    for item in module_status:
                         if item["role_name"] == role.value:
                             for module_item in item["modules"]:
                                 if module_item["module_name"] == module.name:
                                     module_item["running"] = module.running
                                     module_item["loaded"] = True
                                     module_item["err"] = None if module.err is None else repr(module.err)
-            return JSONResponse(status)
+            return JSONResponse({
+                "started": self.started,
+                "module_status": module_status
+            })
 
         @self.app.get("/api/startup_param", response_class=JSONResponse)
         async def get_startup_param() -> JSONResponse:
@@ -227,6 +234,7 @@ class Controller:
         @self.app.post("/api/stop")
         async def stop():
             await self.stop_modules()
+            self.clear_modules()
             return Response()
 
         @self.app.post("/api")
@@ -311,6 +319,7 @@ class Controller:
                 module.running = True
             if len(modules) > 0:
                 print(f"{module_role.value}模块已启动")
+        self.started = True
 
     async def stop_modules(self):
         for task in self.module_tasks:
@@ -335,17 +344,18 @@ class Controller:
             for t in tasks:
                 t.cancel()
         await asyncio.gather(*tasks, return_exceptions=True)
+        self.started = False
 
     def run(self):
         self.start_modules()
         
-        uvcorn_config = uvicorn.Config(
+        uvicorn_config = uvicorn.Config(
             self.app,
             host="0.0.0.0",
             port=8000,
             loop="asyncio"
         )
-        server = uvicorn.Server(uvcorn_config)
+        server = uvicorn.Server(uvicorn_config)
         loop = asyncio.get_event_loop()
 
         server_task = loop.create_task(server.serve(), name="ROOT SERVER")
@@ -353,7 +363,6 @@ class Controller:
             loop.run_until_complete(server_task)
         except KeyboardInterrupt:
             loop.run_until_complete(self.stop_modules())
-            server_task.cancel()
         finally:
             loop.run_until_complete(server.shutdown())
     
