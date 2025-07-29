@@ -302,6 +302,13 @@ class Controller:
             self.messages_buffer.clear()
             return JSONResponse(res)
 
+        @self.app.get("/{path:path}")
+        async def serve_spa(request: Request, path: str):
+            # 排除API和静态资源
+            if path.startswith("api") or path.startswith("assets"):
+                return Response(status_code=404)
+            return HTMLResponse(open("panel/dist/index.html").read())
+
     async def handle_message(self, message: Message):
         for destination in message.destinations:
             for module_destination in self.modules[destination]:
