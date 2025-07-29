@@ -284,7 +284,7 @@ class LLM(ModuleBase):
     def _switch_to_singing(self):
         self.state = LLMState.SINGING
         self.about_to_sing = False
-        self._add_system_history(f'你唱了一首名为{self.song_id}的歌。')
+        self._add_instruct_history(f'你唱了一首名为{self.song_id}的歌。')
 
     def _add_history(self, role: str, content: str, template: str | None = None, user: str | None = None):
         """统一的历史添加方法"""
