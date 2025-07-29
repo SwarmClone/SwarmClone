@@ -10,12 +10,12 @@ if TYPE_CHECKING:
 
 class Message:
     def __init__(self, message_type: MessageType,
-                 source: ModuleBase, destinations: list[ModuleRoles],
+                 source: ModuleBase, destinations: list[ModuleRoles | type],
                  **kwargs: Any):
         self.message_type: MessageType = message_type # 消息类型，数据型/信号型
         self.kwargs: dict[str, Any] = kwargs # 消息内容
         self.source: ModuleBase = source # 消息来源，发送者对象
-        self.destinations: list[ModuleRoles] = destinations # 消息目标，发送到哪几个角色中 ## TODO：支持精确到模块的消息目标
+        self.destinations: list[ModuleRoles | type] = destinations # 消息目标，发送到哪几个角色/模块中 ## TODO：支持精确到模块的消息目标
         self.getters: list[dict[str, str | int]] = [] # 获取了信息的模块名
         print(f"{source} -> {self} -> {destinations}")
         self.send_time = int(time.time())
@@ -30,7 +30,7 @@ class Message:
         return f"{self.message_type.value} {kwrepr}"
     
     def get_value(self, getter: ModuleBase) -> dict[str, Any]:
-        if not getter.role in self.destinations:
+        if not getter.role in self.destinations or isinstance(getter, type):
             print(f"{getter} <x {self} (-> {[destination.value for destination in self.destinations]})")
             return {}
         print(f"{getter} <- {self}")

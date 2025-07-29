@@ -311,8 +311,14 @@ class Controller:
 
     async def handle_message(self, message: Message):
         for destination in message.destinations:
-            for module_destination in self.modules[destination]:
-                await module_destination.task_queue.put(message)
+            if isinstance(destination, type):
+                for _module_role, modules in self.modules.items():
+                    for module in modules:
+                        if isinstance(module, destination):
+                            await module.task_queue.put(message)
+            else:
+                for module_destination in self.modules[destination]:
+                    await module_destination.task_queue.put(message)
     
     def start_modules(self):
         loop = asyncio.get_event_loop()
