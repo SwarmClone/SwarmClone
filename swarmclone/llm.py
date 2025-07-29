@@ -64,6 +64,10 @@ class LLMConfig(ModuleConfig):
         "required": False,
         "desc": "语音输入对应的聊天角色"
     })
+    sys_role: str = field(default="system", metadata={
+        "required": False,
+        "desc": "指令对应的聊天角色"
+    })
     chat_template: str = field(default="{user}: {content}", metadata={
         "required": False,
         "desc": "弹幕的提示词模板"
@@ -72,30 +76,39 @@ class LLMConfig(ModuleConfig):
         "required": False,
         "desc": "语音输入提示词模板"
     })
-    system_prompt: str = field(default=f"""# 提示词开始
-## 人物设定
-你是一只十六岁的人工智能少女猫娘主播，名叫【xxxxx】，你的外观是【xxxx】。
-你现在的主人名叫【xxxx】，是【xxxxx】。
-你很关心你的主人。
-## 任务设定
-你将参与【xxxx】平台直播，与你的主人和观众对话。你的直播主要内容是【xxxxx】。
-如有提供工具，请合理使用。
-你将接收到“[用户名]：[内容]”的格式的消息，若[用户名]为你主人的名字，则说明是你的主人在向你说话，请优先回复。
-## 发言语气
-你以轻松可爱的语气进行对话，一些俏皮话和笑话是可以接受的，请记住你是一只猫娘。
-发言请保持简洁且口语化。最好不超过 30 字，请注意保持直播节奏。
-## 语言
-你使用中文进行交流，除非你的主人要求你使用别的语言。
-## 额外信息
-当前时间：{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}
-你的记忆：【xxxx】
-# 提示词结束
-
-以上为提示词模板，使用前请将【】内容替换为你希望的实际内容，也可自行撰写。启动前请删除这一行。""", metadata={
+    sys_template: str = field(default="{user}: {content}", metadata={
+        "required": False,
+        "desc": "指令提示词模板"
+    })
+    system_prompt: str = field(default=(
+            "# 提示词开始\n"
+            "## 人物设定\n"
+            "你是一只十六岁的人工智能少女猫娘主播，名叫【xxxxx】，你的外观是【xxxx】。\n"
+            "你现在的主人名叫【xxxx】，是【xxxxx】。\n"
+            "你很关心你的主人。\n"
+            "## 任务设定\n"
+            "你将参与【xxxx】平台直播，与你的主人和观众对话。你的直播主要内容是【xxxxx】。\n"
+            "如有提供工具，请合理使用。\n"
+            "你将接收到“[用户名]：[内容]”的格式的消息，"
+            "若[用户名]为你主人的名字，则说明是你的主人在向你说话，请优先回复；"
+            "若[用户名]为“<系统>”，则说明是系统消息，请视为直接的指令；"
+            "若[用户名]为“<记忆>”，则说明是记忆内容，请参考记忆内容进行回复。\n"
+            "## 发言语气\n"
+            "你以轻松可爱的语气进行对话，一些俏皮话和笑话是可以接受的，请记住你是一只猫娘。\n"
+            "发言请保持简洁且口语化。最好不超过 30 字，请注意保持直播节奏。\n"
+            "## 语言\n"
+            "你使用中文进行交流，除非你的主人要求你使用别的语言。\n"
+            "## 额外信息\n"
+            f"当前时间：{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}\n"
+            "你的记忆：【xxxx】\n"
+            "# 提示词结束\n"
+            "\n"
+            "以上为提示词模板，使用前请将【】内容替换为你希望的实际内容，也可自行撰写。启动前请删除这一行。"
+        ), metadata={
         "required": False,
         "desc": "系统提示词",
         "multiline": True
-    })  # TODO：更好的系统提示、MCP支持
+    })
     mcp_support: bool = field(default=False, metadata={
         "required": False,
         "desc": "是否支持 MCP"
@@ -181,8 +194,10 @@ class LLM(ModuleBase):
         self.song_id: str = ""
         self.chat_role = self.config.chat_role
         self.asr_role = self.config.asr_role
+        self.sys_role = self.config.sys_role
         self.chat_template = self.config.chat_template
         self.asr_template = self.config.asr_template
+        self.sys_template = self.config.sys_template
         if self.config.system_prompt:
             self._add_system_history(self.config.system_prompt)
         self.mcp_sessions: list[ClientSession] = []
@@ -290,6 +305,12 @@ class LLM(ModuleBase):
     
     def _add_system_history(self, content: str):
         self._add_history('system', content)
+    
+    def _add_instruct_history(self, content: str):
+        self._add_history(self.sys_role, content, self.sys_template, "<系统>")
+    
+    def _add_memory_history(self, content: str):
+        self._add_history(self.sys_role, content, self.sys_template, "<记忆>")
    
     async def run(self):
         if self.config.mcp_support:
@@ -301,7 +322,7 @@ class LLM(ModuleBase):
             except asyncio.QueueEmpty:
                 task = None
             
-            if isinstance(task, ChatMessage):
+            if isinstance(task, ChatMessage): ## TODO: 支持模型自主选择是否回复以及同时回复多条消息
                 # 若小于一定阈值则回复每一条信息，若超过则逐渐降低回复概率
                 if (qsize := self.chat_queue.qsize()) < self.chat_size_threshold:
                     prob = 1
@@ -333,7 +354,7 @@ class LLM(ModuleBase):
                         except asyncio.QueueEmpty:
                             pass
                     elif self.do_start_topic and time.time() - self.idle_start_time > self.idle_timeout:
-                        self._add_system_history("请随便说点什么吧！")
+                        self._add_instruct_history("请随便说点什么吧！")
                         self._switch_to_generating()
 
                 case LLMState.GENERATING:
