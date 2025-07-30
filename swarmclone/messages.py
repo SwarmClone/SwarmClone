@@ -38,7 +38,7 @@ class Message:
                 getter_valid = isinstance(destination, type) and isinstance(getter, destination)
                 if getter_valid:
                     break
-        if getter_valid:
+        if not getter_valid:
             print(f"{getter} <x {self} (-> {[destination.value if isinstance(destination, ModuleRoles) else get_type_name(destination) for destination in self.destinations]})")
             return {}
         print(f"{getter} <- {self}")
