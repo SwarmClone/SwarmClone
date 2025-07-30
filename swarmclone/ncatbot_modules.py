@@ -103,6 +103,7 @@ class NCatBotChat(ModuleBase):
                 source=self,
                 messages=self.messages_buffer
             )
+            self.messages_buffer.clear()
             await self.results_queue.put(message)
             text = ""
 
