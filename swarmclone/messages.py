@@ -30,8 +30,16 @@ class Message:
         return f"{self.message_type.value} {kwrepr}"
     
     def get_value(self, getter: ModuleBase) -> dict[str, Any]:
-        if not getter.role in self.destinations or isinstance(getter, type):
-            print(f"{getter} <x {self} (-> {[destination.value for destination in self.destinations]})")
+        getter_valid = False
+        if getter.role in self.destinations:
+            getter_valid = True
+        else:
+            for destination in self.destinations:
+                getter_valid = isinstance(destination, type) and isinstance(getter, destination)
+                if getter_valid:
+                    break
+        if getter_valid:
+            print(f"{getter} <x {self} (-> {[destination.value if isinstance(destination, ModuleRoles) else get_type_name(destination) for destination in self.destinations]})")
             return {}
         print(f"{getter} <- {self}")
         self.getters.append({
