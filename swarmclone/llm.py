@@ -510,6 +510,7 @@ class LLM(ModuleBase):
         raise ValueError(f"Tool {tool_name} not found")
     
     async def _generate_with_tools_stream(self, messages, available_tools):
+        print(messages)
         ## By: Claude Code (Powered by Kimi-K2)
         """流式模式：使用工具进行对话生成的辅助方法"""
         try:
@@ -598,7 +599,6 @@ class LLM(ModuleBase):
                     # 处理内容流
                     if content and not tool_calls_buffer:  # 没有待处理的工具调用
                         generating_sentence += str(content)
-                        self.generated_text += str(content)
                         
                         # 检查是否有完整的句子可以发送
                         sentences = split_text(generating_sentence)
@@ -665,12 +665,10 @@ class LLM(ModuleBase):
                             # 输出简洁的调用提示给用户
                             tool_hint = f"<调用了 {tool_name} 工具成功>"
                             generating_sentence += tool_hint
-                            self.generated_text += tool_hint
                             
                         except Exception as e:
                             error_hint = f"<调用 {tool_name} 工具失败：{e}>"
                             generating_sentence += error_hint
-                            self.generated_text += error_hint
                     
                     # 继续下一轮循环，让LLM基于工具结果继续生成
                     continue

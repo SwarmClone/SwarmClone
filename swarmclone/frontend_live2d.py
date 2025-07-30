@@ -370,7 +370,7 @@ class FrontendLive2D(ModuleBase):
                                 self.message_queue.pop(0)
                             # 展示字幕
                             self.window.label.setText(markdown(self.label_buffer))
-                    if self.message_queue[0]["id"] is None:
+                    if self.message_queue and self.message_queue[0]["id"] is None:
                         # 遇到停止生成标记，说明一段完整信息已经播放完毕
                         self.message_queue.pop(0)
                         self.window.chat_record_widget.appendRecord("Model", self.label_buffer)
