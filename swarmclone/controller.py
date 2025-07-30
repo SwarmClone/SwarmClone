@@ -347,7 +347,9 @@ class Controller:
             self.app,
             host="0.0.0.0",
             port=8000,
-            loop="asyncio"
+            loop="asyncio",
+            log_level="warning",
+            access_log=False
         )
         server = uvicorn.Server(uvicorn_config)
         loop = asyncio.get_event_loop()
