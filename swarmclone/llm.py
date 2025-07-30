@@ -356,7 +356,7 @@ class LLM(ModuleBase):
                             ReadyToSing(self, self.song_id)
                         )
                         self._switch_to_singing()
-                    elif not self.chat_buffer:
+                    elif self.chat_buffer:
                         self._add_multi_chat_history(self.chat_buffer)
                         self.chat_buffer.clear()
                         self.chat_count = 0
