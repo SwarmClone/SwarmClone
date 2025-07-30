@@ -20,7 +20,6 @@ adj_to_adv = {
     "sad": "sadly",
 }
 
-
 def get_emotion_prompt(emotions: dict[str, float]):
     emotions_top2 = sorted(emotions.items(), key=lambda x: x[1], reverse=True)[:2]
     if emotions_top2[0][0] == "neutral":
@@ -39,7 +38,7 @@ def tts_generate(tts: tuple[CosyVoice | None, CosyVoice], s: str, tune: str, emo
         s (str):                需要生成的文本
         tune (str):             使用的音色
         emotions (EmotionType): 感情
-        platform (_type_):      平台
+        is_linux (bool):        是否为linux
     """
     assert isinstance(tts[0], CosyVoice)
     prompt = get_emotion_prompt(emotions)

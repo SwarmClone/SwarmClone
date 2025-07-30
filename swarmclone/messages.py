@@ -176,6 +176,21 @@ class ChatMessage(Message):
             content=content
         )
 
+class MultiChatMessage(Message):
+    """
+    多用户聊天信息
+    .messages: [
+        {"user": "用户名", "content": "消息内容"},...
+    ]
+    """
+    def __init__(self, source: ModuleBase, messages: list[dict[str, str]]):
+        super().__init__(
+            MessageType.DATA,
+            source,
+            destinations=[ModuleRoles.LLM, ModuleRoles.FRONTEND],
+            messages=messages
+        )
+
 class SongInfo(Message):
     """
     歌曲信息

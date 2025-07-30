@@ -27,12 +27,6 @@ class LLMConfig(ModuleConfig):
         "min": 1,  # 最少接受 1 条弹幕
         "max": 1000
     })
-    chat_size_threshold: int = field(default=10, metadata={
-        "required": False,
-        "desc": "弹幕逐条回复数量上限",
-        "min": 1,  # 最少逐条回复 1 条
-        "max": 100
-    })
     do_start_topic: bool = field(default=False, metadata={
         "required": False,
         "desc": "是否自动发起对话"
@@ -180,8 +174,7 @@ class LLM(ModuleBase):
         self.generated_text: str = ""
         self.generate_task: asyncio.Task[Any] | None = None
         self.chat_maxsize: int = self.config.chat_maxsize
-        self.chat_size_threshold: int = self.config.chat_size_threshold
-        self.chat_queue: asyncio.Queue[ChatMessage] = asyncio.Queue(maxsize=self.chat_maxsize)
+        self.chat_buffer: list[dict[str, str]] = []
         self.do_start_topic: bool = self.config.do_start_topic
         self.idle_timeout: int | float = self.config.idle_timeout
         self.asr_timeout: int = self.config.asr_timeout
@@ -234,6 +227,7 @@ class LLM(ModuleBase):
             base_url=self.config.model_url
         )
         self.temperature = self.config.temperature
+        self.chat_count = 0
 
     async def init_mcp(self):
         available_servers = filter(lambda x: bool(x), [self.config.mcp_path1, self.config.mcp_path2, self.config.mcp_path3])
@@ -294,8 +288,12 @@ class LLM(ModuleBase):
             formatted_content = content
         self.history.append({'role': role, 'content': formatted_content})
 
-    def _add_chat_history(self, user: str, content: str):
-        self._add_history(self.chat_role, content, self.chat_template, user)
+    def _add_multi_chat_history(self, messages: list[dict[str, str]]):
+        message_text = "".join(
+            self.chat_template.format(user=msg['user'], content=msg['content'])
+            for msg in messages
+        )
+        self._add_history(self.chat_role, message_text)
     
     def _add_asr_history(self, user: str, content: str):
         self._add_history(self.asr_role, content, self.asr_template, user)
@@ -311,7 +309,24 @@ class LLM(ModuleBase):
     
     def _add_memory_history(self, content: str):
         self._add_history(self.sys_role, content, self.sys_template, "<记忆>")
-   
+
+    def _append_chat_buffer(self, user: str, content: str):
+        self.chat_count += 1
+        if len(self.chat_buffer) < self.chat_maxsize:
+            self.chat_buffer.append({
+                'user': user,
+                'content': content
+            })
+        else:
+            # 水池采样保证均匀抽取，同时保留时间顺序
+            rand = random.randint(0, self.chat_count - 1)
+            if rand < len(self.chat_buffer):
+                self.chat_buffer.pop(rand)
+                self.chat_buffer.append({
+                    'user': user,
+                    'content': content
+                })
+
     async def run(self):
         if self.config.mcp_support:
             await self.init_mcp()
@@ -322,17 +337,12 @@ class LLM(ModuleBase):
             except asyncio.QueueEmpty:
                 task = None
             
-            if isinstance(task, ChatMessage): ## TODO: 支持模型自主选择是否回复以及同时回复多条消息
-                # 若小于一定阈值则回复每一条信息，若超过则逐渐降低回复概率
-                if (qsize := self.chat_queue.qsize()) < self.chat_size_threshold:
-                    prob = 1
-                else:
-                    prob = 1 - (qsize - self.chat_size_threshold) / (self.chat_maxsize - self.chat_size_threshold)
-                if random.random() < prob:
-                    try:
-                        self.chat_queue.put_nowait(task)
-                    except asyncio.QueueFull:
-                        pass
+            if isinstance(task, ChatMessage): ## TODO: 支持模型自主选择是否回复
+                message = task.get_value(self)
+                self._append_chat_buffer(message['user'], message['content'])
+            if isinstance(task, MultiChatMessage):
+                for msg in task.get_value(self)['messages']:
+                    self._append_chat_buffer(msg['user'], msg['content'])
             if isinstance(task, SongInfo):
                 self.about_to_sing = True
                 self.song_id = task.get_value(self)["song_id"]
@@ -346,13 +356,11 @@ class LLM(ModuleBase):
                             ReadyToSing(self, self.song_id)
                         )
                         self._switch_to_singing()
-                    elif not self.chat_queue.empty():
-                        try:
-                            chat = self.chat_queue.get_nowait().get_value(self) # 逐条回复弹幕
-                            self._add_chat_history(chat['user'], chat['content']) ## TODO：可能需要一次回复多条弹幕
-                            self._switch_to_generating()
-                        except asyncio.QueueEmpty:
-                            pass
+                    elif not self.chat_buffer:
+                        self._add_multi_chat_history(self.chat_buffer)
+                        self.chat_buffer.clear()
+                        self.chat_count = 0
+                        self._switch_to_generating()
                     elif self.do_start_topic and time.time() - self.idle_start_time > self.idle_timeout:
                         self._add_instruct_history("请随便说点什么吧！")
                         self._switch_to_generating()
@@ -520,8 +528,7 @@ class LLM(ModuleBase):
             tool_calls_accumulator = {}
             
             async for chunk in response_stream:
-                if chunk.choices and chunk.choices[0].delta:
-                    delta = chunk.choices[0].delta
+                if chunk.choices and (delta := chunk.choices[0].delta):
                     content = delta.content or ""
                     tool_calls_output = []
                     
@@ -559,7 +566,7 @@ class LLM(ModuleBase):
         except Exception as e:
             print(f"Error in _generate_with_tools_stream: {e}")
             yield {
-                "content": f"抱歉，生成回复时出现错误: {e}",
+                "content": f"Some one tell the developers that there's something wrong with my AI: {e}",
                 "tool_calls": [],
                 "finish_reason": "stop"
             }

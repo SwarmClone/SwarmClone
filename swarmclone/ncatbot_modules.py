@@ -52,6 +52,7 @@ class NCatBotChat(ModuleBase):
         self.root_id = self.config.root_id
         self.api = self.bot.run_blocking(bt_uin=self.bot_id, root=self.root_id)
         self.keywords: list[str] = [self.config.keyword1, self.config.keyword2, self.config.keyword3]
+        self.messages_buffer: list[dict[str, str]] = []
 
         # 注册回调事件
         self.bot.add_group_event_handler(self.on_group_msg)
@@ -68,6 +69,8 @@ class NCatBotChat(ModuleBase):
             await self.api.post_group_msg(self.target_group_id, task.get_value(self)["content"])
     
     async def on_group_msg(self, msg: GroupMessage):
+        if (not hasattr(msg, "group_id")) or msg.group_id != self.target_group_id:
+            return # 不是目标群，不处理
         do_accept = False
         text = ""
         sender = msg.sender
@@ -75,8 +78,6 @@ class NCatBotChat(ModuleBase):
             user = sender.card
         else:
             user = sender.nickname
-        if hasattr(msg, "group_id") and msg.group_id == self.target_group_id:
-            do_accept = True
         for msg_section in msg.message:
             match msg_section:
                 # 仅在明确提到自己时进行回复
@@ -92,15 +93,15 @@ class NCatBotChat(ModuleBase):
                     }}}:
                     text += face_text if face_text is not None else ""
                 case _: ...
+        self.messages_buffer.append({"user": user, "content": text})
         do_accept = do_accept or any(
             (x and x in text)
             for x in self.keywords
         ) # 是否有提到自己
         if do_accept and text:
-            message = ChatMessage(
+            message = MultiChatMessage(
                 source=self,
-                user=user,
-                content=text
+                messages=self.messages_buffer
             )
             await self.results_queue.put(message)
             text = ""
