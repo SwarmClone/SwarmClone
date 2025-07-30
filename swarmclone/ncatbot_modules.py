@@ -69,7 +69,7 @@ class NCatBotChat(ModuleBase):
             await self.api.post_group_msg(self.target_group_id, task.get_value(self)["content"])
     
     async def on_group_msg(self, msg: GroupMessage):
-        if (not hasattr(msg, "group_id")) or msg.group_id != self.target_group_id:
+        if (not hasattr(msg, "group_id")) or str(msg.group_id) != self.target_group_id:
             return # 不是目标群，不处理
         do_accept = False
         text = ""
