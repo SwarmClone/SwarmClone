@@ -141,25 +141,7 @@ class Controller:
                     "role_name":【模块角色】,
                     "allowed_num":【允许加载的模块数量】,
                     "modules":[
-                        {
-                            "module_name":【模块名字】
-                            "desc":【介绍】,
-                            "config":[
-                                {
-                                    "name":【配置项名字】
-                                    "type":【类型，int整数float小数（默认小数点后2位精度）str字符串bool布尔值（是/否）selection选择项】,
-                                    "desc":【介绍信息】,
-                                    "required":【布尔值，是否必填】,
-                                    "default":【默认值】,
-                                    "options":【可选项，仅对选择项有用，若为空则为无选项】,
-                                    "multiline":【是否为多行文本，默认不是】,
-                                    "min":【最小值】,
-                                    "max":【最大值】,
-                                    "step":【步长】 # 对于整数，默认为1，对于小数，默认为0.01,
-                                    "password": 【是否需要隐藏输入值，默认为否】
-                                },...
-                            ]
-                        },...
+                        【各模块配置，见 ModuleBase.get_config_schema()】
                     ]
                 },...
             ]
@@ -177,11 +159,7 @@ class Controller:
                         continue  # 占位模块和模块基类不应被展示出来
                     # 使用ModuleBase的get_config_schema方法获取配置信息
                     schema = module_class.get_config_schema()
-                    config[-1]["modules"].append({
-                        "module_name": schema["module_name"],
-                        "desc": schema["desc"],
-                        "config": schema["config"]
-                    })
+                    config[-1]["modules"].append(schema)
             return JSONResponse(config)
         
         @self.app.post("/api/start", response_class=JSONResponse)
@@ -220,6 +198,9 @@ class Controller:
                                 module_config[key] = unescape_all(value)
                             else:
                                 module_config[key] = value
+                            # 检测是否有多余参数
+                            if key not in (config["name"] for config in module_class.get_config_schema()["config"]):
+                                del module_config[key]
                         try:
                             module = module_class(**module_config)
                         except Exception as e:

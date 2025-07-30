@@ -52,9 +52,23 @@ class ModuleBase(metaclass=ModuleManager):
         
         返回一个包含模块配置信息的字典，结构如下：
         {
-            "module_name": 模块名称,
-            "desc": 模块描述,
-            "config": [配置项列表...]
+            "module_name":【模块名字】
+            "desc":【介绍】,
+            "config":[
+                {
+                    "name":【配置项名字】
+                    "type":【类型，int整数float小数（默认小数点后2位精度）str字符串bool布尔值（是/否）selection选择项】,
+                    "desc":【介绍信息】,
+                    "required":【布尔值，是否必填】,
+                    "default":【默认值】,
+                    "options":【可选项，仅对选择项有用，若为空则为无选项】,
+                    "multiline":【是否为多行文本，默认不是】,
+                    "min":【最小值】,
+                    "max":【最大值】,
+                    "step":【步长】 # 对于整数，默认为1，对于小数，默认为0.01,
+                    "password": 【是否需要隐藏输入值，默认为否】
+                },...
+            ]
         }
         """
         from dataclasses import fields, MISSING
