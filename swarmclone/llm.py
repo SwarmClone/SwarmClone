@@ -289,7 +289,7 @@ class LLM(ModuleBase):
         self.history.append({'role': role, 'content': formatted_content})
 
     def _add_multi_chat_history(self, messages: list[dict[str, str]]):
-        message_text = "".join(
+        message_text = "\n".join(
             self.chat_template.format(user=msg['user'], content=msg['content'])
             for msg in messages
         )
