@@ -99,7 +99,34 @@ def get_live2d_models() -> dict[str, str]:
             continue
         models[name] = str(path)
     return models
-
+def get_live2d_actions() -> dict[str, str]:
+    """
+    res/ 目录下 *.json 文件：
+    {
+        "name": "对应模型名称",
+        "path": "相对于本目录的动作文件（json）路径"
+    }
+    """
+    res_dir = pathlib.Path("./res")
+    actions: dict[str, str] = {}
+    for file in res_dir.glob("*.json"):
+        try:
+            data = json.load(open(file))
+            name = data['name']
+            if not isinstance(name, str):
+                raise TypeError("模型名称必须为字符串")
+            if not isinstance(data["action"], str):
+                raise TypeError("动作文件路径必须为字符串")
+            if not data["path"].endswith(".json"):
+                raise ValueError("模型文件扩展名必须为.json")
+            path = res_dir / pathlib.Path(data['path'])
+            if not path.is_file():
+                raise FileNotFoundError(f"动作文件不存在：{path}")
+        except Exception as e:
+            print(f"{file} 不是正确的动作文件：{e}")
+            continue
+        actions[name] = str(path)
+    return actions
 import srt
 def parse_srt_to_list(srt_text: str) -> list[dict[str, float | str]]: # By: Kimi-K2
     """
