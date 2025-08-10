@@ -71,7 +71,13 @@ class Message:
             "send_time": self.send_time,
             "message_type": self.message_type.value,
             "message_source": self.source.name,
-            "message_destinations": [destination.value for destination in self.destinations],
+            "message_destinations": [
+                        destination.value
+                    if isinstance(destination, ModuleRoles)
+                    else
+                        get_type_name(destination)
+                for destination in self.destinations
+            ],
             "message": [
                 {"key": k, "value": repr(v)}
                 for k, v in self.kwargs.items()
