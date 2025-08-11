@@ -1,8 +1,5 @@
 import math
 from typing import Callable
-from scipy.stats import zmap
-from torch.cuda import reset_accumulated_host_memory_stats
-from torch.utils.data import dataset
 from .constants import *
 from .utils import multioctave_perlin_noise, quintic_interpolation
 from .modules import *
