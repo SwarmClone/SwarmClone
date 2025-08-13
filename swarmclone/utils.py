@@ -77,6 +77,7 @@ def get_live2d_models() -> dict[str, str]:
     {
         "name": "模型名称",
         "path": "相对于本目录的模型文件（.model3.json/.model.json）路径"
+        "action": "相对于本目录的动作文件（json）路径"
     }
     """
     res_dir = pathlib.Path("./res")
@@ -103,9 +104,8 @@ def get_live2d_models() -> dict[str, str]:
 def get_live2d_actions() -> dict[str, str]:
     """
     res/ 目录下 *.json 文件：
-    {
-        "name": "对应模型名称",
-        "action": "相对于本目录的动作文件（json）路径"
+    {   
+        同上
     }
     """
     res_dir = pathlib.Path("./res")
@@ -120,7 +120,7 @@ def get_live2d_actions() -> dict[str, str]:
                 raise TypeError("动作文件路径必须为字符串")
             if not data["path"].endswith(".json"):
                 raise ValueError("动作文件扩展名必须为.json")
-            path = res_dir / pathlib.Path(data['path'])
+            path = res_dir / pathlib.Path(data["action"])
             if not path.is_file():
                 raise FileNotFoundError(f"动作文件不存在：{path}")
         except Exception as e:
