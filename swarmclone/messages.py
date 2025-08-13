@@ -244,3 +244,21 @@ class FinishedSinging(Message):
             source,
             destinations=[ModuleRoles.LLM]
         )
+
+class AactiveAction(Message):
+    def __init__(self, source: ModuleBase, action_ids: list[str]):
+        super().__init__(
+            MessageType.DATA,
+            source,
+            destinations=[ModuleRoles.PLUGIN],
+            action_ids = action_ids
+        )
+
+class ParametersUpdate(Message):
+    def __init__(self, source: ModuleBase, updates: dict[str,float]):
+        super().__init__(
+            MessageType.DATA,
+            source,
+            destinations=[ModuleRoles.FRONTEND],
+            updates = updates
+        )

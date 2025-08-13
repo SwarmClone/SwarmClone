@@ -92,10 +92,11 @@ class Action:
     def update_action(self,parameters: dict[str, float],zmap: dict[str, float] )  -> bool:
         is_updated = False
         for curve in self.curve:
-            if not(curve.framecount == curve.duration_frame) and self.priority > zmap.get(curve.name, 0):
-                curve.updateparameter(parameters[curve.name])
-                zmap[curve.name] = self.priority
+            if not(curve.framecount == curve.duration_frame):
                 is_updated = True
+                if self.priority > zmap.get(curve.name, 0):
+                    curve.updateparameter(parameters[curve.name])
+                    zmap[curve.name] = self.priority
         if not is_updated:
             self.reset_action()
         return is_updated  
@@ -148,7 +149,7 @@ class ParametersController(ModuleBase):
         # 过滤出需要保留的action
         self.active_action = [action for action in self.active_action 
                          if action.update_action(self.parameters, zmap)]
-        
+
     async def run(self) -> None:
         """
         收到的Message样式
@@ -163,9 +164,12 @@ class ParametersController(ModuleBase):
             try:
                 task = self.task_queue.get_nowait()
                 self.active_action.append(self.actions[task.get_value(self).get("action")])
+                self.active_action.sort(key=lambda x: x.priority, reverse=True)
             except asyncio.QueueEmpty:
                 pass
             self.update_parameter()
+            self.results_queue.put_nowait(
+                ParametersUpdate(self, self.parameters))
             await asyncio.sleep(1/GLOBAL_REFRESH_RATE)  # 等待下一帧
 
 
