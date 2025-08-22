@@ -2,6 +2,9 @@ from modelscope import snapshot_download as modelscope_snapshot_download
 from huggingface_hub import snapshot_download as huggingface_snapshot_download
 import re
 
+import textwrap
+from loguru import logger as log
+
 def download_model(model_id: str, model_source: str, local_dir: str):
     match model_source:
         case "modelscope":
@@ -164,3 +167,45 @@ def get_voices():
         return asyncio.run(_get_voices())
 
 get_type_name = lambda obj: type(obj).__name__
+
+def print_with_margin(content, margin=4, title=None):
+    """带边距的简单输出（不会打印，返回合成后的内容）"""
+    try:
+        terminal_width = os.get_terminal_size().columns
+    except:
+        terminal_width = 80
+    
+    max_width = terminal_width - (margin * 2)
+    separator = '─' * terminal_width
+    
+    content_str = str(content)
+    lines = []
+    for line in content_str.split('\n'):
+        lines.extend(textwrap.wrap(line, width=max_width))
+    
+    output = [separator]
+    
+    # 标题行（如果有）
+    if title:
+        # 计算标题可用的最大长度
+        max_title_length = terminal_width - 8  # 减去两边的装饰字符
+        
+        if len(title) <= max_title_length:
+            title_padding = (terminal_width - len(title) - 4) // 2   # 计算左右填充的─字符数
+            title_line = '─' * title_padding + f" {title} " + '─' * (terminal_width - len(title) - 6 - title_padding)
+        else:
+            # 标题太长，截断
+            truncated_title = title[:max_title_length - 3] + "..."
+            title_padding = (terminal_width - len(truncated_title) - 4) // 2
+            title_line = '─' * title_padding + f" {truncated_title} " + '─' * (terminal_width - len(truncated_title) - 4 - title_padding)
+        
+        output.append(title_line)
+    
+    # 内容行
+    for line in lines:
+        padded_line = ' ' * margin + line
+        output.append(padded_line)
+    
+    output.append(separator)
+    
+    return '\n\n'.join(output) + '\n'

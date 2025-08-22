@@ -353,6 +353,9 @@ class Controller:
         )
         server = uvicorn.Server(uvicorn_config)
         loop = asyncio.get_event_loop()
+        
+        _output = print_with_margin(f"SwarmClone server running on http://127.00.1:8000")
+        log.opt(raw=True).info(f"{_output}")
 
         server_task = loop.create_task(server.serve(), name="ROOT SERVER")
         try:
