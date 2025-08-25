@@ -2,11 +2,11 @@ from __future__ import annotations # 为了延迟注解评估
 
 import time
 from typing import TYPE_CHECKING, Any
-from .constants import MessageType, ModuleRoles
-from .utils import *
+from swarmclone.constants import MessageType, ModuleRoles
+from swarmclone.utils import *
 
 if TYPE_CHECKING:
-    from .module_manager import ModuleBase  # 使用延迟导入解决循环依赖
+    from swarmclone.module_manager import ModuleBase  # 使用延迟导入解决循环依赖
 
 class Message:
     def __init__(self, message_type: MessageType,

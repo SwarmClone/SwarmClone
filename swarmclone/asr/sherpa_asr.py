@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 import sherpa_onnx
 if TYPE_CHECKING:
-    from .asr import ASRSherpaConfig
+    from swarmclone.asr.asr import ASRSherpaConfig
 
 def assert_file_exists(filename: str):
     assert Path(filename).is_file(), (

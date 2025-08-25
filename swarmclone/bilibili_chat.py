@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
-from .modules import *
-from .messages import *
+from swarmclone.modules import *
+from swarmclone.messages import *
 
 @dataclass
 class BiliBiliChatConfig(ModuleConfig):

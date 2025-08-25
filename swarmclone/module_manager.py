@@ -1,6 +1,6 @@
 from typing import Any
-from .constants import *
-from .messages import *
+from swarmclone.constants import *
+from swarmclone.messages import *
 from dataclasses import dataclass
 import asyncio
 
@@ -72,7 +72,7 @@ class ModuleBase(metaclass=ModuleManager):
         }
         """
         from dataclasses import fields, MISSING
-        from .utils import escape_all
+        from swarmclone.utils import escape_all
         
         config_info = {
             "module_name": cls.name,
