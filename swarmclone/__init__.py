@@ -31,3 +31,4 @@ from .ncatbot_modules import NCatBotFrontend, NCatBotChat
 from .tts_edge import TTSEdge
 from .plugins import *
 from .frontend_live2d import FrontendLive2D
+from .parameters_controller import ParametersController

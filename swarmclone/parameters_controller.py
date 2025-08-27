@@ -7,7 +7,7 @@ from .messages import *
 from dataclasses import dataclass, field
 
 available_actions = get_live2d_actions()
-GLOBAL_REFRESH_RATE: int
+GLOBAL_REFRESH_RATE = 20
 
 class ActionCurve:
     """
@@ -32,7 +32,7 @@ class ActionCurve:
     }
     """
     def __init__(self, data: dict[str, Any]):
-        self.paraname:str = data.get("paraname")
+        self.paraname:list[str] = data.get("paraname")
         self.duration:float = data.get("duration", -1)
         self.target:float = data.get("target")
         self.noise:dict[str,float] = data.get("noise", {"amplitude": 0, "persistence": 0})
@@ -64,6 +64,7 @@ class ActionCurve:
         current_value += pid_update + noise
         return current_value
 
+
 class Action:
     """
     Live2D模型动作
@@ -94,9 +95,10 @@ class Action:
         for curve in self.curve:
             if not(curve.framecount == curve.duration_frame):
                 is_updated = True
-                if self.priority > zmap.get(curve.name, 0):
-                    curve.updateparameter(parameters[curve.name])
-                    zmap[curve.name] = self.priority
+                for param in curve.paraname:
+                    if self.priority > zmap.get(param, 0):
+                        parameters[param] = curve.updateparameter(parameters[param])
+                        zmap[param] = self.priority
         if not is_updated:
             self.reset_action()
         return is_updated  
@@ -120,15 +122,6 @@ class ParametersControllerConfig:
             {"key": k, "value": v} for k, v in available_actions.items()
         ]
     })
-    
-    refresh_rate: int = field(default=20, metadata={
-        "required": True,
-        "desc": "刷新率（帧每秒）",
-        "selection": True,
-        "options": [
-            {"key": "20", "value": 20}
-        ]
-    })
 
 class ParametersController(ModuleBase):
     """Live2D模型参数控制器"""
@@ -138,8 +131,7 @@ class ParametersController(ModuleBase):
     
     def __init__(self, config: config_class | None = None, **kwargs):
         super().__init__(config, **kwargs)
-        GLOBAL_REFRESH_RATE = self.config.refresh_rate
-        self.actions: dict[str,Action] = []
+        self.actions: dict[str,Action] = {}
         self.parameters: dict[str, float] = {}
         self.load_action_data()
         self.active_action:list[Action] = []
@@ -163,7 +155,7 @@ class ParametersController(ModuleBase):
         while True:
             try:
                 task = self.task_queue.get_nowait()
-                self.active_action.append(self.actions[task.get_value(self).get("action")])
+                self.active_action.append(self.actions[task.get_value(self).get("action_ids")])
                 self.active_action.sort(key=lambda x: x.priority, reverse=True)
             except asyncio.QueueEmpty:
                 pass
@@ -175,12 +167,12 @@ class ParametersController(ModuleBase):
 
         
     def load_action_data(self):
-        data:list[dict[str,Any]] = json.loads(self.config.action)
+        root = pathlib.Path(__file__).parent.parent
+        with open(root / self.config.action, 'r', encoding='utf-8') as f:
+            data:list[dict[str,Any]] = json.load(f)
         for action in data:
-            self.actions.append(action.get("name"),Action(data))
+            self.actions[action.get("name")] = Action(action)
         for action in self.actions.values():
             for curve in action.curve:
-                if curve.paraname not in self.parameters:
-                    self.parameters[curve.paraname]= 0
-
-
+                for para in curve.paraname:
+                    self.parameters[para]= 0
