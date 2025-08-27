@@ -1,0 +1,37 @@
+[{
+    "name": "faceto1",
+    "priority": 1,
+    "curve":
+    [
+        {
+            "paraname": ["Param33", "ParamEyeBallX", "ParamAngleX"],
+            "target": -0.5,
+            "noise":
+                {
+                    "amplitude":0.05,
+                    "persistence":0.1
+                },
+            "pid":
+                {
+                    "p": 0.6,
+                    "i": 0.1,
+                    "d": 0.4
+                }
+        },
+        {
+            "paraname": ["Param34", "ParamEyeBallY", "ParamAngleY"],
+            "target": -0.5,
+            "noise":
+                {
+                    "amplitude":0.05,
+                    "persistence":0.1
+                },
+            "pid":
+                {
+                    "p": 0.6,
+                    "i": 0.1,
+                    "d": 0.4
+                }
+        }
+    ]
+}]
