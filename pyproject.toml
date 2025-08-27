@@ -3,7 +3,6 @@ authors = [{name = "kyv001", email = "kyvyang@foxmail.com"}]
 name = "swarmclone"
 requires-python = ">= 3.10, < 3.11"
 version = "0.1.0"
-dependencies = ["pygame>=2.6.1,<3", "bilibili-api-python>=17.3.0,<18", "fastapi>=0.115.14,<0.116", "uvicorn>=0.35.0,<0.36", "markdown>=3.8.2,<4", "transformers>=4.48.3,<5"]
 
 [build-system]
 build-backend = "hatchling.build"
@@ -35,6 +34,12 @@ jieba = { version = ">=0.42.1,<0.43" }
 sherpa-onnx = { version = ">=1.12.10,<2" }
 live2d-py = ">=0.5.4,<0.6"
 pyside6 = ">=6.9.2,<7"
+pygame = ">=2.6.1,<3"
+bilibili-api-python = ">=17.3.0,<18"
+fastapi = ">=0.115.14,<0.116"
+uvicorn = ">=0.35.0,<0.36"
+markdown = ">=3.8.2,<4"
+transformers = ">=4.48.3,<5"
 
 [tool.pixi.tasks]
 
