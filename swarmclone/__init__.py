@@ -22,7 +22,7 @@ from swarmclone.controller import *
 from swarmclone.modules import *
 from swarmclone.constants import *
 from swarmclone.messages import *
-from swarmclone.tts_cosyvoice import TTSCosyvoice
+from swarmclone.tts_cosyvoice import *
 from swarmclone.frontend_socket import FrontendSocket
 from swarmclone.llm import LLM
 from swarmclone.bilibili_chat import BiliBiliChat

@@ -69,7 +69,6 @@ torchaudio = {version = ">=2.0.0,<3", index = "https://mirrors.nju.edu.cn/pytorc
 
 [tool.pixi.environments]
 cpu = ["cpu"]
-cuda = ["cuda"]
 default = ["cuda"]
 
 [tool.pixi.target.linux-64.pypi-dependencies]
