@@ -1,3 +1,4 @@
+from ast import mod
 import math
 from typing import Callable
 from .constants import *
@@ -32,24 +33,25 @@ class ActionCurve:
     }
     """
     def __init__(self, data: dict[str, Any]):
-        self.paraname:list[str] = data.get("paraname")
-        self.duration:float = data.get("duration", -1)
-        self.target:float = data.get("target")
-        self.noise:dict[str,float] = data.get("noise", {"amplitude": 0, "persistence": 0})
-        self.pid:dict[str,float] = data.get("pid", {"p": 0, "i": 0, "d": 0})
-        self.duration_frame: int = int(self.duration * GLOBAL_REFRESH_RATE) if self.duration > 0 else -1
-
+        try:
+            self.paraname:list[str] = data["paraname"]
+            self.duration:float = data["duration"]
+            self.target:float = data["target"]
+            self.noise:dict[str,float] = data["noise"]
+            self.pid:dict[str,float] = data["pid"]
+            self.duration_frame: int = int(self.duration * GLOBAL_REFRESH_RATE) if self.duration > 0 else -1
+        except KeyError as e:
+            raise ValueError(f"ActionCurve 初始化失败，缺少必要字段: {e}")
         self.framecount = 0
         self.pid_integral = 0
         self.pid_last_error = 0
     
-    def updateparameter(self, current_value: float) -> float:
+    def updateparameter(self, current_value: float, bias:int) -> float:
         """
         更新参数值
         :param current_value: 当前参数值
         :return: 更新后的参数值
         """
-        self.framecount += 1
         error = self.target - current_value
         self.pid_integral += error
         self.pid_last_error = error
@@ -60,7 +62,8 @@ class ActionCurve:
         noise = multioctave_perlin_noise(
             x=self.framecount,
             interpolation=quintic_interpolation,
-            persistence=self.noise["persistence"],) * self.noise["amplitude"]
+            persistence=self.noise["persistence"],
+            bias=bias) * self.noise["amplitude"]
         current_value += pid_update + noise
         return current_value
 
@@ -86,18 +89,19 @@ class Action:
         self.name = action.get("name", "Unnamed Action")
         assert isinstance(self.priority, int), "优先级必须为整数"
         assert isinstance(self.name, str), "动作名称必须为字符串"
-        self.curve: list[ActionCurve] = []
+        self.curves: list[ActionCurve] = []
         for curve in action.get("curve", []):
-            self.curve.append(ActionCurve(curve))
+            self.curves.append(ActionCurve(curve))
     
     def update_action(self,parameters: dict[str, float],zmap: dict[str, float] )  -> bool:
         is_updated = False
-        for curve in self.curve:
+        for i, curve in enumerate(self.curves):
             if not(curve.framecount == curve.duration_frame):
-                is_updated = True
+                curve.framecount += 1
                 for param in curve.paraname:
                     if self.priority > zmap.get(param, 0):
-                        parameters[param] = curve.updateparameter(parameters[param])
+                        is_updated = True
+                        parameters[param] = curve.updateparameter(parameters[param],i)
                         zmap[param] = self.priority
         if not is_updated:
             self.reset_action()
@@ -113,7 +117,7 @@ class Action:
         
 
 @dataclass
-class ParametersControllerConfig:
+class ParametersControllerConfig(ModuleConfig):
     action: str = field(default=[*available_actions.values()][0], metadata={
         "required": True,
         "desc": "Live2D模型动作文件",
@@ -160,7 +164,7 @@ class ParametersController(ModuleBase):
             except asyncio.QueueEmpty:
                 pass
             self.update_parameter()
-            self.results_queue.put_nowait(
+            await self.results_queue.put(
                 ParametersUpdate(self, self.parameters))
             await asyncio.sleep(1/GLOBAL_REFRESH_RATE)  # 等待下一帧
 
@@ -173,6 +177,6 @@ class ParametersController(ModuleBase):
         for action in data:
             self.actions[action.get("name")] = Action(action)
         for action in self.actions.values():
-            for curve in action.curve:
+            for curve in action.curves:
                 for para in curve.paraname:
                     self.parameters[para]= 0

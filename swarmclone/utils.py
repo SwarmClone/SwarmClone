@@ -208,16 +208,13 @@ def quintic_interpolation(a: float, b: float, t: float) -> float:
 def multioctave_perlin_noise(
     x: float,
     interpolation: Callable[[float, float, float], float],
+    persistence:float,
     octaves: int  = 5,
-    persistence: float | None = None,):
+    bias:int = 0,):
     total = 0
-    if persistence is not None:
-        amplitudes = [persistence ** i for i in range(octaves)]
-    else:
-        raise ValueError("Either amplitudes and persistence must be provided.")
+    amplitudes = [persistence ** i for i in range(octaves)]
     total_amp = sum(amplitudes)
-    highest_freq = 2 ** (octaves - 1)
-    x = x / highest_freq
+    x: float = x / 20 + bias
     for i in range(octaves):
         frequency = 2 ** i
         total += smooth_perlin_noise(x * frequency, interpolation) * amplitudes[i]

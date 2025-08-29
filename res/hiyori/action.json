@@ -5,10 +5,11 @@
     [
         {
             "paraname": ["Param33", "ParamEyeBallX", "ParamAngleX"],
+            "duration": -1,
             "target": -0.5,
             "noise":
                 {
-                    "amplitude":0.05,
+                    "amplitude":1,
                     "persistence":0.1
                 },
             "pid":
@@ -20,10 +21,11 @@
         },
         {
             "paraname": ["Param34", "ParamEyeBallY", "ParamAngleY"],
+            "duration": -1,
             "target": -0.5,
             "noise":
                 {
-                    "amplitude":0.05,
+                    "amplitude":1,
                     "persistence":0.1
                 },
             "pid":
