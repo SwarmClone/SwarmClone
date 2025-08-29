@@ -1,4 +1,4 @@
-# SwarmClone 蜂群克隆计划：打造你的开源AI虚拟主播
+# SwarmClone 蜂群克隆计划：打造你的开源 AI 虚拟主播
 <div align="center">
 <img src="docs/assets/logo.png" width="200" height="200" />
 <br>
@@ -22,119 +22,107 @@
 
 ### 特色
 1. ✅**自主可控的核心架构**：从底层交互逻辑到上层应用全部开源，开发者可以完全掌控系统行为
-2. ✅**灵活的AI模型支持**：适配 OpenAI Chat Completion API，既可以使用我们自主研发的MiniLM2语言模型，也能轻松接入Qwen、DeepSeek等第三方LLM
+2. ✅**灵活的 AI 模型支持**：适配 OpenAI Chat Completion API，轻松接入 Qwen、DeepSeek 等大模型，也可使用 Ollama 本地部署模型
 3. ✅**完善的直播功能**：支持弹幕实时互动等核心直播场景
 4. **模块化设计理念**：各功能组件可自由替换，方便开发者按需定制
 
 ---
 
 # 技术栈与技术路线
-1) 大语言模型搭建（见[MiniLM2](https://github.com/swarmclone/MiniLM2)）*已基本完成*
-2) 微调（数据来源：魔改COIG-CQIA等）*阶段性完成*
-3) 虚拟形象（设定：见`设定.txt`）*进行中*
-4) 直播画面（形式：Unity驱动的Live2D）*进行中*
-5) 技术整合（对语言大模型、语音模型、虚拟形象、语音输入等，统一调度）*进行中*
-6) 接入直播平台
-7) 精进：
-    - 长期记忆RAG
-    - 联网RAG
+1) 基础大语言模型搭建（技术探索项目，见[MiniLM2](https://github.com/swarmclone/MiniLM2)）*已基本结束*
+2) 虚拟形象设定 *进行中*
+3) 直播画面设计 *进行中*
+4) 技术整合（对语言大模型、语音模型、虚拟形象、语音输入等，统一调度）*进行中*
+5) 接入直播平台
+6) 精进：
+    - 长期记忆 RAG
+    - 联网 RAG
     - 与外界主动互动（发评论/私信？）
     - 多模态（视觉听觉，甚至其他？）
     - 整活（翻滚/b动静等）
     - 唱歌
-    - 玩Minecraft、无人深空等游戏
+    - 玩 Minecraft 、无人深空等游戏
 
 ---
 
 # 快速开始
 #### 先决条件：
-- 使用Linux或wsl运行环境（推荐Ubuntu 22.04 LTS）
-- Python 3.10~3.12（不建议使用过高的版本，以免发生兼容性问题）
-- Cmake 3.26+
-- CUDA 11.6+
+- Python 3.10
+- 可用的 C 编译工具和构建工具（后文会详细列出）
 - Node.js 22.0+（推荐直接使用最新版）
-
-如果您是`Windows`用户，您需要安装[WSL2](https://learn.microsoft.com/zh-cn/windows/wsl/install)，并在`WSL2`中使用本项目.
 
 ### 1. 克隆本项目并准备部署：
 
-   请确保您的磁盘中有足够的可用空间.
+请确保您的磁盘中有足够的可用空间.
 
 
-   ```console
-   git clone https://github.com/SwarmClone/SwarmClone.git
-   cd SwarmClone
-   git submodule update --init
-   ```
+```console
+git clone https://github.com/SwarmClone/SwarmClone.git
+cd SwarmClone
+git submodule update --init
+```
 
 ### 2. 安装系统依赖：
 
-   >💡如果您使用新创建的WSL2虚拟机配置项目运行环境，此步骤必须执行。
-   如果您此前安装过这些系统依赖，您可以选择暂时跳过本步骤。若后续操作出现缺少依赖项的报错，您可以在这里核对您是否安装了所有依赖项。
+如果您此前安装过这些系统依赖，您可以选择暂时跳过本步骤。若后续操作出现缺少依赖项的报错，您可以在这里核对您是否安装了所有依赖项。
 
-   现在，请根据您的Linux发行版选择相应命令执行：
+#### Linux 系统依赖
 
-   **Ubuntu/Debian**
+若您使用的是 Linux 系统/WSL，请根据您的 Linux 发行版选择相应命令执行：
 
-   ```console
-   sudo apt update
-   sudo apt install -y build-essential python3 python3-venv python3-pip cmake libgl1-mesa-dev libglu1-mesa-dev freeglut3-dev git wget
-   ```
+**Ubuntu/Debian**
 
-   **Fedora/CentOS/RHEL**
-   ```console
-   sudo dnf install -y gcc gcc-c++ make python3 python3-virtualenv python3-pip cmake mesa-libGL-devel mesa-libGLU-devel freeglut-devel git wget
-   ```
+```console
+sudo apt update
+sudo apt install -y build-essential python3 python3-venv python3-pip cmake libgl1-mesa-dev libglu1-mesa-dev freeglut3-dev git wget
+wget -qO- https://pixi.sh/install.sh | sh
+```
 
-   **Arch Linux**
-   ```console
-   sudo pacman -S --noconfirm base-devel python python-pip cmake mesa glu freeglut git wget
-   ```
-   >💡对于使用其他包管理工具的发行版，您需要自行安装上述依赖项。
+**Fedora/CentOS/RHEL**
+```console
+sudo dnf install -y gcc gcc-c++ make python3 python3-virtualenv python3-pip cmake mesa-libGL-devel mesa-libGLU-devel freeglut-devel git wget
+wget -qO- https://pixi.sh/install.sh | sh
+```
 
-### 3. 设置Python环境
+**Arch Linux**
+```console
+sudo pacman -S --noconfirm base-devel python python-pip cmake mesa glu freeglut git wget pixi
+```
+>💡对于使用其他包管理工具的发行版，请根据您的发行版选择类似的包。
 
-   1. 创建虚拟环境
-      ```console
-      python3 -m venv .venv
-      source .venv/bin/activate
-      ```
-   2. 安装和升级基础工具
-      ```console
-      pip install uv
-      pip install --upgrade pip setuptools wheel
-      ```
-   3. 安装PyTorch
-      ```console
-      UV_TORCH_BACKEND=auto pip install torch torchaudio
-      ```
-   4. 同步项目依赖
-      ```console
-      uv sync --active --no-build-isolation
-      ```
-   >💡若需要使用qqbot功能，你还需要安装QQNT、napcat和ncatbot。使用`uv pip install ncatbot`可安装ncatbot。
-   >⚠️ 由于已知依赖问题，`uv pip` 被用于安装 ncatbot（依赖版本互相矛盾导致`uv add`无法安装 ncatbot）。如果您遇到任何问题，请打开一个 issue。
+#### Windows 系统依赖
 
-### 4. 设置Node.js环境
+若您使用的是 Windows 系统，您需要安装 Visual Studio，并在安装时勾选 C 语言相关选项，确保安装了可用的 C 语言编译器。然后，安装`pixi`：
+```console
+powershell -ExecutionPolicy ByPass -c "irm -useb https://pixi.sh/install.ps1 | iex"
+```
 
-1. 请确保您安装了符合要求的`Node.js（22.0+）`和`npm（10.0+）`
+### 3. 设置 Python 环境
+```console
+pixi install
+```
+>💡在 Windows 系统下 deepspeed 的安装有可能引发错误，声称无法导入 torch，可以设置 `DS_BUILD_OPS="0"` 环境变量并重新运行上述命令解决。
 
-   您可以运行下面的命令来检查：
-   ```console
-   node --version
-   npm --version
-   ```
+### 4. 设置 Node.js 环境
 
-2. 进入`panel`目录并安装依赖：
+1. 请确保您安装了符合要求的 `Node.js（22.0+）` 和 `npm（10.0+）`
 
-   ```console
-   cd panel
-   npm install
-   npm run build
-   ```
+您可以运行下面的命令来检查：
+```console
+node --version
+npm --version
+```
+
+2. 进入 `panel` 目录并安装依赖：
+
+```console
+cd panel
+npm install
+npm run build
+```
 
 ### 5. 启动项目
-回到项目根目录（`panel`目录的父目录）执行下面的命令：
+回到项目根目录（ `panel` 目录的父目录）执行下面的命令：
 ```console
 python -m swarmclone
 ```
@@ -145,7 +133,7 @@ python -m swarmclone
 # 如何参与开发？
 - 您可以加入我们的开发QQ群：1017493942
 
-如果你对AI、虚拟主播、开源开发充满热情，无论你是框架开发者、模型训练师、前端/图形工程师、产品设计师，还是热情的测试者，蜂群克隆（SwarmClone）都欢迎你的加入！让我们共同创造下一代开源AI虚拟直播系统！
+如果你对 AI 、虚拟主播、开源开发充满热情，无论你是框架开发者、模型训练师、前端/图形工程师、产品设计师，还是热情的测试者，蜂群克隆（SwarmClone）都欢迎你的加入！让我们共同创造下一代开源AI虚拟直播系统！
 
 ---
 
