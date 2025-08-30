@@ -245,7 +245,7 @@ class FinishedSinging(Message):
             destinations=[ModuleRoles.LLM]
         )
 
-class AactiveAction(Message):
+class ActiveAction(Message):
     def __init__(self, source: ModuleBase, action_ids: list[str]):
         super().__init__(
             MessageType.DATA,
