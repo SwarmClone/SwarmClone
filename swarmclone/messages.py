@@ -29,7 +29,13 @@ class Message:
         kwrepr = kwrepr[:-2] + "}"
         return f"{self.message_type.value} {kwrepr}"
     
-    def get_value(self, getter: ModuleBase) -> dict[str, Any]:
+    def get_value(self, getter: ModuleBase | None = None) -> dict[str, Any]:
+        """
+        获取消息内容，若指定了获取者，则检查获取者是否为有效的获取者，若有效则返回消息内容，否则返回空字典；若未指定获取者则跳过检查。
+        """
+        if getter is None:
+            return self.kwargs
+        
         getter_valid = False
         if getter.role in self.destinations:
             getter_valid = True
@@ -47,6 +53,21 @@ class Message:
             'time': int(time.time())
         })
         return self.kwargs
+    
+    def __getitem__(self, key: str) -> Any:
+        return self.get_value()[key]
+    
+    def __contains__(self, key: str) -> bool:
+        return key in self.get_value()
+    
+    def __setitem__(self, key: str, value: Any):
+        raise RuntimeError("消息内容不应被修改！")
+    
+    def __delitem__(self, key: str):
+        raise RuntimeError("消息内容不应被修改！")
+    
+    def get(self, key: str, default: Any = None) -> Any:
+        return self.get_value().get(key, default)
     
     def get_dict_repr(self) -> dict[str, Any]:
         """
@@ -252,15 +273,23 @@ class FinishedSinging(Message):
         )
 
 class ActiveAction(Message):
+    """
+    激活一个动作
+    .action_ids: 要激活的动作名称列表，名称即为 action 动作文件中的 name 属性
+    """
     def __init__(self, source: ModuleBase, action_ids: list[str]):
         super().__init__(
             MessageType.DATA,
             source,
-            destinations=[ModuleRoles.PLUGIN],
+            destinations=[ModuleRoles.PARAM_CONTROLLER],
             action_ids = action_ids
         )
 
 class ParametersUpdate(Message):
+    """
+    更新参数
+    .updates: 参数字典，键为参数名称，值为参数值
+    """
     def __init__(self, source: ModuleBase, updates: dict[str,float]):
         super().__init__(
             MessageType.DATA,
