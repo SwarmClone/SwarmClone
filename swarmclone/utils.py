@@ -77,6 +77,7 @@ def get_live2d_models() -> dict[str, str]:
     {
         "name": "模型名称",
         "path": "相对于本目录的模型文件（.model3.json/.model.json）路径"
+        "action": "相对于本目录的动作文件（json）路径"
     }
     """
     res_dir = pathlib.Path("./res")
@@ -99,6 +100,34 @@ def get_live2d_models() -> dict[str, str]:
             continue
         models[name] = str(path)
     return models
+    
+def get_live2d_actions() -> dict[str, str]:
+    """
+    res/ 目录下 *.json 文件：
+    {   
+        同上
+    }
+    """
+    res_dir = pathlib.Path("./res")
+    actions: dict[str, str] = {}
+    for file in res_dir.glob("*.json"):
+        try:
+            data = json.load(open(file))
+            name = data['name']
+            if not isinstance(name, str):
+                raise TypeError("动作名称必须为字符串")
+            if not isinstance(data["action"], str):
+                raise TypeError("动作文件路径必须为字符串")
+            if not data["path"].endswith(".json"):
+                raise ValueError("动作文件扩展名必须为.json")
+            path = res_dir / pathlib.Path(data["action"])
+            if not path.is_file():
+                raise FileNotFoundError(f"动作文件不存在：{path}")
+        except Exception as e:
+            print(f"{file} 不是正确的动作文件：{e}")
+            continue
+        actions[name] = str(path)
+    return actions
 
 import srt
 def parse_srt_to_list(srt_text: str) -> list[dict[str, float | str]]: # By: Kimi-K2
@@ -164,3 +193,53 @@ def get_voices():
         return asyncio.run(_get_voices())
 
 get_type_name = lambda obj: type(obj).__name__
+
+import math
+from typing import Callable
+def cosine_interpolation(a: float, b: float, t: float) -> float:
+    # [0, 1] -> [0, pi] -cos-*-1-> [-1, 1] -/2-+0.5-> [0, 1]
+    x = -math.cos(t * math.pi) / 2 + 0.5
+    return a * (1 - x) + b * x
+
+def quintic_interpolation(a: float, b: float, t: float) -> float:
+    x = 6 * t ** 5 - 15 * t ** 4 + 10 * t ** 3
+    return a * (1 - x) + b * x
+
+def multioctave_perlin_noise(
+    x: float,
+    interpolation: Callable[[float, float, float], float],
+    persistence:float,
+    octaves: int  = 5,
+    bias:int = 0,):
+    total = 0
+    amplitudes = [persistence ** i for i in range(octaves)]
+    total_amp = sum(amplitudes)
+    x: float = x / 20 + bias
+    for i in range(octaves):
+        frequency = 2 ** i
+        total += smooth_perlin_noise(x * frequency, interpolation) * amplitudes[i]
+    return total / total_amp
+
+def smooth_perlin_noise(x: float, interpolation: Callable[[float, float, float], float]):
+    perm_table = [
+        151,160,137,91,90,15,
+		131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,
+		190, 6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,35,11,32,57,177,33,
+		88,237,149,56,87,174,20,125,136,171,168, 68,175,74,165,71,134,139,48,27,166,
+		77,146,158,231,83,111,229,122,60,211,133,230,220,105,92,41,55,46,245,40,244,
+		102,143,54, 65,25,63,161, 1,216,80,73,209,76,132,187,208, 89,18,169,200,196,
+		135,130,116,188,159,86,164,100,109,198,173,186, 3,64,52,217,226,250,124,123,
+		5,202,38,147,118,126,255,82,85,212,207,206,59,227,47,16,58,17,182,189,28,42,
+		223,183,170,213,119,248,152, 2,44,154,163, 70,221,153,101,155,167, 43,172,9,
+		129,22,39,253, 19,98,108,110,79,113,224,232,178,185, 112,104,218,246,97,228,
+		251,34,242,193,238,210,144,12,191,179,162,241, 81,51,145,235,249,14,239,107,
+		49,192,214, 31,181,199,106,157,184, 84,204,176,115,121,50,45,127, 4,150,254,
+		138,236,205,93,222,114,67,29,24,72,243,141,128,195,78,66,215,61,156,180,
+		151
+    ]
+    a: int = int(x)
+    b = a + 1
+    t = x - a
+    value1 = (perm_table[a % 255] / 255 - 0.5) * 2
+    value2 = (perm_table[b % 255] / 255 - 0.5) * 2
+    return interpolation(value1, value2, t)

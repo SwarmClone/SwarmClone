@@ -31,3 +31,4 @@ from swarmclone.ncatbot_modules import NCatBotFrontend, NCatBotChat
 from swarmclone.tts_edge import TTSEdge
 from swarmclone.plugins import *
 from swarmclone.frontend_live2d import FrontendLive2D
+from swarmclone.parameters_controller import ParametersController
