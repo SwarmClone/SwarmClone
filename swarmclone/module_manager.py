@@ -1,6 +1,6 @@
 from typing import Any
-from .constants import *
-from .messages import *
+from swarmclone.constants import *
+from swarmclone.messages import *
 from dataclasses import dataclass
 import asyncio
 
@@ -72,7 +72,7 @@ class ModuleBase(metaclass=ModuleManager):
         }
         """
         from dataclasses import fields, MISSING
-        from .utils import escape_all
+        from swarmclone.utils import escape_all
         
         config_info = {
             "module_name": cls.name,
@@ -123,8 +123,11 @@ class ModuleBase(metaclass=ModuleManager):
                     default = False
                 elif _type == "selection":
                     default = options[0]["value"] if options else ""
+
+            # 是否是多行文本？
+            multiline = field.metadata.get("multiline", False)
                     
-            if isinstance(default, str):
+            if isinstance(default, str) and not multiline: # 多行文本不需要转义
                 default = escape_all(default)  # 进行转义
             
             # 如果有的话，提供最大最小值和步长
@@ -134,9 +137,6 @@ class ModuleBase(metaclass=ModuleManager):
             
             # 是否需要隐藏输入值？
             password = field.metadata.get("password", False)
-
-            # 是否是多行文本？
-            multiline = field.metadata.get("multiline", False)
             
             config_info["config"].append({
                 "name": name,

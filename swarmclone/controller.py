@@ -11,12 +11,12 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-from .modules import *
-from .constants import *
-from .module_manager import module_classes
-from .utils import *
+from swarmclone.modules import *
+from swarmclone.constants import *
+from swarmclone.module_manager import module_classes
+from swarmclone.utils import *
 
-from . import __version__
+from swarmclone import __version__
 
 class Controller:
     def __init__(self, config_path: str | None = None):

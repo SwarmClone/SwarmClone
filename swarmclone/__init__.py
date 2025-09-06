@@ -17,18 +17,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 __version__ = "0.3a"
 
-from .module_manager import module_classes
-from .controller import *
-from .modules import *
-from .constants import *
-from .messages import *
-from .tts_cosyvoice import TTSCosyvoice
-from .frontend_socket import FrontendSocket
-from .llm import LLM
-from .bilibili_chat import BiliBiliChat
-from .asr import ASRSherpa
-from .ncatbot_modules import NCatBotFrontend, NCatBotChat
-from .tts_edge import TTSEdge
-from .plugins import *
-from .frontend_live2d import FrontendLive2D
-from .parameters_controller import ParametersController
+from swarmclone.module_manager import module_classes
+from swarmclone.controller import *
+from swarmclone.modules import *
+from swarmclone.constants import *
+from swarmclone.messages import *
+from swarmclone.tts_cosyvoice import *
+from swarmclone.frontend_socket import FrontendSocket
+from swarmclone.llm import LLM
+from swarmclone.bilibili_chat import BiliBiliChat
+from swarmclone.asr import ASRSherpa
+from swarmclone.ncatbot_modules import NCatBotFrontend, NCatBotChat
+from swarmclone.tts_edge import TTSEdge
+from swarmclone.plugins import *
+from swarmclone.frontend_live2d import FrontendLive2D
+from swarmclone.parameters_controller import ParametersController

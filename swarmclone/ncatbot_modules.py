@@ -5,9 +5,9 @@ try:
 except ImportError:
     available = False
 from dataclasses import dataclass, field
-from .constants import *
-from .messages import *
-from .modules import *
+from swarmclone.constants import *
+from swarmclone.messages import *
+from swarmclone.modules import *
 import asyncio
 import random
 

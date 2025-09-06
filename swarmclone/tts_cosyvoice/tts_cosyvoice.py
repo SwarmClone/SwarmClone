@@ -10,11 +10,11 @@ import torch
 import torchaudio
 import jieba
 
-from ..modules import *
-from ..messages import *
+from swarmclone.modules import *
+from swarmclone.messages import *
 
 from cosyvoice.cli.cosyvoice import CosyVoice 
-from .funcs import tts_generate
+from swarmclone.tts_cosyvoice.funcs import tts_generate
 from time import time # time被某个模块覆盖了
 
 # 忽略警告

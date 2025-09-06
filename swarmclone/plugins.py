@@ -1,8 +1,8 @@
 from dataclasses import field, dataclass
 from json import loads
-from .constants import *
-from .messages import *
-from .modules import *
+from swarmclone.constants import *
+from swarmclone.messages import *
+from swarmclone.modules import *
 from time import time
 
 @dataclass

@@ -1,9 +1,9 @@
 from __future__ import annotations # 为了延迟注解评估
 import asyncio
 from dataclasses import dataclass, field
-from .constants import *
-from .messages import *
-from .module_manager import *
+from swarmclone.constants import *
+from swarmclone.messages import *
+from swarmclone.module_manager import *
 
 class ControllerDummy(ModuleBase):
     role: ModuleRoles = ModuleRoles.CONTROLLER

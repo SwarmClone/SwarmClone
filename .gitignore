@@ -184,3 +184,6 @@ custom_settings.toml
 
 # Claude Code
 CLAUDE.md
+# pixi environments
+.pixi/*
+!.pixi/config.toml

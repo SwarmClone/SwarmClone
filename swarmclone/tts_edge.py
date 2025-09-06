@@ -1,7 +1,7 @@
-from .constants import *
-from .utils import *
-from .modules import *
-from .messages import *
+from swarmclone.constants import *
+from swarmclone.utils import *
+from swarmclone.modules import *
+from swarmclone.messages import *
 from dataclasses import dataclass, field
 import edge_tts
 import torchaudio

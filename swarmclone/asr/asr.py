@@ -4,10 +4,10 @@ import json
 from typing import Any
 from dataclasses import dataclass, field
 
-from .sherpa_asr import create_recognizer
-from ..modules import *
-from ..messages import ASRMessage, ASRActivated
-from ..utils import *
+from swarmclone.asr.sherpa_asr import create_recognizer
+from swarmclone.modules import *
+from swarmclone.messages import ASRMessage, ASRActivated
+from swarmclone.utils import *
 
 available_devices = get_devices()
 
