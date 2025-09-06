@@ -9,6 +9,7 @@ class ModuleRoles(Enum):
     LLM = "LLM"
     TTS = "TTS"
     FRONTEND = "Frontend"
+    PARAM_CONTROLLER = "Parameter Controller"
 
     # 输入模块
     ASR = "ASR"
