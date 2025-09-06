@@ -86,15 +86,11 @@ def get_live2d_models() -> dict[str, str]:
         try:
             data = json.load(open(file))
             name = data['name']
-            if not isinstance(name, str):
-                raise TypeError("模型名称必须为字符串")
-            if not isinstance(data["path"], str):
-                raise TypeError("模型文件路径必须为字符串")
-            if not data["path"].endswith(".model.json") and not data["path"].endswith(".model3.json"):
-                raise ValueError("模型文件扩展名必须为.model.json或.model3.json")
+            assert isinstance(name, str), "模型名称必须为字符串"
+            assert isinstance(data["path"], str), "模型文件路径必须为字符串"
+            assert data["path"].endswith(".model.json") or data["path"].endswith(".model3.json"), "模型文件扩展名必须为.model.json或.model3.json"
             path = res_dir / pathlib.Path(data['path'])
-            if not path.is_file():
-                raise FileNotFoundError(f"模型文件不存在：{path}")
+            assert path.is_file(), f"模型文件不存在：{path}"
         except Exception as e:
             print(f"{file} 不是正确的模型导入文件：{e}")
             continue
@@ -114,15 +110,11 @@ def get_live2d_actions() -> dict[str, str]:
         try:
             data = json.load(open(file))
             name = data['name']
-            if not isinstance(name, str):
-                raise TypeError("动作名称必须为字符串")
-            if not isinstance(data["action"], str):
-                raise TypeError("动作文件路径必须为字符串")
-            if not data["path"].endswith(".json"):
-                raise ValueError("动作文件扩展名必须为.json")
+            assert isinstance(name, str), "动作名称必须为字符串"
+            assert isinstance(data["action"], str), "动作文件路径必须为字符串"
+            assert data["action"].endswith(".json"), "动作文件扩展名必须为.json"
             path = res_dir / pathlib.Path(data["action"])
-            if not path.is_file():
-                raise FileNotFoundError(f"动作文件不存在：{path}")
+            assert path.is_file(), f"动作文件不存在：{path}"
         except Exception as e:
             print(f"{file} 不是正确的动作文件：{e}")
             continue
@@ -130,7 +122,9 @@ def get_live2d_actions() -> dict[str, str]:
     return actions
 
 import srt
-def parse_srt_to_list(srt_text: str) -> list[dict[str, float | str]]: # By: Kimi-K2
+from typing import TypedDict
+Result = TypedDict("Result", {"token": str, "duration": float})
+def parse_srt_to_list(srt_text: str) -> list[Result]: # By: Kimi-K2
     """
     把 SRT 全文转换成：
     [{'token': <歌词>, 'duration': <秒>}, ...]
@@ -139,8 +133,8 @@ def parse_srt_to_list(srt_text: str) -> list[dict[str, float | str]]: # By: Kimi
     subs = list(srt.parse(srt_text))
     if not subs:          # 空字幕直接返回
         return []
-
-    result: list[dict[str, float | str]] = []
+    
+    result: list[Result] = []
     total_expected = subs[-1].end.total_seconds()  # 歌曲总长度
     cursor = 0.0
 
