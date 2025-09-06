@@ -1,14 +1,10 @@
-from ast import mod
-import math
-from typing import Callable
-from .constants import *
-from .utils import multioctave_perlin_noise, quintic_interpolation
-from .modules import *
-from .messages import *
+from swarmclone.constants import *
+from swarmclone.utils import multioctave_perlin_noise, quintic_interpolation
+from swarmclone.modules import *
+from swarmclone.messages import *
 from dataclasses import dataclass, field
 
 available_actions = get_live2d_actions()
-GLOBAL_REFRESH_RATE = 20
 
 class ActionCurve:
     """
@@ -32,14 +28,14 @@ class ActionCurve:
             }
     }
     """
-    def __init__(self, data: dict[str, Any]):
+    def __init__(self, data: dict[str, Any], refresh_rate: int):
         try:
             self.paraname:list[str] = data["paraname"]
             self.duration:float = data["duration"]
             self.target:float = data["target"]
             self.noise:dict[str,float] = data["noise"]
             self.pid:dict[str,float] = data["pid"]
-            self.duration_frame: int = int(self.duration * GLOBAL_REFRESH_RATE) if self.duration > 0 else -1
+            self.duration_frame: int = int(self.duration * refresh_rate) if self.duration > 0 else -1
         except KeyError as e:
             raise ValueError(f"ActionCurve 初始化失败，缺少必要字段: {e}")
         self.framecount = 0
@@ -84,14 +80,14 @@ class Action:
     }
     curve1_data 和 curve2_data 的格式同 ActionCurve 中定义的格式
     """
-    def __init__(self, action:dict[str, Any]):
+    def __init__(self, action:dict[str, Any], refresh_rate: int):
         self.priority = action.get("priority", 0)
         self.name = action.get("name", "Unnamed Action")
         assert isinstance(self.priority, int), "优先级必须为整数"
         assert isinstance(self.name, str), "动作名称必须为字符串"
         self.curves: list[ActionCurve] = []
         for curve in action.get("curve", []):
-            self.curves.append(ActionCurve(curve))
+            self.curves.append(ActionCurve(curve, refresh_rate))
     
     def update_action(self,parameters: dict[str, float],zmap: dict[str, float] )  -> bool:
         is_updated = False
@@ -108,13 +104,10 @@ class Action:
         return is_updated  
 
     def reset_action(self):
-        for curve in self.curve:
+        for curve in self.curves:
             curve.framecount = 0
             curve.pid_integral = 0
             curve.pid_last_error = 0
-    
-    
-        
 
 @dataclass
 class ParametersControllerConfig(ModuleConfig):
@@ -126,24 +119,31 @@ class ParametersControllerConfig(ModuleConfig):
             {"key": k, "value": v} for k, v in available_actions.items()
         ]
     })
+    refresh_rate: int = field(default=20, metadata={
+        "required": True,
+        "desc": "刷新频率",
+        "min": 1,
+        "max": 60,
+        "step": 1
+    })
 
 class ParametersController(ModuleBase):
     """Live2D模型参数控制器"""
-    role: ModuleRoles = ModuleRoles.PLUGIN
+    role: ModuleRoles = ModuleRoles.PARAM_CONTROLLER
     config_class = ParametersControllerConfig
     config: config_class
     
     def __init__(self, config: config_class | None = None, **kwargs):
         super().__init__(config, **kwargs)
-        self.actions: dict[str,Action] = {}
+        self.actions: dict[str, Action] = {}
         self.parameters: dict[str, float] = {}
         self.load_action_data()
-        self.active_action:list[Action] = []
+        self.active_actions: list[Action] = []
 
     def update_parameter(self):
         zmap: dict[str, float] = {}
         # 过滤出需要保留的action
-        self.active_action = [action for action in self.active_action 
+        self.active_actions = [action for action in self.active_actions 
                          if action.update_action(self.parameters, zmap)]
 
     async def run(self) -> None:
@@ -159,23 +159,20 @@ class ParametersController(ModuleBase):
         while True:
             try:
                 task = self.task_queue.get_nowait()
-                self.active_action.append(self.actions[task.get_value(self).get("action_ids")])
-                self.active_action.sort(key=lambda x: x.priority, reverse=True)
+                self.active_actions.append(self.actions[task.get("action_ids")])
+                self.active_actions.sort(key=lambda x: x.priority, reverse=True)
             except asyncio.QueueEmpty:
                 pass
             self.update_parameter()
             await self.results_queue.put(
                 ParametersUpdate(self, self.parameters))
-            await asyncio.sleep(1/GLOBAL_REFRESH_RATE)  # 等待下一帧
-
-
+            await asyncio.sleep(1/self.config.refresh_rate)  # 等待下一帧
         
     def load_action_data(self):
-        root = pathlib.Path(__file__).parent.parent
-        with open(root / self.config.action, 'r', encoding='utf-8') as f:
-            data:list[dict[str,Any]] = json.load(f)
+        with open(self.config.action, 'r', encoding='utf-8') as f:
+            data: list[dict[str, Any]] = json.load(f)
         for action in data:
-            self.actions[action.get("name")] = Action(action)
+            self.actions[action["name"]] = Action(action, self.config.refresh_rate)
         for action in self.actions.values():
             for curve in action.curves:
                 for para in curve.paraname:
