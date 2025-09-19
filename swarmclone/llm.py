@@ -692,3 +692,5 @@ class LLM(ModuleBase):
         # 处理剩余的句子
         if generating_sentence.strip():
             yield generating_sentence.strip(), await self.get_emotion(generating_sentence)
+
+__all__ = ["LLM"]

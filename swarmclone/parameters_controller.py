@@ -177,3 +177,5 @@ class ParametersController(ModuleBase):
             for curve in action.curves:
                 for para in curve.paraname:
                     self.parameters[para]= 0
+
+__all__ = ["ParametersController"]

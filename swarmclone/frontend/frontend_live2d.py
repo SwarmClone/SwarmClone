@@ -395,3 +395,7 @@ QT_QPA_PLATFORM="xcb" python -m swarmclone
 若你同时出现以上两种情况，则请将两种方法结合使用：
 env __GLX_VENDOR_LIBRARY_NAME=mesa __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json MESA_LOADER_DRIVER_OVERRIDE=zink GALLIUM_DRIVER=zink QT_QPA_PLATFORM="xcb" python -m swarmclone
 """
+
+__all__ = [
+    "FrontendLive2D"
+]

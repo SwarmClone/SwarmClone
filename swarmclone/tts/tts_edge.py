@@ -72,3 +72,7 @@ class TTSEdge(TTSBase):
             audio_data = b''
             intervals = [{"token": " ", "duration": 0.1}] # 生成错误则返回空数据
         return TTSAlignedAudio(self, id, audio_data, intervals)
+
+__all__ = [
+    "TTSEdge"
+]

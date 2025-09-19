@@ -1,7 +1,7 @@
 import torch
 
 if torch.cuda.is_available():
-    from swarmclone.tts_cosyvoice.tts_cosyvoice import TTSCosyvoice
+    from swarmclone.tts.tts_cosyvoice.tts_cosyvoice import TTSCosyvoice
 
     __all__ = [
         "TTSCosyvoice"

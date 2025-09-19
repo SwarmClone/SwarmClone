@@ -1,21 +1,17 @@
 from __future__ import annotations
-try:
-    from ncatbot.core import BotClient, GroupMessage
-    available = True
-except ImportError:
-    available = False
+from ncatbot.core import BotClient, GroupMessage
 from dataclasses import dataclass, field
 from swarmclone.constants import *
 from swarmclone.messages import *
 from swarmclone.modules import *
-import asyncio
-import random
+if TYPE_CHECKING:
+    from swarmclone.frontend.frontend_qq import NCatBotFrontend
 
 @dataclass
 class NCatBotChatConfig(ModuleConfig):
     target_group_id: str = field(default="", metadata={
         "required": True,
-        "desc": "模板群号"
+        "desc": "目标群号"
     })
     bot_id: str = field(default="", metadata={
         "required": True,
@@ -45,7 +41,6 @@ class NCatBotChat(ModuleBase):
     config: config_class
     def __init__(self, config: config_class | None = None, **kwargs):
         super().__init__(config, **kwargs)
-        assert available, "NCatBotChat requires ncatbot to be installed"
         self.bot = BotClient()
         self.target_group_id = self.config.target_group_id
         self.bot_id = self.config.bot_id
@@ -107,44 +102,8 @@ class NCatBotChat(ModuleBase):
             await self.results_queue.put(message)
             text = ""
 
-@dataclass
-class NCatBotFrontendConfig(ModuleConfig):
-    sleeptime_min: int | float = field(default=0, metadata={
-        "required": False,
-        "desc": "模型回复随机延迟最小值",
-        "min": 0,
-        "max": 10,
-        "step": 0.1
-    })
-    sleeptime_max: int | float = field(default=0, metadata={
-        "required": False,
-        "desc": "模型回复随机延迟最大值",
-        "min": 0,
-        "max": 10,
-        "step": 0.1
-    })
-
-class NCatBotFrontend(ModuleBase):
-    role: ModuleRoles = ModuleRoles.FRONTEND
-    config_class = NCatBotFrontendConfig
-    config: config_class
-    """接受LLM的信息并发送到目标群中"""
-    def __init__(self, config: config_class | None = None, **kwargs):
-        super().__init__(config, **kwargs)
-        self.llm_buffer = ""
-    
-    def get_sleep_time(self) -> float:
-        return random.random() * (self.config.sleeptime_max - self.config.sleeptime_min) + self.config.sleeptime_min
-    
-    async def process_task(self, task: Message | None) -> Message | None:
-        if isinstance(task, LLMMessage):
-            self.llm_buffer += task.get_value(self).get("content", "")
-        elif isinstance(task, LLMEOS) and self.llm_buffer:
-            await asyncio.sleep(self.get_sleep_time()) # 防止被发现是机器人然后封号
-            await self.results_queue.put(NCatBotLLMMessage(self, self.llm_buffer.strip()))
-            await self.results_queue.put(AudioFinished(self)) # 防止LLM等待不存在的TTS
-            self.llm_buffer = ""
-
 class NCatBotLLMMessage(Message):
     def __init__(self, source: NCatBotFrontend, content: str):
         super().__init__(MessageType.DATA, source, [NCatBotChat], content=content)
+
+__all__ = ["NCatBotLLMMessage", "NCatBotChat"]

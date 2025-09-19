@@ -87,3 +87,7 @@ class FrontendSocket(ModuleBase):
             self.config.sep
         )
         return massage
+
+__all__ = [
+    "FrontendSocket"
+]
