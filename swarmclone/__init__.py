@@ -17,15 +17,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 __version__ = "0.3a"
 
-from swarmclone.module_manager import module_classes
-from swarmclone.controller import *
-from swarmclone.modules import *
-from swarmclone.constants import *
-from swarmclone.messages import *
-from swarmclone.frontend import *
-from swarmclone.llm import *
-from swarmclone.chat import *
-from swarmclone.asr import *
-from swarmclone.tts import *
-from swarmclone.plugins import *
-from swarmclone.parameters_controller import *
+import swarmclone.module_manager as module_manager
+import swarmclone.controller as controller
+import swarmclone.constants as constants
+import swarmclone.messages as messages
+import swarmclone.frontend as frontend
+import swarmclone.llm as llm
+import swarmclone.chat as chat
+import swarmclone.asr as asr
+import swarmclone.tts as tts
+import swarmclone.plugins as plugins
+import swarmclone.parameters_controller as parameters_controller

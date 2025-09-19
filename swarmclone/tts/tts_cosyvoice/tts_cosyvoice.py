@@ -10,8 +10,8 @@ import torch
 import torchaudio
 import jieba
 
-from swarmclone.modules import *
-from swarmclone.messages import *
+from swarmclone.module_bootstrap import *
+from swarmclone.tts.tts_base import TTSBase
 
 from cosyvoice.cli.cosyvoice import CosyVoice 
 from swarmclone.tts.tts_cosyvoice.funcs import tts_generate

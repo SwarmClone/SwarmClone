@@ -5,9 +5,7 @@ from typing import Any
 from dataclasses import dataclass, field
 
 from swarmclone.asr.sherpa_asr import create_recognizer
-from swarmclone.modules import *
-from swarmclone.messages import ASRMessage, ASRActivated
-from swarmclone.utils import *
+from swarmclone.module_bootstrap import *
 
 available_devices = get_devices()
 

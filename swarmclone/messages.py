@@ -297,3 +297,20 @@ class ParametersUpdate(Message):
             destinations=[ModuleRoles.FRONTEND],
             updates = updates
         )
+
+__all__ = [
+    "Message",
+    "ASRActivated",
+    "ASRMessage",
+    "LLMEOS",
+    "LLMMessage",
+    "AudioFinished",
+    "TTSAlignedAudio",
+    "ChatMessage",
+    "MultiChatMessage",
+    "SongInfo",
+    "ReadyToSing",
+    "FinishedSinging",
+    "ActiveAction",
+    "ParametersUpdate"
+]

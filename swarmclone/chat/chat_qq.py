@@ -1,9 +1,8 @@
 from __future__ import annotations
 from ncatbot.core import BotClient, GroupMessage
 from dataclasses import dataclass, field
-from swarmclone.constants import *
-from swarmclone.messages import *
-from swarmclone.modules import *
+from swarmclone.module_bootstrap import *
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from swarmclone.frontend.frontend_qq import NCatBotFrontend
 

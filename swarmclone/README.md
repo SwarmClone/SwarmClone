@@ -1,10 +1,7 @@
 ## 模块开发模式：
 ```python
 # my_module.py
-from swarmclone.constants import *
-from swarmclone.utils import *
-from swarmclone.modules import *
-from swarmclone.messages import *
+from swarmclone.module_bootstrap import *
 from dataclasses import dataclass, field
 import asyncio
 

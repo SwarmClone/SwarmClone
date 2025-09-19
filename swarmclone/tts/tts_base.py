@@ -1,13 +1,5 @@
-from __future__ import annotations # 为了延迟注解评估
+from swarmclone.module_bootstrap import *
 import asyncio
-from dataclasses import dataclass, field
-from swarmclone.constants import *
-from swarmclone.messages import *
-from swarmclone.module_manager import *
-
-class ControllerDummy(ModuleBase):
-    role: ModuleRoles = ModuleRoles.CONTROLLER
-    """给Controller直接发送消息用的马甲，没有实际功能"""
 
 class TTSBase(ModuleBase):
     role: ModuleRoles = ModuleRoles.TTS

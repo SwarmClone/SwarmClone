@@ -15,9 +15,7 @@ from mcp.types import Tool
 import time
 import random
 from typing import Any
-from swarmclone.modules import *
-from swarmclone.messages import *
-from swarmclone.utils import *
+from swarmclone.module_bootstrap import *
 
 @dataclass
 class LLMConfig(ModuleConfig):

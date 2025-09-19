@@ -3,8 +3,7 @@ import json
 import base64
 from typing import Any
 from dataclasses import dataclass, field
-from swarmclone.modules import *
-from swarmclone.messages import *
+from swarmclone.module_bootstrap import *
 
 @dataclass
 class FrontendSocketConfig(ModuleConfig):

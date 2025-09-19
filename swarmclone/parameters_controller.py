@@ -1,8 +1,9 @@
 from swarmclone.constants import *
-from swarmclone.utils import multioctave_perlin_noise, quintic_interpolation
-from swarmclone.modules import *
+from swarmclone.utils import *
 from swarmclone.messages import *
+from swarmclone.module_manager import *
 from dataclasses import dataclass, field
+from typing import Any
 
 available_actions = get_live2d_actions()
 

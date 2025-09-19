@@ -34,3 +34,9 @@ class LLMState(Enum):
     WAITING4TTS = "Waiting for TTS"
     WAITING4ASR = "Waiting for ASR"
     SINGING = "Singing"
+
+__all__ = [
+    "MessageType",
+    "ModuleRoles",
+    "LLMState"
+]

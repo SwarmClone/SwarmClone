@@ -14,8 +14,6 @@ class ModuleManager(type):
             module_classes[attrs["role"]][name] = new_class
         return new_class
 
-ModuleType = ModuleManager
-
 @dataclass
 class ModuleConfig:
     """默认配置——没有配置项"""
@@ -164,3 +162,10 @@ class ModuleBase(metaclass=ModuleManager):
 module_classes: dict[ModuleRoles, dict[str, type[ModuleBase]]] = {
     role: {} for role in ModuleRoles if role not in [ModuleRoles.UNSPECIFIED, ModuleRoles.CONTROLLER]
 }
+
+__all__ = [
+    "ModuleBase",
+    "ModuleConfig",
+    "module_classes",
+    "ModuleManager"
+]
