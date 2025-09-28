@@ -2,8 +2,6 @@
 ```python
 # my_module.py
 from swarmclone.module_bootstrap import *
-from dataclasses import dataclass, field
-import asyncio
 
 @dataclass
 class MyModuleConfig(ModuleConfig):

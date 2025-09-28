@@ -28,3 +28,4 @@ import swarmclone.asr as asr
 import swarmclone.tts as tts
 import swarmclone.plugins as plugins
 import swarmclone.parameters_controller as parameters_controller
+import swarmclone.provider as provider

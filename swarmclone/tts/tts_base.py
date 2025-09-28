@@ -1,5 +1,4 @@
 from swarmclone.module_bootstrap import *
-import asyncio
 
 class TTSBase(ModuleBase):
     role: ModuleRoles = ModuleRoles.TTS

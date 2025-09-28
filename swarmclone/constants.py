@@ -35,8 +35,13 @@ class LLMState(Enum):
     WAITING4ASR = "Waiting for ASR"
     SINGING = "Singing"
 
+class Providers(Enum):
+    PRIMARY = "Primary Provider"
+    SECONDARY = "Secondary Provider"
+
 __all__ = [
     "MessageType",
     "ModuleRoles",
-    "LLMState"
+    "LLMState",
+    "Providers"
 ]

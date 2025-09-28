@@ -1,17 +1,10 @@
-import asyncio
 import os
 import torch
-import openai
-from dataclasses import dataclass, field
 from transformers import (
     AutoModelForSequenceClassification,
     AutoTokenizer
 )
 from uuid import uuid4
-from contextlib import AsyncExitStack
-from mcp import ClientSession, StdioServerParameters
-from mcp.client.stdio import stdio_client
-from mcp.types import Tool
 import time
 import random
 from typing import Any
@@ -101,22 +94,6 @@ class LLMConfig(ModuleConfig):
         "desc": "系统提示词",
         "multiline": True
     })
-    mcp_support: bool = field(default=False, metadata={
-        "required": False,
-        "desc": "是否支持 MCP"
-    })
-    mcp_path1: str = field(default="", metadata={
-        "required": False,
-        "desc": "MCP 路径 1 (请指向 MCP 脚本，以 .py 或 .js 结尾，仅支持 stdio 交互方式)"
-    })
-    mcp_path2: str = field(default="", metadata={
-        "required": False,
-        "desc": "MCP 路径 2"
-    })
-    mcp_path3: str = field(default="", metadata={
-        "required": False,
-        "desc": "MCP 路径 3"
-    })
     classifier_model_path: str = field(default="~/.swarmclone/llm/EmotionClassification/SWCBiLSTM", metadata={
         "required": False,
         "desc": "情感分类模型路径"
@@ -133,32 +110,6 @@ class LLMConfig(ModuleConfig):
             {"key": "Huggingface🤗", "value": "huggingface"},
             {"key": "ModelScope", "value": "modelscope"}
         ]
-    })
-    model_id: str = field(default="", metadata={
-        "required": True,
-        "desc": "模型id"
-    })
-    model_url: str = field(default="", metadata={
-        "required": True,
-        "desc": "模型api网址"
-    })
-    api_key: str = field(default="", metadata={
-        "required": True,
-        "desc": "api key",
-        "password": True
-    })
-    temperature: float = field(default=0.7, metadata={
-        "required": False,
-        "desc": "模型温度",
-        "selection": False,
-        "options": [
-            {"key": "0.7", "value": 0.7},
-            {"key": "0.9", "value": 0.9},
-            {"key": "1.0", "value": 1.0}
-        ],
-        "min": 0.0,  # 最小温度为 0
-        "max": 1.0,  # 最大温度设为 1
-        "step": 0.1  # 步长为 0.1
     })
 
 class LLM(ModuleBase):
@@ -191,9 +142,6 @@ class LLM(ModuleBase):
         self.sys_template = self.config.sys_template
         if self.config.system_prompt:
             self._add_system_history(self.config.system_prompt)
-        self.mcp_sessions: list[ClientSession] = []
-        self.tools: list[list[Tool]] = []
-        self.exit_stack = AsyncExitStack()
         abs_classifier_path = os.path.expanduser(self.config.classifier_model_path)
         successful = False
         while not successful: # 加载情感分类模型
@@ -218,33 +166,8 @@ class LLM(ModuleBase):
                     self.config.classifier_model_source,
                     abs_classifier_path
                 )
-        
-        self.model_id = self.config.model_id
-        self.client = openai.AsyncOpenAI(
-            api_key=self.config.api_key,
-            base_url=self.config.model_url
-        )
-        self.temperature = self.config.temperature
         self.chat_count = 0
-
-    async def init_mcp(self):
-        available_servers = filter(lambda x: bool(x), [self.config.mcp_path1, self.config.mcp_path2, self.config.mcp_path3])
-        for server in available_servers:
-            is_python = server.endswith('.py')
-            is_js = server.endswith('.js')
-            if not (is_python or is_js):
-                continue
-            command = 'python' if is_python else 'node'
-            server_params = StdioServerParameters(
-                command=command,
-                args=[server],
-            )
-            stdio, write = await self.exit_stack.enter_async_context(stdio_client(server_params))
-            session = await self.exit_stack.enter_async_context(ClientSession(stdio, write))
-            await session.initialize()
-            tools: list[Tool] = (await session.list_tools()).tools
-            self.tools.append(tools)
-            self.mcp_sessions.append(session)
+        self.provider_responses: asyncio.Queue[ProviderResponseStream] = asyncio.Queue()
     
     def _switch_to_generating(self):
         self.state = LLMState.GENERATING
@@ -326,8 +249,6 @@ class LLM(ModuleBase):
                 })
 
     async def run(self):
-        if self.config.mcp_support:
-            await self.init_mcp()
         while True:
             try:
                 task = self.task_queue.get_nowait()
@@ -335,6 +256,10 @@ class LLM(ModuleBase):
             except asyncio.QueueEmpty:
                 task = None
             
+            if isinstance(task, ProviderResponseStream):
+                await self.provider_responses.put(task)
+                continue # 直接转交给生成协程处理
+
             if isinstance(task, ChatMessage): ## TODO: 支持模型自主选择是否回复
                 message = task.get_value(self)
                 self._append_chat_buffer(message['user'], message['content'])
@@ -398,6 +323,12 @@ class LLM(ModuleBase):
             await asyncio.sleep(0.1) # 避免卡死事件循环
     
     async def start_generating(self) -> None:
+        await self.results_queue.put(ProviderRequest(
+            source=self,
+            stream=True,
+            messages=self.history,
+            model=Providers.PRIMARY
+        ))
         iterator = self.iter_sentences_emotions()
         try:
             async for sentence, emotion in iterator:
@@ -427,268 +358,22 @@ class LLM(ModuleBase):
             .squeeze()
         )
         return dict(zip(labels, probs.tolist()))
-    
-    def dict2message(self, message: dict[str, Any]):
-        from openai.types.chat import (
-            ChatCompletionUserMessageParam,
-            ChatCompletionAssistantMessageParam,
-            ChatCompletionSystemMessageParam,
-            ChatCompletionToolMessageParam
-        )
-        
-        match message:
-            case {'role': 'user', 'content': content}:
-                return ChatCompletionUserMessageParam(role="user", content=str(content))
-            case {'role': 'assistant', 'content': content, **rest}:
-                return ChatCompletionAssistantMessageParam(
-                    role="assistant", 
-                    content=str(content),
-                    tool_calls=rest.get('tool_calls') or []
-                )
-            case {'role': 'system', 'content': content}:
-                return ChatCompletionSystemMessageParam(role="system", content=str(content))
-            case {'role': 'tool', 'content': content, 'tool_call_id': tool_call_id}:
-                return ChatCompletionToolMessageParam(
-                    role="tool", 
-                    content=str(content),
-                    tool_call_id=str(tool_call_id)
-                )
-            case _:
-                raise ValueError(f"Invalid message: {message}")
-
-    def get_mcp_tools(self):
-        ## By: Claude Code (Powered by Kimi-K2)
-        """获取所有可用的MCP工具"""
-        if not self.config.mcp_support:
-            return []
-        
-        return [
-            {
-                "type": "function",
-                "function": {
-                    "name": tool.name,
-                    "description": tool.description,
-                    "parameters": tool.inputSchema
-                }
-            }
-            for tool_list in self.tools
-            for tool in tool_list
-        ]
-
-    async def execute_mcp_tool(self, tool_name: str, arguments):
-        ## By: Claude Code (Powered by Kimi-K2)
-        """执行指定的MCP工具调用"""
-        if not self.config.mcp_support:
-            raise ValueError("MCP support is not enabled")
-        
-        # 查找对应的工具会话
-        for session_idx, tool_list in enumerate(self.tools):
-            for tool in tool_list:
-                if tool.name == tool_name:
-                    session = self.mcp_sessions[session_idx]
-                    try:
-                        result = await session.call_tool(tool_name, arguments)
-                        # 将 CallToolResult 转为可序列化的字典格式
-                        if hasattr(result, 'content'):
-                            # 处理 CallToolResult 对象
-                            content_list = []
-                            for content_item in result.content:
-                                if hasattr(content_item, 'text'):
-                                    content_list.append({"type": "text", "text": content_item.text})
-                                elif hasattr(content_item, 'type') and hasattr(content_item, 'data'):
-                                    content_list.append({"type": content_item.type, "data": content_item.data})
-                            return {"content": content_list}
-                        else:
-                            # 处理其他格式的结果
-                            return {"content": [{"type": "text", "text": str(result)}]}
-                    except Exception as e:
-                        print(f"Error executing MCP tool {tool_name}: {e}")
-                        return {"error": str(e)}
-        
-        raise ValueError(f"Tool {tool_name} not found")
-    
-    async def _generate_with_tools_stream(self, messages, available_tools):
-        print(messages)
-        ## By: Claude Code (Powered by Kimi-K2)
-        """流式模式：使用工具进行对话生成的辅助方法"""
-        try:
-            request_params = {
-                "model": self.model_id,
-                "messages": messages,
-                "stream": True,
-                "temperature": self.temperature
-            }
-            
-            if available_tools:
-                request_params["tools"] = available_tools
-                request_params["tool_choice"] = "auto"
-            
-            response_stream = await self.client.chat.completions.create(**request_params)
-            tool_calls_accumulator = {}
-            
-            async for chunk in response_stream:
-                if chunk.choices and (delta := chunk.choices[0].delta):
-                    content = delta.content or ""
-                    tool_calls_output = []
-                    
-                    if delta.tool_calls:
-                        for tool_call_delta in delta.tool_calls:
-                            index = tool_call_delta.index
-                            if index not in tool_calls_accumulator:
-                                tool_calls_accumulator[index] = {
-                                    "id": "",
-                                    "type": "function",
-                                    "function": {
-                                        "name": "",
-                                        "arguments": ""
-                                    }
-                                }
-                            
-                            # 累积工具调用信息
-                            if tool_call_delta.id:
-                                tool_calls_accumulator[index]["id"] = tool_call_delta.id
-                            if tool_call_delta.function and tool_call_delta.function.name:
-                                tool_calls_accumulator[index]["function"]["name"] = tool_call_delta.function.name
-                            if tool_call_delta.function and tool_call_delta.function.arguments:
-                                tool_calls_accumulator[index]["function"]["arguments"] += tool_call_delta.function.arguments
-                    
-                    # 只有在流结束时才输出完整的工具调用
-                    finish_reason = chunk.choices[0].finish_reason
-                    if finish_reason == "tool_calls":
-                        tool_calls_output = list(tool_calls_accumulator.values())
-                    
-                    yield {
-                        "content": content,
-                        "tool_calls": tool_calls_output,
-                        "finish_reason": finish_reason
-                    }
-        except Exception as e:
-            print(f"Error in _generate_with_tools_stream: {e}")
-            yield {
-                "content": f"Some one tell the developers that there's something wrong with my AI: {e}",
-                "tool_calls": [],
-                "finish_reason": "stop"
-            }
 
     async def iter_sentences_emotions(self):
-        ## By: KyvYang + Claude Code (Powered by Kimi-K2)
-        generating_sentence = ""
-        try:
-            # 获取可用的MCP工具
-            available_tools = self.get_mcp_tools()
-            
-            # 创建消息历史
-            current_messages = [self.dict2message(message) for message in self.history]
-            
-            # 循环处理工具调用，直到没有更多工具调用
-            while True:
-                # 使用流式API生成响应
-                accumulated_content = ""
-                tool_calls_buffer = []
-                
-                async for chunk in self._generate_with_tools_stream(current_messages, available_tools):
-                    content = chunk["content"] or ""
-                    tool_calls = chunk["tool_calls"]
-                    finish_reason = chunk["finish_reason"]
-                    
-                    # 累积内容
-                    accumulated_content += str(content)
-                    
-                    # 处理内容流
-                    if content and not tool_calls_buffer:  # 没有待处理的工具调用
-                        generating_sentence += str(content)
-                        
-                        # 检查是否有完整的句子可以发送
-                        sentences = split_text(generating_sentence)
-                        if sentences[:-1]:
-                            for sentence in sentences[:-1]:
-                                if sentence.strip():
-                                    yield sentence.strip(), await self.get_emotion(sentence.strip())
-                            generating_sentence = sentences[-1]
-                    
-                    # 收集工具调用信息（在流结束时处理）
-                    if tool_calls:
-                        tool_calls_buffer.extend(tool_calls)
-                    
-                    # 流结束处理
-                    if finish_reason == "stop" or finish_reason == "tool_calls":
-                        break
-                
-                # 处理工具调用（如果有）
-                if tool_calls_buffer and self.config.mcp_support:
-                    import json
-                    
-                    # 添加助手消息（包含工具调用请求）
-                    if accumulated_content.strip() or tool_calls_buffer:
-                        from openai.types.chat import ChatCompletionAssistantMessageParam
-                        
-                        tool_calls = []
-                        for tool_call in tool_calls_buffer:
-                            tool_calls.append({
-                                "id": tool_call["id"],
-                                "type": "function",
-                                "function": {
-                                    "name": tool_call["function"]["name"],
-                                    "arguments": tool_call["function"]["arguments"]
-                                }
-                            })
-                        
-                        assistant_message = ChatCompletionAssistantMessageParam(
-                            role="assistant",
-                            content=accumulated_content,
-                            tool_calls=tool_calls
-                        )
-                        current_messages.append(assistant_message)
-                    
-                    # 执行所有工具调用
-                    for tool_call in tool_calls_buffer:
-                        tool_name = tool_call["function"]["name"]
-                        try:
-                            tool_args = json.loads(tool_call["function"]["arguments"] or "{}")
-                            result = await self.execute_mcp_tool(tool_name, tool_args)
-                            
-                            # 添加工具结果到消息历史
-                            from openai.types.chat import ChatCompletionToolMessageParam
-                            
-                            # 确保结果是可序列化的格式
-                            tool_content = json.dumps(result)
-                            
-                            tool_result_message = ChatCompletionToolMessageParam(
-                                role="tool",
-                                content=tool_content,
-                                tool_call_id=tool_call["id"]
-                            )
-                            current_messages.append(tool_result_message)
-                            
-                            # 输出简洁的调用提示给用户
-                            tool_hint = f"<调用了 {tool_name} 工具成功>"
-                            generating_sentence += tool_hint
-                            
-                        except Exception as e:
-                            error_hint = f"<调用 {tool_name} 工具失败：{e}>"
-                            generating_sentence += error_hint
-                    
-                    # 继续下一轮循环，让LLM基于工具结果继续生成
-                    continue
-                
-                # 没有工具调用，结束循环
+        text_buffer = ""
+        while True:
+            response = await self.provider_responses.get()
+            response_data = response.get_value(self)
+            if not response_data["end"]:
+                text_buffer += response_data["delta"]
+            if len(sentences := split_text(text_buffer)) > 1:
+                for sentence in sentences[:-1]:
+                    emotion = await self.get_emotion(sentence)
+                    yield sentence, emotion
+                text_buffer = sentences[-1]
+            if response_data["end"]:
+                emotion = await self.get_emotion(text_buffer)
+                yield text_buffer, emotion
                 break
-
-        except asyncio.CancelledError:
-            pass
-        except Exception as e:
-            print(repr(e))
-            yield f"Someone tell the developer that there's something wrong with my AI: {repr(e)}", {
-                "neutral": 1.0,
-                "like": 0.0,
-                "sad": 0.0,
-                "disgust": 0.0,
-                "anger": 0.0,
-                "happy": 0.0
-            }
-        
-        # 处理剩余的句子
-        if generating_sentence.strip():
-            yield generating_sentence.strip(), await self.get_emotion(generating_sentence)
 
 __all__ = ["LLM"]

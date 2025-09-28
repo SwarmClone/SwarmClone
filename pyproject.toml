@@ -26,7 +26,6 @@ fsspec = { version = ">=2022.5.0,<2025.0", extras = ["http"] }
 playsound = { url = "https://www.piwheels.org/simple/playsound/playsound-1.3.0-py3-none-any.whl" }
 sc-cosyvoice = { url = "http://pixelstonelab.com:5005/sc_cosyvoice-0.2.0-py3-none-any.whl" }
 ncatbot = { version = ">=3.8.10.post5,<4" }
-mcp = { version = ">=1.13.1,<2" }
 openai = { version = ">=1.102.0,<2" }
 edge-tts = { version = ">=7.2.1,<8" }
 modelscope = { version = ">=1.22.0,<1.23.dev0" }
@@ -60,12 +59,12 @@ allow-direct-references = true # 允许直接引用
 cuda = "12"
 
 [tool.pixi.feature.cuda.pypi-dependencies]
-torch = {version = ">=2.0.0,<3", index = "https://mirrors.nju.edu.cn/pytorch/whl/cu128"}
-torchaudio = {version = ">=2.0.0,<3", index = "https://mirrors.nju.edu.cn/pytorch/whl/cu128"}
+torch = {version = ">=2.0.0,<2.8.0", index = "https://mirrors.nju.edu.cn/pytorch/whl/cu128"}
+torchaudio = {version = ">=2.0.0,<2.8.0", index = "https://mirrors.nju.edu.cn/pytorch/whl/cu128"}
 
 [tool.pixi.feature.cpu.pypi-dependencies]
-torch = {version = ">=2.0.0,<3", index = "https://mirrors.nju.edu.cn/pytorch/whl/cpu"}
-torchaudio = {version = ">=2.0.0,<3", index = "https://mirrors.nju.edu.cn/pytorch/whl/cpu"}
+torch = {version = ">=2.0.0,<2.8.0", index = "https://mirrors.nju.edu.cn/pytorch/whl/cpu"}
+torchaudio = {version = ">=2.0.0,<2.8.0", index = "https://mirrors.nju.edu.cn/pytorch/whl/cpu"}
 
 [tool.pixi.environments]
 cpu = ["cpu"]

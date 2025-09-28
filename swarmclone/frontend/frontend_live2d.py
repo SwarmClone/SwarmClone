@@ -1,5 +1,4 @@
 from swarmclone.module_bootstrap import *
-from dataclasses import dataclass, field
 import live2d.v2 as live2d_v2
 import live2d.v3 as live2d_v3
 from live2d.utils.lipsync import WavHandler

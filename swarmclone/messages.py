@@ -2,7 +2,7 @@ from __future__ import annotations # 为了延迟注解评估
 
 import time
 from typing import TYPE_CHECKING, Any
-from swarmclone.constants import MessageType, ModuleRoles
+from swarmclone.constants import *
 from swarmclone.utils import *
 
 if TYPE_CHECKING:
@@ -298,6 +298,68 @@ class ParametersUpdate(Message):
             updates = updates
         )
 
+class ProviderRequest(Message):
+    """
+    向模型提供者发出一条请求
+    .messages: 消息列表，每个消息为一个字典，包含 role 和 content 两个键
+    .stream: 是否流式传输，默认 False
+    .model: 模型选择，默认 Providers.PRIMARY
+    """
+    def __init__(
+            self,
+            source: ModuleBase,
+            messages: list[dict[str, str]],
+            stream: bool = False,
+            model: Providers = Providers.PRIMARY
+        ):
+        super().__init__(
+            MessageType.DATA,
+            source,
+            destinations=[ModuleRoles.PRIMARY_PROVIDER if model == Providers.PRIMARY else ModuleRoles.SECONDARY_PROVIDER],
+            messages=messages,
+            stream=stream
+        )
+
+class ProviderResponseNonStream(Message):
+    """
+    模型提供者的非流式响应
+    .content: 模型提供者的响应内容
+    """
+    def __init__(
+            self,
+            source: ModuleBase,
+            content: str,
+            destination: type[ModuleBase] # 响应应当精准发给调用者而不是广播到某个角色
+        ):
+        super().__init__(
+            MessageType.DATA,
+            source,
+            destinations=[destination],
+            content=content
+        )
+
+class ProviderResponseStream(Message):
+    """
+    模型提供者的流式响应
+    .delta: 模型提供者的增量响应内容
+    .end: 响应是否结束
+    """
+    def __init__(
+            self,
+            source: ModuleBase,
+            delta: str,
+            end: bool,
+            destination: type[ModuleBase] # 响应应当精准发给调用者而不是广播到某个角色
+        ):
+        super().__init__(
+            MessageType.DATA,
+            source,
+            destinations=[destination],
+            delta=delta,
+            end=end
+        )
+
+
 __all__ = [
     "Message",
     "ASRActivated",
@@ -312,5 +374,8 @@ __all__ = [
     "ReadyToSing",
     "FinishedSinging",
     "ActiveAction",
-    "ParametersUpdate"
+    "ParametersUpdate",
+    "ProviderRequest",
+    "ProviderResponseNonStream",
+    "ProviderResponseStream"
 ]

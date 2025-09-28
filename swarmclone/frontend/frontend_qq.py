@@ -1,8 +1,7 @@
 from __future__ import annotations
-from dataclasses import dataclass, field
 from swarmclone.module_bootstrap import *
 from swarmclone.chat.chat_qq import *
-import asyncio
+
 import random
 
 @dataclass
