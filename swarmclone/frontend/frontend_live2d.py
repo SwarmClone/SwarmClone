@@ -212,6 +212,11 @@ class FrontendLive2D(ModuleBase):
         pygame.mixer.init()
         self.model_path = self.config.model
         self.app = QApplication([])
+        # 设置 OpenGL 上下文
+        fmt = QSurfaceFormat()
+        fmt.setRenderableType(QSurfaceFormat.RenderableType.OpenGL)
+        QSurfaceFormat.setDefaultFormat(fmt)
+
         self.window = FrontendWindow(self.model_path)
         self.align_t0: float = float("inf")
         self.song_info: dict[str, dict[str, str]] = {}
@@ -343,11 +348,12 @@ class FrontendLive2D(ModuleBase):
                                         format="wav",
                                         encoding="PCM_S",
                                         bits_per_sample=16,
+                                        backend="sox"
                                     ) # 保存为 16 bit wave 格式以便 live2d 进行口型对齐
                                     f.seek(0)
                                     if "song_data" not in self.message_queue[0]["aligned_audio"]: # 是纯人声，直接播放
                                         pygame.mixer.music.stop()
-                                        pygame.mixer.music.load(audio_bytesio)
+                                        pygame.mixer.music.load(f.name)
                                         pygame.mixer.music.play()
                                     self.window.live2d_widget.speak(f.name) # 只使用纯人声进行口型对齐
                             if "song_data" in self.message_queue[0]["aligned_audio"]: # 不是纯人声则播放歌曲

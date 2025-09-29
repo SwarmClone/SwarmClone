@@ -94,7 +94,7 @@ class LLMConfig(ModuleConfig):
         "desc": "系统提示词",
         "multiline": True
     })
-    classifier_model_path: str = field(default="~/.swarmclone/llm/EmotionClassification/SWCBiLSTM", metadata={
+    classifier_model_path: str = field(default="./models/EmotionClassification/SWCBiLSTM", metadata={
         "required": False,
         "desc": "情感分类模型路径"
     })

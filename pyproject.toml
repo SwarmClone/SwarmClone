@@ -39,6 +39,7 @@ fastapi = ">=0.115.14,<0.116"
 uvicorn = ">=0.35.0,<0.36"
 markdown = ">=3.8.2,<4"
 transformers = ">=4.48.3,<5"
+pyside6-stubs = ">=6.7.3.0,<7"
 
 [tool.pixi.tasks]
 
@@ -76,3 +77,4 @@ ttsfrd-dependency = { url = "http://pixelstonelab.com:5005/ttsfrd_dependency-0.1
 
 [tool.pixi.dependencies]
 pynini = "==2.1.6"
+sox = ">=14.4.2,<15"

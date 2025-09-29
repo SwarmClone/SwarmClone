@@ -67,6 +67,8 @@ class PrimaryProviderOpenAIAPI(ModuleBase):
             if not chunk.choices:
                 continue
             delta = chunk.choices[0].delta.content
+            if not delta:
+                delta = ""
             await self.results_queue.put(ProviderResponseStream(
                 source=self,
                 delta=delta,

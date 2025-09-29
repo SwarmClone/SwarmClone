@@ -37,7 +37,7 @@ class TTSCosyvoiceConfig(ModuleConfig):
         "required": False,
         "desc": "音色"
     })
-    model_path: str = field(default="~/.swarmclone/tts_cosy_voice", metadata={
+    model_path: str = field(default="./models/tts_cosy_voice", metadata={
         "required": False,
         "desc": "语音模型路径"
     })

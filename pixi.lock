@@ -33,6 +33,8 @@ environments:
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/freetype-2.13.3-ha770c72_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/fribidi-1.0.10-h36c2ea0_0.tar.bz2
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/gdk-pixbuf-2.42.12-h2b0a6b4_3.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/gettext-0.25.1-h3f43e3d_1.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/gettext-tools-0.25.1-h3f43e3d_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/glib-tools-2.84.3-hf516916_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/graphite2-1.3.14-hecca717_2.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/graphviz-13.1.2-h87b6fe6_0.conda
@@ -43,37 +45,50 @@ environments:
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/icu-75.1-he02047a_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/keyutils-1.6.3-hb9d3cd8_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/krb5-1.21.3-h659f571_0.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/lame-3.100-h166bdaf_1003.tar.bz2
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/ld_impl_linux-64-2.44-h1423503_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/lerc-4.0.0-h0aef613_1.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libasprintf-0.25.1-h3f43e3d_1.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libasprintf-devel-0.25.1-h3f43e3d_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libcups-2.3.3-hb8b1518_5.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libdeflate-1.24-h86f0d12_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libedit-3.1.20250104-pl5321h7949ede_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libexpat-2.7.1-hecca717_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libffi-3.4.6-h2dba641_1.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libflac-1.4.3-h59595ed_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libfreetype-2.13.3-ha770c72_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libfreetype6-2.13.3-h48d6fc4_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libgcc-15.1.0-h767d61c_4.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libgcc-ng-15.1.0-h69a702a_4.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libgd-2.3.3-h6f5c62b_11.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libgettextpo-0.25.1-h3f43e3d_1.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libgettextpo-devel-0.25.1-h3f43e3d_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libglib-2.84.3-hf39c6af_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libgomp-15.1.0-h767d61c_4.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libiconv-1.18-h3b78370_2.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libjpeg-turbo-3.1.0-hb9d3cd8_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/liblzma-5.8.1-hb9d3cd8_2.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/liblzma-devel-5.8.1-hb9d3cd8_2.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libnsl-2.0.1-hb9d3cd8_1.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libogg-1.3.5-hd0c01bc_1.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libopus-1.5.2-hd0c01bc_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libpng-1.6.50-h421ea60_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/librsvg-2.58.4-he92a37e_3.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libsndfile-1.2.2-hc60ed4a_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libsqlite-3.50.4-h0c1763c_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libstdcxx-15.1.0-h8f9b012_4.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libstdcxx-ng-15.1.0-h4852527_4.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libtiff-4.7.0-h8261f1e_6.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libuuid-2.38.1-h0b41bf4_0.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libvorbis-1.3.7-h54a6638_2.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libwebp-base-1.6.0-hd42ef1d_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libxcb-1.17.0-h8a09558_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libxcrypt-4.4.36-hd590300_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libxkbcommon-1.11.0-he8b52b9_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libxml2-2.13.8-h04c0eec_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libzlib-1.3.1-hb9d3cd8_2.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/mad-0.15.1b-h9c3ff4c_1.tar.bz2
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/mpg123-1.32.9-hc50e24c_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/ncurses-6.5-h2d0b736_3.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/openfst-1.8.3-h84d6215_3.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/openssl-3.5.2-h26f9b46_0.conda
@@ -87,6 +102,7 @@ environments:
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/noarch/python_abi-3.10-8_cp310.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/readline-8.2-h8c095d6_2.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/noarch/setuptools-80.9.0-pyhff2d567_0.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/sox-14.4.2-h59a48fd_1020.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/tk-8.6.13-noxft_hd72426e_102.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/noarch/tzdata-2025b-h78e105d_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/wayland-1.24.0-h3e06ad9_0.conda
@@ -107,6 +123,7 @@ environments:
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/xorg-libxrandr-1.5.4-hb9d3cd8_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/xorg-libxrender-0.9.12-hb9d3cd8_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/xorg-libxtst-1.2.5-hb9d3cd8_3.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/zlib-1.3.1-hb9d3cd8_2.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/zstd-1.5.7-hb8e6e7a_2.conda
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/8f/aa/ba0014cc4659328dc818a28827be78e6d97312ab0cb98105a770924dc11e/absl_py-2.3.1-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/c5/19/5af6804c4cc0fed83f47bff6e413a98a36618e7d40185cd36e69737f3b0e/aiofiles-23.2.1-py3-none-any.whl
@@ -194,6 +211,8 @@ environments:
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/43/e3/7d92a15f894aa0c9c4b49b8ee9ac9850d6e63b03c9c32c0367a13ae62209/mpmath-1.3.0-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/20/8e/0bb8c977efecfe6ea7116e2ed73a78a8d32a947f94d272586cf02a9757db/msgpack-1.1.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/05/a9/48d1bd111fc2f8fb98b2ed7f9a115c55a9355358432a19f53c0b74d8425d/multidict-6.6.4-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+      - pypi: https://mirrors.cloud.tencent.com/pypi/packages/4f/01/f6e4b9f0d031c11ccbd6f17da26564f3a0f3c4155af344006434b0a05a9d/mypy-1.18.2-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+      - pypi: https://mirrors.cloud.tencent.com/pypi/packages/79/7b/2c79738432f5c924bef5071f933bcc9efd0473bac3b4aa584a6f7c1c8df8/mypy_extensions-1.1.0-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/56/cb/9f42b21140161d5347516187e4f7825c1b809d7410e8d17af05426fed6ac/ncatbot-3.8.10.post5-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/b9/54/dd730b32ea14ea797530a4479b2ed46a6fb250f682a9cfb997e968bf0261/networkx-3.4.2-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/ed/de/0e6edf44d6a04dabd0318a519125ed0415ce437ad5a1ec9b9be03d9048cf/ninja-1.13.0-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
@@ -210,6 +229,7 @@ environments:
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/44/1d/ca2230fd55edbd87b58a43a19032d63a4b180389a97520cc62c535b726f9/orjson-3.11.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/88/ef/eb23f262cca3c0c4eb7ab1933c3b1f03d021f2c48f54763065b6f0e321be/packaging-24.2-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/c4/6a/40b043b06e08df1ea1b6d20f0e0c2f2c4ec8c4f07d1c92948273d943a50b/pandas-2.3.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+      - pypi: https://mirrors.cloud.tencent.com/pypi/packages/cc/20/ff623b09d963f88bfde16306a54e12ee5ea43e9b597108672ff3a408aad6/pathspec-0.12.1-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/f3/5e/7ca9c815ade5fdca18853db86d812f2f188212792780208bdb37a0a6aef4/pillow-11.2.1-cp310-cp310-manylinux_2_28_x86_64.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/40/4b/2028861e724d3bd36227adfa20d3fd24c3fc6d52032f4a93c133be5d17ce/platformdirs-4.4.0-py3-none-any.whl
       - pypi: direct+https://www.piwheels.org/simple/playsound/playsound-1.3.0-py3-none-any.whl
@@ -236,6 +256,7 @@ environments:
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/12/df/cb84f802df3dcc1d196d2f9f37dbb8227761826f936987c9386b8ae1ffcc/pyside6-6.9.2-cp39-abi3-manylinux_2_28_x86_64.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/14/48/0b16e9dabd4cafe02d59531832bc30b6f0e14c92076e90dd02379d365cb2/pyside6_addons-6.9.2-cp39-abi3-manylinux_2_28_x86_64.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/3e/02/e38ff18f3d2d8d3071aa6823031aad6089267aa4668181db65ce9948bfc0/pyside6_essentials-6.9.2-cp39-abi3-manylinux_2_28_x86_64.whl
+      - pypi: https://mirrors.cloud.tencent.com/pypi/packages/e9/2e/3488fa3baca56ff494b9502424675f5b14b11e966eb74d5adaf1811cd651/pyside6_stubs-6.7.3.0-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/8d/59/b4572118e098ac8e46e399a1dd0f2d85403ce8bbaad9ec79373ed6badaf9/PySocks-1.7.1-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/ec/57/56b9bcc3c9c6a792fcbaf139543cee77261f3651ca9da0c93f5c1221264b/python_dateutil-2.9.0.post0-py2.py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/5f/ed/539768cf28c661b5b068d66d96a2f155c4971a5d55684a514c1a0e0dec2f/python_dotenv-1.1.1-py3-none-any.whl
@@ -283,6 +304,7 @@ environments:
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/32/d5/f9a850d79b0851d1d4ef6456097579a9005b31fea68726a4ae5f2d82ddd9/threadpoolctl-3.6.0-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/94/80/fb0ada0a882cb453caf519a4bf0d117c2a3ee2e852c88775abff5413c176/tiktoken-0.11.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/f2/90/273b6c7ec78af547694eddeea9e05de771278bd20476525ab930cecaf7d8/tokenizers-0.21.4-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+      - pypi: https://mirrors.cloud.tencent.com/pypi/packages/6e/c2/61d3e0f47e2b74ef40a68b9e6ad5984f6241a942f7cd3bbfbdbd03861ea9/tomli-2.2.1-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/68/4f/12207897848a653d03ebbf6775a29d949408ded5f99b2d87198bc5c93508/tomlkit-0.12.0-py3-none-any.whl
       - pypi: https://mirrors.nju.edu.cn/pytorch/whl/cpu/torch-2.7.1%2Bcpu-cp310-cp310-manylinux_2_28_x86_64.whl
       - pypi: https://mirrors.nju.edu.cn/pytorch/whl/cpu/torchaudio-2.7.1%2Bcpu-cp310-cp310-manylinux_2_28_x86_64.whl
@@ -331,10 +353,12 @@ environments:
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/gts-0.7.6-h6b5321d_4.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/harfbuzz-11.4.3-h5f2951f_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/icu-75.1-he0c23c2_0.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/lame-3.100-hcfcfb64_1003.tar.bz2
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/lerc-4.0.0-h6470a55_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libdeflate-1.24-h76ddb4d_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libexpat-2.7.1-hac47afa_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libffi-3.4.6-h537db12_1.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libflac-1.4.3-h63175ca_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libfreetype-2.13.3-h57928b3_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libfreetype6-2.13.3-h0b5ce68_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libgcc-15.1.0-h1383e82_4.conda
@@ -345,13 +369,20 @@ environments:
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libintl-0.22.5-h5728263_3.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libjpeg-turbo-3.1.0-h2466b09_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/liblzma-5.8.1-h2466b09_2.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/liblzma-devel-5.8.1-h2466b09_2.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libmad-0.15.1b-hcfcfb64_1001.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libogg-1.3.5-h2466b09_1.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libopus-1.5.2-h2466b09_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libpng-1.6.50-h7351971_1.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libsndfile-1.2.2-h81429f1_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libsqlite-3.50.4-hf5d6505_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libtiff-4.7.0-h550210a_6.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libvorbis-1.3.7-h5112557_2.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libwebp-base-1.6.0-h4d5522a_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libwinpthread-12.0.0.r4.gg4f2fc60ca-h57928b3_9.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libxcb-1.17.0-h0e4246c_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libzlib-1.3.1-h2466b09_2.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/mpg123-1.32.9-h01009b0_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/openfst-1.8.3-hc790b64_3.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/openssl-3.5.2-h725018a_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/pango-1.56.4-h03d888a_0.conda
@@ -363,6 +394,7 @@ environments:
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/python-3.10.18-h8c5b53a_0_cpython.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/noarch/python_abi-3.10-8_cp310.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/noarch/setuptools-80.9.0-pyhff2d567_0.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/sox-14.4.2-hd84d653_1020.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/tk-8.6.13-h2c6b04d_2.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/noarch/tzdata-2025b-h78e105d_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/ucrt-10.0.22621.0-h57928b3_1.conda
@@ -379,6 +411,7 @@ environments:
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/xorg-libxext-1.3.6-h0e40799_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/xorg-libxpm-3.5.17-h0e40799_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/xorg-libxt-1.3.1-h0e40799_0.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/zlib-1.3.1-h2466b09_2.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/zstd-1.5.7-hbeecb71_2.conda
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/8f/aa/ba0014cc4659328dc818a28827be78e6d97312ab0cb98105a770924dc11e/absl_py-2.3.1-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/c5/19/5af6804c4cc0fed83f47bff6e413a98a36618e7d40185cd36e69737f3b0e/aiofiles-23.2.1-py3-none-any.whl
@@ -464,6 +497,8 @@ environments:
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/43/e3/7d92a15f894aa0c9c4b49b8ee9ac9850d6e63b03c9c32c0367a13ae62209/mpmath-1.3.0-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/7d/18/73dfa3e9d5d7450d39debde5b0d848139f7de23bd637a4506e36c9800fd6/msgpack-1.1.1-cp310-cp310-win_amd64.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/c0/53/cab1ad80356a4cd1b685a254b680167059b433b573e53872fab245e9fc95/multidict-6.6.4-cp310-cp310-win_amd64.whl
+      - pypi: https://mirrors.cloud.tencent.com/pypi/packages/9f/4f/90dc8c15c1441bf31cf0f9918bb077e452618708199e530f4cbd5cede6ff/mypy-1.18.2-cp310-cp310-win_amd64.whl
+      - pypi: https://mirrors.cloud.tencent.com/pypi/packages/79/7b/2c79738432f5c924bef5071f933bcc9efd0473bac3b4aa584a6f7c1c8df8/mypy_extensions-1.1.0-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/56/cb/9f42b21140161d5347516187e4f7825c1b809d7410e8d17af05426fed6ac/ncatbot-3.8.10.post5-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/b9/54/dd730b32ea14ea797530a4479b2ed46a6fb250f682a9cfb997e968bf0261/networkx-3.4.2-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/b1/c6/c2fb11e50482cb310afae87a997707f6c7d8a48967b9696271347441f650/numba-0.61.2-cp310-cp310-win_amd64.whl
@@ -477,6 +512,7 @@ environments:
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/e3/c0/7ebfaa327d9a9ed982adc0d9420dbce9a3fec45b60ab32c6308f731333fa/orjson-3.11.3-cp310-cp310-win_amd64.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/88/ef/eb23f262cca3c0c4eb7ab1933c3b1f03d021f2c48f54763065b6f0e321be/packaging-24.2-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/d8/df/5ab92fcd76455a632b3db34a746e1074d432c0cdbbd28d7cd1daba46a75d/pandas-2.3.2-cp310-cp310-win_amd64.whl
+      - pypi: https://mirrors.cloud.tencent.com/pypi/packages/cc/20/ff623b09d963f88bfde16306a54e12ee5ea43e9b597108672ff3a408aad6/pathspec-0.12.1-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/ed/3c/9831da3edea527c2ed9a09f31a2c04e77cd705847f13b69ca60269eec370/pillow-11.2.1-cp310-cp310-win_amd64.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/40/4b/2028861e724d3bd36227adfa20d3fd24c3fc6d52032f4a93c133be5d17ce/platformdirs-4.4.0-py3-none-any.whl
       - pypi: direct+https://www.piwheels.org/simple/playsound/playsound-1.3.0-py3-none-any.whl
@@ -502,6 +538,7 @@ environments:
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/59/90/2e75cbff0e17f16b83d2b7e8434ae9175cae8d6ff816c9b56d307cf53c86/pyside6-6.9.2-cp39-abi3-win_amd64.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/14/fa/396a2e86230c493b565e2dc89dc64e4b1c63582ac69afe77b693c3817a53/pyside6_addons-6.9.2-cp39-abi3-win_amd64.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/a8/e3/3b3e869d3e332b6db93f6f64fac3b12f5c48b84f03f2aa50ee5c044ec0de/pyside6_essentials-6.9.2-cp39-abi3-win_amd64.whl
+      - pypi: https://mirrors.cloud.tencent.com/pypi/packages/e9/2e/3488fa3baca56ff494b9502424675f5b14b11e966eb74d5adaf1811cd651/pyside6_stubs-6.7.3.0-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/8d/59/b4572118e098ac8e46e399a1dd0f2d85403ce8bbaad9ec79373ed6badaf9/PySocks-1.7.1-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/ec/57/56b9bcc3c9c6a792fcbaf139543cee77261f3651ca9da0c93f5c1221264b/python_dateutil-2.9.0.post0-py2.py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/5f/ed/539768cf28c661b5b068d66d96a2f155c4971a5d55684a514c1a0e0dec2f/python_dotenv-1.1.1-py3-none-any.whl
@@ -546,6 +583,7 @@ environments:
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/32/d5/f9a850d79b0851d1d4ef6456097579a9005b31fea68726a4ae5f2d82ddd9/threadpoolctl-3.6.0-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/94/75/eaa6068f47e8b3f0aab9e05177cce2cf5aa2cc0ca93981792e620d4d4117/tiktoken-0.11.0-cp310-cp310-win_amd64.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/41/f2/fd673d979185f5dcbac4be7d09461cbb99751554ffb6718d0013af8604cb/tokenizers-0.21.4-cp39-abi3-win_amd64.whl
+      - pypi: https://mirrors.cloud.tencent.com/pypi/packages/6e/c2/61d3e0f47e2b74ef40a68b9e6ad5984f6241a942f7cd3bbfbdbd03861ea9/tomli-2.2.1-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/68/4f/12207897848a653d03ebbf6775a29d949408ded5f99b2d87198bc5c93508/tomlkit-0.12.0-py3-none-any.whl
       - pypi: https://mirrors.nju.edu.cn/pytorch/whl/cpu/torch-2.7.1%2Bcpu-cp310-cp310-win_amd64.whl
       - pypi: https://mirrors.nju.edu.cn/pytorch/whl/cpu/torchaudio-2.7.1%2Bcpu-cp310-cp310-win_amd64.whl
@@ -602,6 +640,8 @@ environments:
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/freetype-2.13.3-ha770c72_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/fribidi-1.0.10-h36c2ea0_0.tar.bz2
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/gdk-pixbuf-2.42.12-h2b0a6b4_3.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/gettext-0.25.1-h3f43e3d_1.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/gettext-tools-0.25.1-h3f43e3d_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/glib-tools-2.84.3-hf516916_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/graphite2-1.3.14-hecca717_2.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/graphviz-13.1.2-h87b6fe6_0.conda
@@ -612,37 +652,50 @@ environments:
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/icu-75.1-he02047a_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/keyutils-1.6.3-hb9d3cd8_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/krb5-1.21.3-h659f571_0.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/lame-3.100-h166bdaf_1003.tar.bz2
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/ld_impl_linux-64-2.44-h1423503_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/lerc-4.0.0-h0aef613_1.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libasprintf-0.25.1-h3f43e3d_1.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libasprintf-devel-0.25.1-h3f43e3d_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libcups-2.3.3-hb8b1518_5.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libdeflate-1.24-h86f0d12_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libedit-3.1.20250104-pl5321h7949ede_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libexpat-2.7.1-hecca717_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libffi-3.4.6-h2dba641_1.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libflac-1.4.3-h59595ed_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libfreetype-2.13.3-ha770c72_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libfreetype6-2.13.3-h48d6fc4_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libgcc-15.1.0-h767d61c_4.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libgcc-ng-15.1.0-h69a702a_4.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libgd-2.3.3-h6f5c62b_11.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libgettextpo-0.25.1-h3f43e3d_1.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libgettextpo-devel-0.25.1-h3f43e3d_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libglib-2.84.3-hf39c6af_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libgomp-15.1.0-h767d61c_4.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libiconv-1.18-h3b78370_2.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libjpeg-turbo-3.1.0-hb9d3cd8_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/liblzma-5.8.1-hb9d3cd8_2.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/liblzma-devel-5.8.1-hb9d3cd8_2.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libnsl-2.0.1-hb9d3cd8_1.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libogg-1.3.5-hd0c01bc_1.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libopus-1.5.2-hd0c01bc_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libpng-1.6.50-h421ea60_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/librsvg-2.58.4-he92a37e_3.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libsndfile-1.2.2-hc60ed4a_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libsqlite-3.50.4-h0c1763c_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libstdcxx-15.1.0-h8f9b012_4.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libstdcxx-ng-15.1.0-h4852527_4.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libtiff-4.7.0-h8261f1e_6.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libuuid-2.38.1-h0b41bf4_0.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libvorbis-1.3.7-h54a6638_2.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libwebp-base-1.6.0-hd42ef1d_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libxcb-1.17.0-h8a09558_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libxcrypt-4.4.36-hd590300_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libxkbcommon-1.11.0-he8b52b9_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libxml2-2.13.8-h04c0eec_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libzlib-1.3.1-hb9d3cd8_2.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/mad-0.15.1b-h9c3ff4c_1.tar.bz2
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/mpg123-1.32.9-hc50e24c_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/ncurses-6.5-h2d0b736_3.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/openfst-1.8.3-h84d6215_3.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/openssl-3.5.2-h26f9b46_0.conda
@@ -656,6 +709,7 @@ environments:
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/noarch/python_abi-3.10-8_cp310.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/readline-8.2-h8c095d6_2.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/noarch/setuptools-80.9.0-pyhff2d567_0.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/sox-14.4.2-h59a48fd_1020.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/tk-8.6.13-noxft_hd72426e_102.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/noarch/tzdata-2025b-h78e105d_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/wayland-1.24.0-h3e06ad9_0.conda
@@ -676,6 +730,7 @@ environments:
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/xorg-libxrandr-1.5.4-hb9d3cd8_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/xorg-libxrender-0.9.12-hb9d3cd8_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/xorg-libxtst-1.2.5-hb9d3cd8_3.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/zlib-1.3.1-hb9d3cd8_2.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/zstd-1.5.7-hb8e6e7a_2.conda
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/8f/aa/ba0014cc4659328dc818a28827be78e6d97312ab0cb98105a770924dc11e/absl_py-2.3.1-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/c5/19/5af6804c4cc0fed83f47bff6e413a98a36618e7d40185cd36e69737f3b0e/aiofiles-23.2.1-py3-none-any.whl
@@ -763,6 +818,8 @@ environments:
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/43/e3/7d92a15f894aa0c9c4b49b8ee9ac9850d6e63b03c9c32c0367a13ae62209/mpmath-1.3.0-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/20/8e/0bb8c977efecfe6ea7116e2ed73a78a8d32a947f94d272586cf02a9757db/msgpack-1.1.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/05/a9/48d1bd111fc2f8fb98b2ed7f9a115c55a9355358432a19f53c0b74d8425d/multidict-6.6.4-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+      - pypi: https://mirrors.cloud.tencent.com/pypi/packages/4f/01/f6e4b9f0d031c11ccbd6f17da26564f3a0f3c4155af344006434b0a05a9d/mypy-1.18.2-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+      - pypi: https://mirrors.cloud.tencent.com/pypi/packages/79/7b/2c79738432f5c924bef5071f933bcc9efd0473bac3b4aa584a6f7c1c8df8/mypy_extensions-1.1.0-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/56/cb/9f42b21140161d5347516187e4f7825c1b809d7410e8d17af05426fed6ac/ncatbot-3.8.10.post5-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/b9/54/dd730b32ea14ea797530a4479b2ed46a6fb250f682a9cfb997e968bf0261/networkx-3.4.2-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/ed/de/0e6edf44d6a04dabd0318a519125ed0415ce437ad5a1ec9b9be03d9048cf/ninja-1.13.0-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
@@ -792,6 +849,7 @@ environments:
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/44/1d/ca2230fd55edbd87b58a43a19032d63a4b180389a97520cc62c535b726f9/orjson-3.11.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/88/ef/eb23f262cca3c0c4eb7ab1933c3b1f03d021f2c48f54763065b6f0e321be/packaging-24.2-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/c4/6a/40b043b06e08df1ea1b6d20f0e0c2f2c4ec8c4f07d1c92948273d943a50b/pandas-2.3.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+      - pypi: https://mirrors.cloud.tencent.com/pypi/packages/cc/20/ff623b09d963f88bfde16306a54e12ee5ea43e9b597108672ff3a408aad6/pathspec-0.12.1-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/f3/5e/7ca9c815ade5fdca18853db86d812f2f188212792780208bdb37a0a6aef4/pillow-11.2.1-cp310-cp310-manylinux_2_28_x86_64.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/40/4b/2028861e724d3bd36227adfa20d3fd24c3fc6d52032f4a93c133be5d17ce/platformdirs-4.4.0-py3-none-any.whl
       - pypi: direct+https://www.piwheels.org/simple/playsound/playsound-1.3.0-py3-none-any.whl
@@ -818,6 +876,7 @@ environments:
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/12/df/cb84f802df3dcc1d196d2f9f37dbb8227761826f936987c9386b8ae1ffcc/pyside6-6.9.2-cp39-abi3-manylinux_2_28_x86_64.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/14/48/0b16e9dabd4cafe02d59531832bc30b6f0e14c92076e90dd02379d365cb2/pyside6_addons-6.9.2-cp39-abi3-manylinux_2_28_x86_64.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/3e/02/e38ff18f3d2d8d3071aa6823031aad6089267aa4668181db65ce9948bfc0/pyside6_essentials-6.9.2-cp39-abi3-manylinux_2_28_x86_64.whl
+      - pypi: https://mirrors.cloud.tencent.com/pypi/packages/e9/2e/3488fa3baca56ff494b9502424675f5b14b11e966eb74d5adaf1811cd651/pyside6_stubs-6.7.3.0-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/8d/59/b4572118e098ac8e46e399a1dd0f2d85403ce8bbaad9ec79373ed6badaf9/PySocks-1.7.1-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/ec/57/56b9bcc3c9c6a792fcbaf139543cee77261f3651ca9da0c93f5c1221264b/python_dateutil-2.9.0.post0-py2.py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/5f/ed/539768cf28c661b5b068d66d96a2f155c4971a5d55684a514c1a0e0dec2f/python_dotenv-1.1.1-py3-none-any.whl
@@ -865,6 +924,7 @@ environments:
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/32/d5/f9a850d79b0851d1d4ef6456097579a9005b31fea68726a4ae5f2d82ddd9/threadpoolctl-3.6.0-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/94/80/fb0ada0a882cb453caf519a4bf0d117c2a3ee2e852c88775abff5413c176/tiktoken-0.11.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/f2/90/273b6c7ec78af547694eddeea9e05de771278bd20476525ab930cecaf7d8/tokenizers-0.21.4-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+      - pypi: https://mirrors.cloud.tencent.com/pypi/packages/6e/c2/61d3e0f47e2b74ef40a68b9e6ad5984f6241a942f7cd3bbfbdbd03861ea9/tomli-2.2.1-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/68/4f/12207897848a653d03ebbf6775a29d949408ded5f99b2d87198bc5c93508/tomlkit-0.12.0-py3-none-any.whl
       - pypi: https://mirrors.nju.edu.cn/pytorch/whl/cu128/torch-2.7.1%2Bcu128-cp310-cp310-manylinux_2_28_x86_64.whl
       - pypi: https://mirrors.nju.edu.cn/pytorch/whl/cu128/torchaudio-2.7.1%2Bcu128-cp310-cp310-manylinux_2_28_x86_64.whl
@@ -913,10 +973,12 @@ environments:
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/gts-0.7.6-h6b5321d_4.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/harfbuzz-11.4.3-h5f2951f_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/icu-75.1-he0c23c2_0.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/lame-3.100-hcfcfb64_1003.tar.bz2
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/lerc-4.0.0-h6470a55_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libdeflate-1.24-h76ddb4d_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libexpat-2.7.1-hac47afa_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libffi-3.4.6-h537db12_1.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libflac-1.4.3-h63175ca_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libfreetype-2.13.3-h57928b3_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libfreetype6-2.13.3-h0b5ce68_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libgcc-15.1.0-h1383e82_4.conda
@@ -927,13 +989,20 @@ environments:
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libintl-0.22.5-h5728263_3.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libjpeg-turbo-3.1.0-h2466b09_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/liblzma-5.8.1-h2466b09_2.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/liblzma-devel-5.8.1-h2466b09_2.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libmad-0.15.1b-hcfcfb64_1001.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libogg-1.3.5-h2466b09_1.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libopus-1.5.2-h2466b09_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libpng-1.6.50-h7351971_1.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libsndfile-1.2.2-h81429f1_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libsqlite-3.50.4-hf5d6505_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libtiff-4.7.0-h550210a_6.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libvorbis-1.3.7-h5112557_2.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libwebp-base-1.6.0-h4d5522a_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libwinpthread-12.0.0.r4.gg4f2fc60ca-h57928b3_9.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libxcb-1.17.0-h0e4246c_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libzlib-1.3.1-h2466b09_2.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/mpg123-1.32.9-h01009b0_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/openfst-1.8.3-hc790b64_3.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/openssl-3.5.2-h725018a_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/pango-1.56.4-h03d888a_0.conda
@@ -945,6 +1014,7 @@ environments:
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/python-3.10.18-h8c5b53a_0_cpython.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/noarch/python_abi-3.10-8_cp310.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/noarch/setuptools-80.9.0-pyhff2d567_0.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/sox-14.4.2-hd84d653_1020.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/tk-8.6.13-h2c6b04d_2.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/noarch/tzdata-2025b-h78e105d_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/ucrt-10.0.22621.0-h57928b3_1.conda
@@ -961,6 +1031,7 @@ environments:
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/xorg-libxext-1.3.6-h0e40799_0.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/xorg-libxpm-3.5.17-h0e40799_1.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/xorg-libxt-1.3.1-h0e40799_0.conda
+      - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/zlib-1.3.1-h2466b09_2.conda
       - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/zstd-1.5.7-hbeecb71_2.conda
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/8f/aa/ba0014cc4659328dc818a28827be78e6d97312ab0cb98105a770924dc11e/absl_py-2.3.1-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/c5/19/5af6804c4cc0fed83f47bff6e413a98a36618e7d40185cd36e69737f3b0e/aiofiles-23.2.1-py3-none-any.whl
@@ -1046,6 +1117,8 @@ environments:
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/43/e3/7d92a15f894aa0c9c4b49b8ee9ac9850d6e63b03c9c32c0367a13ae62209/mpmath-1.3.0-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/7d/18/73dfa3e9d5d7450d39debde5b0d848139f7de23bd637a4506e36c9800fd6/msgpack-1.1.1-cp310-cp310-win_amd64.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/c0/53/cab1ad80356a4cd1b685a254b680167059b433b573e53872fab245e9fc95/multidict-6.6.4-cp310-cp310-win_amd64.whl
+      - pypi: https://mirrors.cloud.tencent.com/pypi/packages/9f/4f/90dc8c15c1441bf31cf0f9918bb077e452618708199e530f4cbd5cede6ff/mypy-1.18.2-cp310-cp310-win_amd64.whl
+      - pypi: https://mirrors.cloud.tencent.com/pypi/packages/79/7b/2c79738432f5c924bef5071f933bcc9efd0473bac3b4aa584a6f7c1c8df8/mypy_extensions-1.1.0-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/56/cb/9f42b21140161d5347516187e4f7825c1b809d7410e8d17af05426fed6ac/ncatbot-3.8.10.post5-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/b9/54/dd730b32ea14ea797530a4479b2ed46a6fb250f682a9cfb997e968bf0261/networkx-3.4.2-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/b1/c6/c2fb11e50482cb310afae87a997707f6c7d8a48967b9696271347441f650/numba-0.61.2-cp310-cp310-win_amd64.whl
@@ -1059,6 +1132,7 @@ environments:
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/e3/c0/7ebfaa327d9a9ed982adc0d9420dbce9a3fec45b60ab32c6308f731333fa/orjson-3.11.3-cp310-cp310-win_amd64.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/88/ef/eb23f262cca3c0c4eb7ab1933c3b1f03d021f2c48f54763065b6f0e321be/packaging-24.2-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/d8/df/5ab92fcd76455a632b3db34a746e1074d432c0cdbbd28d7cd1daba46a75d/pandas-2.3.2-cp310-cp310-win_amd64.whl
+      - pypi: https://mirrors.cloud.tencent.com/pypi/packages/cc/20/ff623b09d963f88bfde16306a54e12ee5ea43e9b597108672ff3a408aad6/pathspec-0.12.1-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/ed/3c/9831da3edea527c2ed9a09f31a2c04e77cd705847f13b69ca60269eec370/pillow-11.2.1-cp310-cp310-win_amd64.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/40/4b/2028861e724d3bd36227adfa20d3fd24c3fc6d52032f4a93c133be5d17ce/platformdirs-4.4.0-py3-none-any.whl
       - pypi: direct+https://www.piwheels.org/simple/playsound/playsound-1.3.0-py3-none-any.whl
@@ -1084,6 +1158,7 @@ environments:
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/59/90/2e75cbff0e17f16b83d2b7e8434ae9175cae8d6ff816c9b56d307cf53c86/pyside6-6.9.2-cp39-abi3-win_amd64.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/14/fa/396a2e86230c493b565e2dc89dc64e4b1c63582ac69afe77b693c3817a53/pyside6_addons-6.9.2-cp39-abi3-win_amd64.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/a8/e3/3b3e869d3e332b6db93f6f64fac3b12f5c48b84f03f2aa50ee5c044ec0de/pyside6_essentials-6.9.2-cp39-abi3-win_amd64.whl
+      - pypi: https://mirrors.cloud.tencent.com/pypi/packages/e9/2e/3488fa3baca56ff494b9502424675f5b14b11e966eb74d5adaf1811cd651/pyside6_stubs-6.7.3.0-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/8d/59/b4572118e098ac8e46e399a1dd0f2d85403ce8bbaad9ec79373ed6badaf9/PySocks-1.7.1-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/ec/57/56b9bcc3c9c6a792fcbaf139543cee77261f3651ca9da0c93f5c1221264b/python_dateutil-2.9.0.post0-py2.py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/5f/ed/539768cf28c661b5b068d66d96a2f155c4971a5d55684a514c1a0e0dec2f/python_dotenv-1.1.1-py3-none-any.whl
@@ -1128,6 +1203,7 @@ environments:
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/32/d5/f9a850d79b0851d1d4ef6456097579a9005b31fea68726a4ae5f2d82ddd9/threadpoolctl-3.6.0-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/94/75/eaa6068f47e8b3f0aab9e05177cce2cf5aa2cc0ca93981792e620d4d4117/tiktoken-0.11.0-cp310-cp310-win_amd64.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/41/f2/fd673d979185f5dcbac4be7d09461cbb99751554ffb6718d0013af8604cb/tokenizers-0.21.4-cp39-abi3-win_amd64.whl
+      - pypi: https://mirrors.cloud.tencent.com/pypi/packages/6e/c2/61d3e0f47e2b74ef40a68b9e6ad5984f6241a942f7cd3bbfbdbd03861ea9/tomli-2.2.1-py3-none-any.whl
       - pypi: https://mirrors.cloud.tencent.com/pypi/packages/68/4f/12207897848a653d03ebbf6775a29d949408ded5f99b2d87198bc5c93508/tomlkit-0.12.0-py3-none-any.whl
       - pypi: https://mirrors.nju.edu.cn/pytorch/whl/cu128/torch-2.7.1%2Bcu128-cp310-cp310-win_amd64.whl
       - pypi: https://mirrors.nju.edu.cn/pytorch/whl/cu128/torchaudio-2.7.1%2Bcu128-cp310-cp310-win_amd64.whl
@@ -2351,6 +2427,35 @@ packages:
   purls: []
   size: 26238
   timestamp: 1750744808182
+- conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/gettext-0.25.1-h3f43e3d_1.conda
+  sha256: cbfa8c80771d1842c2687f6016c5e200b52d4ca8f2cc119f6377f64f899ba4ff
+  md5: c42356557d7f2e37676e121515417e3b
+  depends:
+  - __glibc >=2.17,<3.0.a0
+  - gettext-tools 0.25.1 h3f43e3d_1
+  - libasprintf 0.25.1 h3f43e3d_1
+  - libasprintf-devel 0.25.1 h3f43e3d_1
+  - libgcc >=14
+  - libgettextpo 0.25.1 h3f43e3d_1
+  - libgettextpo-devel 0.25.1 h3f43e3d_1
+  - libiconv >=1.18,<2.0a0
+  - libstdcxx >=14
+  license: LGPL-2.1-or-later AND GPL-3.0-or-later
+  purls: []
+  size: 541357
+  timestamp: 1753343006214
+- conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/gettext-tools-0.25.1-h3f43e3d_1.conda
+  sha256: c792729288bdd94f21f25f80802d4c66957b4e00a57f7cb20513f07aadfaff06
+  md5: a59c05d22bdcbb4e984bf0c021a2a02f
+  depends:
+  - __glibc >=2.17,<3.0.a0
+  - libgcc >=14
+  - libiconv >=1.18,<2.0a0
+  license: GPL-3.0-or-later
+  license_family: GPL
+  purls: []
+  size: 3644103
+  timestamp: 1753342966311
 - pypi: https://mirrors.cloud.tencent.com/pypi/packages/a0/61/5c78b91c3143ed5c14207f463aecfc8f9dbb5092fb2869baf37c273b2705/gitdb-4.0.12-py3-none-any.whl
   name: gitdb
   version: 4.0.12
@@ -2388,6 +2493,7 @@ packages:
   - libgcc >=14
   - libglib 2.84.3 hf39c6af_0
   license: LGPL-2.1-or-later
+  purls: []
   size: 116716
   timestamp: 1754315054614
 - pypi: https://mirrors.cloud.tencent.com/pypi/packages/17/63/b19553b658a1692443c62bd07e5868adaa0ad746a0751ba62c59568cd45b/google_auth-2.40.3-py2.py3-none-any.whl
@@ -3062,6 +3168,28 @@ packages:
   purls: []
   size: 1370023
   timestamp: 1719463201255
+- conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/lame-3.100-h166bdaf_1003.tar.bz2
+  sha256: aad2a703b9d7b038c0f745b853c6bb5f122988fe1a7a096e0e606d9cbec4eaab
+  md5: a8832b479f93521a9e7b5b743803be51
+  depends:
+  - libgcc-ng >=12
+  license: LGPL-2.0-only
+  license_family: LGPL
+  purls: []
+  size: 508258
+  timestamp: 1664996250081
+- conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/lame-3.100-hcfcfb64_1003.tar.bz2
+  sha256: 824988a396b97bb9138823a1b3aabd8326e06da5834b3011253d72bb45fd3a88
+  md5: d92e64077c44c9e32c72d4b5799d47e4
+  depends:
+  - ucrt >=10.0.20348.0
+  - vc >=14.2,<15
+  - vs2015_runtime >=14.29.30139
+  license: LGPL-2.0-only
+  license_family: LGPL
+  purls: []
+  size: 570583
+  timestamp: 1664996824680
 - pypi: https://mirrors.cloud.tencent.com/pypi/packages/83/60/d497a310bde3f01cb805196ac61b7ad6dc5dcf8dce66634dc34364b20b4f/lazy_loader-0.4-py3-none-any.whl
   name: lazy-loader
   version: '0.4'
@@ -3110,6 +3238,28 @@ packages:
   purls: []
   size: 164701
   timestamp: 1745264384716
+- conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libasprintf-0.25.1-h3f43e3d_1.conda
+  sha256: cb728a2a95557bb6a5184be2b8be83a6f2083000d0c7eff4ad5bbe5792133541
+  md5: 3b0d184bc9404516d418d4509e418bdc
+  depends:
+  - __glibc >=2.17,<3.0.a0
+  - libgcc >=14
+  - libstdcxx >=14
+  license: LGPL-2.1-or-later
+  purls: []
+  size: 53582
+  timestamp: 1753342901341
+- conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libasprintf-devel-0.25.1-h3f43e3d_1.conda
+  sha256: 2fc95060efc3d76547b7872875af0b7212d4b1407165be11c5f830aeeb57fc3a
+  md5: fd9cf4a11d07f0ef3e44fc061611b1ed
+  depends:
+  - __glibc >=2.17,<3.0.a0
+  - libasprintf 0.25.1 h3f43e3d_1
+  - libgcc >=14
+  license: LGPL-2.1-or-later
+  purls: []
+  size: 34734
+  timestamp: 1753342921605
 - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libcups-2.3.3-hb8b1518_5.conda
   sha256: cb83980c57e311783ee831832eb2c20ecb41e7dee6e86e8b70b8cef0e43eab55
   md5: d4a250da4737ee127fb1fa6452a9002e
@@ -3210,6 +3360,34 @@ packages:
   purls: []
   size: 44978
   timestamp: 1743435053850
+- conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libflac-1.4.3-h59595ed_0.conda
+  sha256: 65908b75fa7003167b8a8f0001e11e58ed5b1ef5e98b96ab2ba66d7c1b822c7d
+  md5: ee48bf17cc83a00f59ca1494d5646869
+  depends:
+  - gettext >=0.21.1,<1.0a0
+  - libgcc-ng >=12
+  - libogg 1.3.*
+  - libogg >=1.3.4,<1.4.0a0
+  - libstdcxx-ng >=12
+  license: BSD-3-Clause
+  license_family: BSD
+  purls: []
+  size: 394383
+  timestamp: 1687765514062
+- conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libflac-1.4.3-h63175ca_0.conda
+  sha256: 965d1b9c957956a50797db24c031bdb3a604ef0e9a03713965513419aa1f99df
+  md5: 9aca744e428be2ced2f35b421bf19afa
+  depends:
+  - libogg 1.3.*
+  - libogg >=1.3.4,<1.4.0a0
+  - ucrt >=10.0.20348.0
+  - vc >=14.2,<15
+  - vc14_runtime >=14.29.30139
+  license: BSD-3-Clause
+  license_family: BSD
+  purls: []
+  size: 331119
+  timestamp: 1687766047396
 - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libfreetype-2.13.3-ha770c72_1.conda
   sha256: 7be9b3dac469fe3c6146ff24398b685804dfc7a1de37607b84abd076f57cc115
   md5: 51f5be229d83ecd401fb369ab96ae669
@@ -3268,6 +3446,7 @@ packages:
   - libgomp 15.1.0 h767d61c_4
   license: GPL-3.0-only WITH GCC-exception-3.1
   license_family: GPL
+  purls: []
   size: 824153
   timestamp: 1753903866511
 - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libgcc-15.1.0-h1383e82_4.conda
@@ -3338,6 +3517,31 @@ packages:
   purls: []
   size: 165838
   timestamp: 1737548342665
+- conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libgettextpo-0.25.1-h3f43e3d_1.conda
+  sha256: 50a9e9815cf3f5bce1b8c5161c0899cc5b6c6052d6d73a4c27f749119e607100
+  md5: 2f4de899028319b27eb7a4023be5dfd2
+  depends:
+  - __glibc >=2.17,<3.0.a0
+  - libgcc >=14
+  - libiconv >=1.18,<2.0a0
+  license: GPL-3.0-or-later
+  license_family: GPL
+  purls: []
+  size: 188293
+  timestamp: 1753342911214
+- conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libgettextpo-devel-0.25.1-h3f43e3d_1.conda
+  sha256: c7ea10326fd450a2a21955987db09dde78c99956a91f6f05386756a7bfe7cc04
+  md5: 3f7a43b3160ec0345c9535a9f0d7908e
+  depends:
+  - __glibc >=2.17,<3.0.a0
+  - libgcc >=14
+  - libgettextpo 0.25.1 h3f43e3d_1
+  - libiconv >=1.18,<2.0a0
+  license: GPL-3.0-or-later
+  license_family: GPL
+  purls: []
+  size: 37407
+  timestamp: 1753342931100
 - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libglib-2.84.3-hf39c6af_0.conda
   sha256: e1ad3d9ddaa18f95ff5d244587fd1a37aca6401707f85a37f7d9b5002fcf16d0
   md5: 467f23819b1ea2b89c3fc94d65082301
@@ -3351,6 +3555,7 @@ packages:
   constrains:
   - glib 2.84.3 *_0
   license: LGPL-2.1-or-later
+  purls: []
   size: 3961899
   timestamp: 1754315006443
 - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libglib-2.84.3-h1c1036b_0.conda
@@ -3368,6 +3573,7 @@ packages:
   constrains:
   - glib 2.84.3 *_0
   license: LGPL-2.1-or-later
+  purls: []
   size: 3826069
   timestamp: 1754315362939
 - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libgomp-15.1.0-h767d61c_4.conda
@@ -3398,6 +3604,7 @@ packages:
   - __glibc >=2.17,<3.0.a0
   - libgcc >=14
   license: LGPL-2.1-only
+  purls: []
   size: 790176
   timestamp: 1754908768807
 - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libiconv-1.18-hc1393d2_2.conda
@@ -3470,6 +3677,41 @@ packages:
   purls: []
   size: 104935
   timestamp: 1749230611612
+- conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/liblzma-devel-5.8.1-hb9d3cd8_2.conda
+  sha256: 329e66330a8f9cbb6a8d5995005478188eb4ba8a6b6391affa849744f4968492
+  md5: f61edadbb301530bd65a32646bd81552
+  depends:
+  - __glibc >=2.17,<3.0.a0
+  - libgcc >=13
+  - liblzma 5.8.1 hb9d3cd8_2
+  license: 0BSD
+  purls: []
+  size: 439868
+  timestamp: 1749230061968
+- conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/liblzma-devel-5.8.1-h2466b09_2.conda
+  sha256: 1ccff927a2d768403bad85e36ca3e931d96890adb4f503e1780c3412dd1e1298
+  md5: 42c90c4941c59f1b9f8fab627ad8ae76
+  depends:
+  - liblzma 5.8.1 h2466b09_2
+  - ucrt >=10.0.20348.0
+  - vc >=14.2,<15
+  - vc14_runtime >=14.29.30139
+  license: 0BSD
+  purls: []
+  size: 129344
+  timestamp: 1749230637001
+- conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libmad-0.15.1b-hcfcfb64_1001.conda
+  sha256: 466af4bb68679fd2c37b5811601cd80dabd7ba53b27e18a5a9ccab5138eb9aed
+  md5: b6689654bd79a44e67f4d6ecca3d8b5b
+  depends:
+  - ucrt >=10.0.20348.0
+  - vc >=14.2,<15
+  - vs2015_runtime >=14.29.30139
+  license: GPL-2.0-only
+  license_family: GPL
+  purls: []
+  size: 92960
+  timestamp: 1670816129705
 - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libnsl-2.0.1-hb9d3cd8_1.conda
   sha256: 927fe72b054277cde6cb82597d0fcf6baf127dcbce2e0a9d8925a68f1265eef5
   md5: d864d34357c3b65a4b731f78c0801dc4
@@ -3481,6 +3723,58 @@ packages:
   purls: []
   size: 33731
   timestamp: 1750274110928
+- conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libogg-1.3.5-hd0c01bc_1.conda
+  sha256: ffb066ddf2e76953f92e06677021c73c85536098f1c21fcd15360dbc859e22e4
+  md5: 68e52064ed3897463c0e958ab5c8f91b
+  depends:
+  - libgcc >=13
+  - __glibc >=2.17,<3.0.a0
+  license: BSD-3-Clause
+  license_family: BSD
+  purls: []
+  size: 218500
+  timestamp: 1745825989535
+- conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libogg-1.3.5-h2466b09_1.conda
+  sha256: c63e5fb169dbd192aacdcee6e37235407f106b8ca9c9036942a25e0366cbc73c
+  md5: b67ed8c9ca072695ff482e50d888a523
+  depends:
+  - vc >=14.2,<15
+  - vc14_runtime >=14.29.30139
+  - ucrt >=10.0.20348.0
+  - vc >=14.2,<15
+  - vc14_runtime >=14.29.30139
+  - ucrt >=10.0.20348.0
+  license: BSD-3-Clause
+  license_family: BSD
+  purls: []
+  size: 35040
+  timestamp: 1745826086628
+- conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libopus-1.5.2-hd0c01bc_0.conda
+  sha256: 786d43678d6d1dc5f88a6bad2d02830cfd5a0184e84a8caa45694049f0e3ea5f
+  md5: b64523fb87ac6f87f0790f324ad43046
+  depends:
+  - libgcc >=13
+  - __glibc >=2.17,<3.0.a0
+  license: BSD-3-Clause
+  license_family: BSD
+  purls: []
+  size: 312472
+  timestamp: 1744330953241
+- conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libopus-1.5.2-h2466b09_0.conda
+  sha256: 4c5e04de758450f9427a75095a54957de521b57234711374fac1cdc89fc7a9ca
+  md5: 67c18f2110921f6307a608050cd153f8
+  depends:
+  - vc >=14.2,<15
+  - vc14_runtime >=14.29.30139
+  - ucrt >=10.0.20348.0
+  - vc >=14.2,<15
+  - vc14_runtime >=14.29.30139
+  - ucrt >=10.0.20348.0
+  license: BSD-3-Clause
+  license_family: BSD
+  purls: []
+  size: 289268
+  timestamp: 1744330990400
 - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libpng-1.6.50-h421ea60_1.conda
   sha256: e75a2723000ce3a4b9fd9b9b9ce77553556c93e475a4657db6ed01abc02ea347
   md5: 7af8e91b0deb5f8e25d1a595dea79614
@@ -3567,6 +3861,41 @@ packages:
   purls: []
   size: 6543651
   timestamp: 1743368725313
+- conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libsndfile-1.2.2-hc60ed4a_1.conda
+  sha256: f709cbede3d4f3aee4e2f8d60bd9e256057f410bd60b8964cb8cf82ec1457573
+  md5: ef1910918dd895516a769ed36b5b3a4e
+  depends:
+  - lame >=3.100,<3.101.0a0
+  - libflac >=1.4.3,<1.5.0a0
+  - libgcc-ng >=12
+  - libogg >=1.3.4,<1.4.0a0
+  - libopus >=1.3.1,<2.0a0
+  - libstdcxx-ng >=12
+  - libvorbis >=1.3.7,<1.4.0a0
+  - mpg123 >=1.32.1,<1.33.0a0
+  license: LGPL-2.1-or-later
+  license_family: LGPL
+  purls: []
+  size: 354372
+  timestamp: 1695747735668
+- conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libsndfile-1.2.2-h81429f1_1.conda
+  sha256: e73454d76600243cd8dc6a64a3121a393c03871ee2d044859db027998920a94e
+  md5: 54f4ab13d4f8f4f4660676903a7869a1
+  depends:
+  - lame >=3.100,<3.101.0a0
+  - libflac >=1.4.3,<1.5.0a0
+  - libogg >=1.3.4,<1.4.0a0
+  - libopus >=1.3.1,<2.0a0
+  - libvorbis >=1.3.7,<1.4.0a0
+  - mpg123 >=1.32.1,<1.33.0a0
+  - ucrt >=10.0.20348.0
+  - vc >=14.2,<15
+  - vc14_runtime >=14.29.30139
+  license: LGPL-2.1-or-later
+  license_family: LGPL
+  purls: []
+  size: 337446
+  timestamp: 1695748182638
 - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libsqlite-3.50.4-h0c1763c_0.conda
   sha256: 6d9c32fc369af5a84875725f7ddfbfc2ace795c28f246dc70055a79f9b2003da
   md5: 0b367fad34931cb79e0d6b7e5c06bb1c
@@ -3623,6 +3952,7 @@ packages:
   - libzlib >=1.3.1,<2.0a0
   - zstd >=1.5.7,<1.6.0a0
   license: HPND
+  purls: []
   size: 433078
   timestamp: 1755011934951
 - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libtiff-4.7.0-h550210a_6.conda
@@ -3639,6 +3969,7 @@ packages:
   - vc14_runtime >=14.44.35208
   - zstd >=1.5.7,<1.6.0a0
   license: HPND
+  purls: []
   size: 983988
   timestamp: 1755012056987
 - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libuuid-2.38.1-h0b41bf4_0.conda
@@ -3651,6 +3982,38 @@ packages:
   purls: []
   size: 33601
   timestamp: 1680112270483
+- conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libvorbis-1.3.7-h54a6638_2.conda
+  sha256: ca494c99c7e5ecc1b4cd2f72b5584cef3d4ce631d23511184411abcbb90a21a5
+  md5: b4ecbefe517ed0157c37f8182768271c
+  depends:
+  - libogg
+  - libgcc >=14
+  - __glibc >=2.17,<3.0.a0
+  - libstdcxx >=14
+  - libgcc >=14
+  - libogg >=1.3.5,<1.4.0a0
+  license: BSD-3-Clause
+  license_family: BSD
+  purls: []
+  size: 285894
+  timestamp: 1753879378005
+- conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/libvorbis-1.3.7-h5112557_2.conda
+  sha256: 429124709c73b2e8fae5570bdc6b42f5418a7551ba72e591bb960b752e87b365
+  md5: 42a8a56c60882da5d451aa95b8455111
+  depends:
+  - libogg
+  - vc >=14.3,<15
+  - vc14_runtime >=14.44.35208
+  - ucrt >=10.0.20348.0
+  - vc >=14.3,<15
+  - vc14_runtime >=14.44.35208
+  - ucrt >=10.0.20348.0
+  - libogg >=1.3.5,<1.4.0a0
+  license: BSD-3-Clause
+  license_family: BSD
+  purls: []
+  size: 243401
+  timestamp: 1753879416570
 - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/libwebp-base-1.6.0-hd42ef1d_0.conda
   sha256: 3aed21ab28eddffdaf7f804f49be7a7d701e8f0e46c856d801270b470820a37b
   md5: aea31d2e5b1091feca96fcfe945c3cf9
@@ -4371,6 +4734,16 @@ packages:
   - beautifulsoup4 ; extra == 'htmlsoup'
   - lxml-html-clean ; extra == 'html-clean'
   requires_python: '>=3.6'
+- conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/mad-0.15.1b-h9c3ff4c_1.tar.bz2
+  sha256: 55a8c3bc156fac8aad1f9ff64a9829fb0f38d2f8db63c0f77a9c5944e8ca1b92
+  md5: b263b8f33e08b7f866b5bb0b877ba559
+  depends:
+  - libgcc-ng >=9.4.0
+  - libstdcxx-ng >=9.4.0
+  license: GPL
+  purls: []
+  size: 116187
+  timestamp: 1634874393412
 - pypi: https://mirrors.cloud.tencent.com/pypi/packages/96/2b/34cc11786bc00d0f04d0f5fdc3a2b1ae0b6239eef72d3d345805f9ad92a1/markdown-3.8.2-py3-none-any.whl
   name: markdown
   version: 3.8.2
@@ -4972,6 +5345,30 @@ packages:
   version: 10.7.0
   sha256: d43980384673cb07d2f7d2d918c616b30c659c089ee23953f601d6609c67510e
   requires_python: '>=3.9'
+- conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/mpg123-1.32.9-hc50e24c_0.conda
+  sha256: 39c4700fb3fbe403a77d8cc27352fa72ba744db487559d5d44bf8411bb4ea200
+  md5: c7f302fd11eeb0987a6a5e1f3aed6a21
+  depends:
+  - __glibc >=2.17,<3.0.a0
+  - libgcc >=13
+  - libstdcxx >=13
+  license: LGPL-2.1-only
+  license_family: LGPL
+  purls: []
+  size: 491140
+  timestamp: 1730581373280
+- conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/mpg123-1.32.9-h01009b0_0.conda
+  sha256: a1d7d25f2c448f5c47d1678cca1f6ae5deadb38e176ea0c76ea5c688589dfd7a
+  md5: 1ed1580d4211223b285787eff05560f9
+  depends:
+  - ucrt >=10.0.20348.0
+  - vc >=14.2,<15
+  - vc14_runtime >=14.29.30139
+  license: LGPL-2.1-only
+  license_family: LGPL
+  purls: []
+  size: 274386
+  timestamp: 1730581654395
 - pypi: https://mirrors.cloud.tencent.com/pypi/packages/43/e3/7d92a15f894aa0c9c4b49b8ee9ac9850d6e63b03c9c32c0367a13ae62209/mpmath-1.3.0-py3-none-any.whl
   name: mpmath
   version: 1.3.0
@@ -5009,6 +5406,41 @@ packages:
   requires_dist:
   - typing-extensions>=4.1.0 ; python_full_version < '3.11'
   requires_python: '>=3.9'
+- pypi: https://mirrors.cloud.tencent.com/pypi/packages/4f/01/f6e4b9f0d031c11ccbd6f17da26564f3a0f3c4155af344006434b0a05a9d/mypy-1.18.2-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+  name: mypy
+  version: 1.18.2
+  sha256: f9e171c465ad3901dc652643ee4bffa8e9fef4d7d0eece23b428908c77a76a66
+  requires_dist:
+  - typing-extensions>=4.6.0
+  - mypy-extensions>=1.0.0
+  - pathspec>=0.9.0
+  - tomli>=1.1.0 ; python_full_version < '3.11'
+  - psutil>=4.0 ; extra == 'dmypy'
+  - setuptools>=50 ; extra == 'mypyc'
+  - lxml ; extra == 'reports'
+  - pip ; extra == 'install-types'
+  - orjson ; extra == 'faster-cache'
+  requires_python: '>=3.9'
+- pypi: https://mirrors.cloud.tencent.com/pypi/packages/9f/4f/90dc8c15c1441bf31cf0f9918bb077e452618708199e530f4cbd5cede6ff/mypy-1.18.2-cp310-cp310-win_amd64.whl
+  name: mypy
+  version: 1.18.2
+  sha256: 7fb95f97199ea11769ebe3638c29b550b5221e997c63b14ef93d2e971606ebed
+  requires_dist:
+  - typing-extensions>=4.6.0
+  - mypy-extensions>=1.0.0
+  - pathspec>=0.9.0
+  - tomli>=1.1.0 ; python_full_version < '3.11'
+  - psutil>=4.0 ; extra == 'dmypy'
+  - setuptools>=50 ; extra == 'mypyc'
+  - lxml ; extra == 'reports'
+  - pip ; extra == 'install-types'
+  - orjson ; extra == 'faster-cache'
+  requires_python: '>=3.9'
+- pypi: https://mirrors.cloud.tencent.com/pypi/packages/79/7b/2c79738432f5c924bef5071f933bcc9efd0473bac3b4aa584a6f7c1c8df8/mypy_extensions-1.1.0-py3-none-any.whl
+  name: mypy-extensions
+  version: 1.1.0
+  sha256: 1be4cccdb0f2482337c4743e60421de3a356cd97508abadd57d47403e94f5505
+  requires_python: '>=3.8'
 - pypi: https://mirrors.cloud.tencent.com/pypi/packages/56/cb/9f42b21140161d5347516187e4f7825c1b809d7410e8d17af05426fed6ac/ncatbot-3.8.10.post5-py3-none-any.whl
   name: ncatbot
   version: 3.8.10.post5
@@ -5343,6 +5775,7 @@ packages:
   - libgcc >=14
   license: Apache-2.0
   license_family: Apache
+  purls: []
   size: 3128847
   timestamp: 1754465526100
 - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/openssl-3.5.2-h725018a_0.conda
@@ -5597,6 +6030,11 @@ packages:
   purls: []
   size: 454854
   timestamp: 1751292618315
+- pypi: https://mirrors.cloud.tencent.com/pypi/packages/cc/20/ff623b09d963f88bfde16306a54e12ee5ea43e9b597108672ff3a408aad6/pathspec-0.12.1-py3-none-any.whl
+  name: pathspec
+  version: 0.12.1
+  sha256: a0d503e138a4c123b27490a4f7beda6a01c6f288df0e4a8b79c7eb0dc7b4cc08
+  requires_python: '>=3.8'
 - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/pcre2-10.45-hc749103_0.conda
   sha256: 27c4014f616326240dcce17b5f3baca3953b6bc5f245ceb49c3fa1e6320571eb
   md5: b90bece58b4c2bf25969b70f3be42d25
@@ -6092,6 +6530,15 @@ packages:
   requires_dist:
   - shiboken6==6.9.2
   requires_python: '>=3.9,<3.14'
+- pypi: https://mirrors.cloud.tencent.com/pypi/packages/e9/2e/3488fa3baca56ff494b9502424675f5b14b11e966eb74d5adaf1811cd651/pyside6_stubs-6.7.3.0-py3-none-any.whl
+  name: pyside6-stubs
+  version: 6.7.3.0
+  sha256: 7a2ef0d7486939f240e745829f80887ec3eab280e52c9930d64b48b3de95042a
+  requires_dist:
+  - mypy>=1.0
+  - pyside6>=6.0
+  - pytest ; extra == 'dev'
+  requires_python: '>=3.7'
 - pypi: https://mirrors.cloud.tencent.com/pypi/packages/8d/59/b4572118e098ac8e46e399a1dd0f2d85403ce8bbaad9ec79373ed6badaf9/PySocks-1.7.1-py3-none-any.whl
   name: pysocks
   version: 1.7.1
@@ -6836,6 +7283,51 @@ packages:
   version: '2.7'
   sha256: 6e60cc5c1ffaf1cebcc12e8188320b72071e922c2e897f737cadce79ad5d30c4
   requires_python: '>=3.8'
+- conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/sox-14.4.2-h59a48fd_1020.conda
+  sha256: d72087a47210840ce1844e1887f09c813f9df3d97309ca8c8bb8765e1073a856
+  md5: 13108ecb36ee53c1819feb8eb35d928b
+  depends:
+  - __glibc >=2.17,<3.0.a0
+  - lame >=3.100,<3.101.0a0
+  - libflac >=1.4.3,<1.5.0a0
+  - libgcc >=13
+  - liblzma >=5.6.3,<6.0a0
+  - liblzma-devel
+  - libopus >=1.3.1,<2.0a0
+  - libpng >=1.6.44,<1.7.0a0
+  - libsndfile >=1.2.2,<1.3.0a0
+  - libvorbis >=1.3.7,<1.4.0a0
+  - libzlib >=1.3.1,<2.0a0
+  - mad >=0.15.1b,<0.16.0a0
+  - zlib
+  license: GPL-2.0-only
+  license_family: GPL
+  purls: []
+  size: 508154
+  timestamp: 1733947078365
+- conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/sox-14.4.2-hd84d653_1020.conda
+  sha256: 5ac49659414f58dbc80c977f4470a51f5a82e367795a4788c52836333f85bff3
+  md5: 16c6de8c15bb532f382fbb3180e1c956
+  depends:
+  - lame >=3.100,<3.101.0a0
+  - libflac >=1.4.3,<1.5.0a0
+  - liblzma >=5.6.3,<6.0a0
+  - liblzma-devel
+  - libmad >=0.15.1b,<0.16.0a0
+  - libopus >=1.3.1,<2.0a0
+  - libpng >=1.6.44,<1.7.0a0
+  - libsndfile >=1.2.2,<1.3.0a0
+  - libvorbis >=1.3.7,<1.4.0a0
+  - libzlib >=1.3.1,<2.0a0
+  - ucrt >=10.0.20348.0
+  - vc >=14.2,<15
+  - vc14_runtime >=14.29.30139
+  - zlib
+  license: GPL-2.0-only
+  license_family: GPL
+  purls: []
+  size: 724553
+  timestamp: 1733947346384
 - pypi: https://mirrors.cloud.tencent.com/pypi/packages/ad/64/86082b6372e5ff807dfa79b857da9f50e94e155706000daa43fdc3b59851/soxr-0.5.0.post1-cp310-cp310-win_amd64.whl
   name: soxr
   version: 0.5.0.post1
@@ -6881,7 +7373,7 @@ packages:
 - pypi: ./
   name: swarmclone
   version: 0.1.0
-  sha256: 5d29de47e57d29ba7f9732db40cec10c11f41d76c293dacae7d0edc21f9bc616
+  sha256: 1901674b72add402d8fd7e9be13d715259021aebfa7758eed08c9c9114c3baba
   requires_python: '>=3.10,<3.11'
   editable: true
 - pypi: https://mirrors.cloud.tencent.com/pypi/packages/a2/09/77d55d46fd61b4a135c444fc97158ef34a095e5681d0a6c10b75bf356191/sympy-1.14.0-py3-none-any.whl
@@ -7023,6 +7515,11 @@ packages:
   - setuptools-rust ; extra == 'docs'
   - tokenizers[testing] ; extra == 'dev'
   requires_python: '>=3.9'
+- pypi: https://mirrors.cloud.tencent.com/pypi/packages/6e/c2/61d3e0f47e2b74ef40a68b9e6ad5984f6241a942f7cd3bbfbdbd03861ea9/tomli-2.2.1-py3-none-any.whl
+  name: tomli
+  version: 2.2.1
+  sha256: cb55c73c5f4408779d0cf3eef9f762b9c9f147a77de7b258bef0a5628adc85cc
+  requires_python: '>=3.8'
 - pypi: https://mirrors.cloud.tencent.com/pypi/packages/68/4f/12207897848a653d03ebbf6775a29d949408ded5f99b2d87198bc5c93508/tomlkit-0.12.0-py3-none-any.whl
   name: tomlkit
   version: 0.12.0
@@ -8295,6 +8792,31 @@ packages:
   - pytest-enabler>=2.2 ; extra == 'enabler'
   - pytest-mypy ; extra == 'type'
   requires_python: '>=3.9'
+- conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/zlib-1.3.1-hb9d3cd8_2.conda
+  sha256: 5d7c0e5f0005f74112a34a7425179f4eb6e73c92f5d109e6af4ddeca407c92ab
+  md5: c9f075ab2f33b3bbee9e62d4ad0a6cd8
+  depends:
+  - __glibc >=2.17,<3.0.a0
+  - libgcc >=13
+  - libzlib 1.3.1 hb9d3cd8_2
+  license: Zlib
+  license_family: Other
+  purls: []
+  size: 92286
+  timestamp: 1727963153079
+- conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/win-64/zlib-1.3.1-h2466b09_2.conda
+  sha256: 8c688797ba23b9ab50cef404eca4d004a948941b6ee533ead0ff3bf52012528c
+  md5: be60c4e8efa55fddc17b4131aa47acbd
+  depends:
+  - libzlib 1.3.1 h2466b09_2
+  - ucrt >=10.0.20348.0
+  - vc >=14.2,<15
+  - vc14_runtime >=14.29.30139
+  license: Zlib
+  license_family: Other
+  purls: []
+  size: 107439
+  timestamp: 1727963788936
 - conda: https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge/linux-64/zstd-1.5.7-hb8e6e7a_2.conda
   sha256: a4166e3d8ff4e35932510aaff7aa90772f84b4d07e9f6f83c614cba7ceefe0eb
   md5: 6432cb5d4ac0046c3ac0a8a0f95842f9
