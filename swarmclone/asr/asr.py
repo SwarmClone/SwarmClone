@@ -41,7 +41,7 @@ class ASRSherpaConfig(ModuleConfig):
             {"key": "8位整型", "value": "int8"}
         ]
     })
-    model_path: str = field(default="~/.swarmclone/asr/", metadata={
+    model_path: str = field(default="./models/asr/", metadata={
         "required": False,
         "desc": "语音识别模型位置"
     })

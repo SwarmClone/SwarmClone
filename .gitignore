@@ -187,3 +187,6 @@ CLAUDE.md
 # pixi environments
 .pixi/*
 !.pixi/config.toml
+
+# SwarmClone models
+models/
