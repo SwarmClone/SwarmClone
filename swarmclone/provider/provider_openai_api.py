@@ -5,6 +5,7 @@
 - 尚未有独立实现的模型提供者
 """
 import openai
+from torch.cuda import temperature
 from swarmclone.module_bootstrap import *
 
 @dataclass
@@ -22,6 +23,11 @@ class ProviderOpenAIAPIConfig(ModuleConfig):
         "required": True,
         "desc": "OpenAI API 模型名称"
     })
+    temperature: float = field(default=0.7, metadata={
+        "min": 0.0,
+        "max": 1.0,
+        "desc": "OpenAI API 温度参数"
+    })
 
 class PrimaryProviderOpenAIAPI(ModuleBase):
     role: ModuleRoles = ModuleRoles.PRIMARY_PROVIDER
@@ -32,6 +38,7 @@ class PrimaryProviderOpenAIAPI(ModuleBase):
         self.api_base = self.config.api_base
         self.api_key = self.config.api_key
         self.model = self.config.model
+        self.temperature = self.config.temperature
         self.client = openai.AsyncOpenAI(
             api_key=self.api_key,
             base_url=self.api_base,
@@ -45,7 +52,7 @@ class PrimaryProviderOpenAIAPI(ModuleBase):
                 if not isinstance(message, ProviderRequest):
                     continue # 不是需要处理的请求
                 request_data = message.get_value(self)
-                request_source = type(message.source)
+                request_source = type(message.source) # 精准回复到请求源
                 stream = request_data["stream"]
                 messages = request_data["messages"]
                 if stream:
@@ -63,6 +70,7 @@ class PrimaryProviderOpenAIAPI(ModuleBase):
             model=self.model,
             messages=messages,
             stream=True,
+            temperature=self.temperature
         ):
             if not chunk.choices:
                 continue
@@ -87,11 +95,15 @@ class PrimaryProviderOpenAIAPI(ModuleBase):
             model=self.model,
             messages=messages,
             stream=False,
+            temperature=self.temperature
         )
         await self.results_queue.put(ProviderResponseNonStream(
             source=self,
             content=response.choices[0].message.content,
             destination=source,
-        ))            
+        ))
 
-__all__ = ["PrimaryProviderOpenAIAPI"]
+class SecondaryProviderOpenAIAPI(PrimaryProviderOpenAIAPI):
+    role: ModuleRoles = ModuleRoles.SECONDARY_PROVIDER
+
+__all__ = ["PrimaryProviderOpenAIAPI", "SecondaryProviderOpenAIAPI"]
