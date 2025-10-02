@@ -124,7 +124,7 @@ npm run build
 ```console
 python -m swarmclone
 ```
-随后进入终端给出的网址即可引入网页控制端。
+随后进入 `http://localhost:8000` 即可引入网页控制端。
 
 ---
 
