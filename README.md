@@ -1,9 +1,8 @@
 <div align="center">
 <img src="docs/assets/heading.png"/>
-<br><br>
-<strong>简体中文</strong> | <a href="./docs/README_en.md">English</a>
 <br>
-<h2>一个完全开源、可高度定制的AI虚拟主播开发框架</h2>
+<strong>简体中文</strong> | <a href="./docs/README_en.md">English</a>
+<br><br>
 <!-下面这行空行千万别删->
 
 ![STARS](https://img.shields.io/github/stars/SwarmClone/SwarmClone?color=yellow&label=Github%20Stars)
