@@ -1,8 +1,6 @@
 <div align="center">
 <img src="docs/assets/heading.png"/>
 <br>
-<strong>简体中文</strong> | <a href="./docs/README_en.md">English</a>
-<br><br>
 <!-下面这行空行千万别删->
 
 ![STARS](https://img.shields.io/github/stars/SwarmClone/SwarmClone?color=yellow&label=Github%20Stars)
@@ -10,6 +8,9 @@
 [![Python](https://img.shields.io/badge/Python-3.10~3.12-blue.svg)](https://www.python.org)
 [![Status](https://img.shields.io/badge/Status-Active-brightgreen.svg)]()
 [![QQ群](https://custom-icon-badges.demolab.com/badge/QQ群-1048307485-00BFFF?style=flat&logo=tencent-qq)](https://qm.qq.com/q/8IUfgmDqda)
+</div>
+<div align="center">
+<strong>简体中文</strong> | <a href="./docs/README_en.md">English</a>
 </div>
 
 ---
