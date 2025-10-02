@@ -1,7 +1,6 @@
-# SwarmClone 蜂群克隆计划：打造你的开源 AI 虚拟主播
 <div align="center">
-<img src="docs/assets/logo.png" width="200" height="200" />
-<br>
+<img src="docs/assets/heading.png"/>
+<br><br>
 <strong>简体中文</strong> | <a href="./docs/README_en.md">English</a>
 <br>
 <h2>一个完全开源、可高度定制的AI虚拟主播开发框架</h2>
