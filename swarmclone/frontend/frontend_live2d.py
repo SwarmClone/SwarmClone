@@ -31,7 +31,7 @@ class ModelLabel(QLabel):
         self.setWordWrap(True)
         self.setFixedHeight(100)
     
-    def paintEvent(self, event: QPaintEvent, /) -> None:
+    def paintEvent(self, arg__1: QPaintEvent) -> None:
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         brush = QBrush(QColor(0, 0, 0, 200))
@@ -76,7 +76,7 @@ class ChatRecordWidget(QTextEdit):
         self.setReadOnly(True)
         self.appendRecord("系统", "开始")
 
-    def paintEvent(self, event): # By: Kimi-K2
+    def paintEvent(self, e: QPaintEvent): # By: Kimi-K2
         # 1. 在 viewport 上绘制背景
         painter = QPainter(self.viewport())
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
@@ -90,7 +90,7 @@ class ChatRecordWidget(QTextEdit):
         painter.drawRoundedRect(rect, 12, 12)
 
         # 3. 继续让父类完成文本本身的绘制
-        super().paintEvent(event)
+        super().paintEvent(e)
     
     def appendRecord(self, name: str, content: str):
         processed_content = markdown(content).strip()
@@ -129,7 +129,7 @@ class Live2DWidget(QOpenGLWidget):
         self.model.LoadModelJson(self.model_path)
         self.startTimer(1000 // 120)
     
-    def resizeGL(self, w: int, h: int, /) -> None:
+    def resizeGL(self, w: int, h: int) -> None:
         glViewport(0, 0, w, h)
         self.model.Resize(w, h)
     
@@ -140,7 +140,7 @@ class Live2DWidget(QOpenGLWidget):
             self.model.SetParameterValue("ParamMouthOpenY", self.wav_hander.currentRms * self.lip_sync_n)
         self.model.Draw()
     
-    def timerEvent(self, event: QTimerEvent, /) -> None:
+    def timerEvent(self, event: QTimerEvent) -> None:
         self.update()
     
     def speak(self, fname: str):
@@ -181,15 +181,15 @@ class FrontendWindow(QMainWindow):
 
         self._drag_pos: QPoint | None = None
     
-    def mousePressEvent(self, e: QMouseEvent):
-        if e.button() == Qt.MouseButton.LeftButton:
-            self._drag_pos = e.globalPosition().toPoint()
+    def mousePressEvent(self, event: QMouseEvent):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self._drag_pos = event.globalPosition().toPoint()
 
-    def mouseMoveEvent(self, e: QMouseEvent):
-        if e.buttons() & Qt.MouseButton.LeftButton and self._drag_pos is not None:
-            delta = e.globalPosition().toPoint() - self._drag_pos
+    def mouseMoveEvent(self, event: QMouseEvent):
+        if event.buttons() & Qt.MouseButton.LeftButton and self._drag_pos is not None:
+            delta = event.globalPosition().toPoint() - self._drag_pos
             self.move(self.pos() + delta)
-            self._drag_pos = e.globalPosition().toPoint()
+            self._drag_pos = event.globalPosition().toPoint()
 
 @dataclass
 class FrontendLive2DConfig(ModuleConfig):
