@@ -99,7 +99,7 @@ powershell -ExecutionPolicy ByPass -c "irm -useb https://pixi.sh/install.ps1 | i
 ```console
 pixi install
 ```
->💡在 Windows 系统下 deepspeed 的安装有可能引发错误，声称无法导入 torch，可以设置 `DS_BUILD_OPS="0"` 环境变量并重新运行上述命令解决。
+>💡在 Windows 系统下 deepspeed 的安装有可能引发错误，声称无法导入 torch，可以在 powershell 下运行 `$env:DS_BUILD_OPS="0"` 以设置环境变量然后重新运行上述命令解决。
 
 ### 4. 设置 Node.js 环境
 
