@@ -1,16 +1,11 @@
 <div align="center">
 <img src="docs/assets/heading.png"/>
 <br><br>
-</div>
-<div align="center">
-<h2>Project SwarmClone</h2>
-</div>
-<div align="center">
 一个完全开源、可高度定制的AI虚拟主播开发框架
-<br>
+<br><br>
 <strong>简体中文</strong> | <a href="./docs/README_en.md">English</a>
 </div>
-<br><br>
+<br>
 <!-下面这行空行千万别删->
 
 ![STARS](https://img.shields.io/github/stars/SwarmClone/SwarmClone?color=yellow&label=Github%20Stars)
