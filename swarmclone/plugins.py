@@ -2,6 +2,7 @@ from dataclasses import field, dataclass
 from json import loads
 from swarmclone.module_bootstrap import *
 from time import time
+from typing import Any
 
 @dataclass
 class ScheduledPlaylistConfig(ModuleConfig):
@@ -19,7 +20,7 @@ class ScheduledPlaylist(ModuleBase):
         super().__init__(config, **kwargs)
         self.playlist = loads(self.config.playlist)
     
-    async def process_task(self, task: Message | None) -> Message | None:
+    async def process_task(self, task: Message[Any] | None) -> Message[Any] | None:
         for song_id, song_info in self.playlist.items():
             if time() >= song_info["start_time"]:
                 del self.playlist[song_id]

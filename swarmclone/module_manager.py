@@ -24,8 +24,8 @@ class ModuleBase(metaclass=ModuleManager):
     name: str = "ModuleBase" # 会由metaclass自动赋值为类名
     def __init__(self, config: config_class | None = None, **kwargs):
         self.config = self.config_class(**kwargs) if config is None else config
-        self.task_queue: asyncio.Queue[Message] = asyncio.Queue(maxsize=128)
-        self.results_queue: asyncio.Queue[Message] = asyncio.Queue(maxsize=128)
+        self.task_queue: asyncio.Queue[Message[Any]] = asyncio.Queue(maxsize=128)
+        self.results_queue: asyncio.Queue[Message[Any]] = asyncio.Queue(maxsize=128)
         self.running = False
         self.err: BaseException | None = None
     
@@ -152,7 +152,7 @@ class ModuleBase(metaclass=ModuleManager):
         
         return config_info
 
-    async def process_task(self, task: Message | None) -> Message | None:
+    async def process_task(self, task: Message[Any] | None) -> Message[Any] | None:
         """
         处理任务的方法，每个循环会自动调用
         返回None表示不需要返回结果，返回Message对象则表示需要返回结果，返回的对象会自动放入results_queue中。

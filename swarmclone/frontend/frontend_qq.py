@@ -1,6 +1,7 @@
 from __future__ import annotations
 from swarmclone.module_bootstrap import *
 from swarmclone.chat.chat_qq import *
+from typing import Any
 
 import random
 
@@ -33,7 +34,7 @@ class NCatBotFrontend(ModuleBase):
     def get_sleep_time(self) -> float:
         return random.random() * (self.config.sleeptime_max - self.config.sleeptime_min) + self.config.sleeptime_min
     
-    async def process_task(self, task: Message | None) -> Message | None:
+    async def process_task(self, task: Message[Any] | None) -> Message[Any] | None:
         if isinstance(task, LLMMessage):
             self.llm_buffer += task.get_value(self).get("content", "")
         elif isinstance(task, LLMEOS) and self.llm_buffer:

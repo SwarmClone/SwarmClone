@@ -27,7 +27,7 @@ class Controller:
         self.module_tasks: list[asyncio.Task[Any]] = []
         self.handler_tasks: list[asyncio.Task[Any]] = []
         self.agent: ModuleBase = ControllerDummy()
-        self.messages_buffer: deque[Message] = deque(maxlen=200)
+        self.messages_buffer: deque[Message[Any]] = deque(maxlen=200)
         self.started: bool = False
 
     def add_module(self, module: ModuleBase):
@@ -291,7 +291,7 @@ class Controller:
                 return Response(status_code=404)
             return HTMLResponse(open("panel/dist/index.html").read())
 
-    async def handle_message(self, message: Message):
+    async def handle_message(self, message: Message[Any]):
         for destination in message.destinations:
             if isinstance(destination, type):
                 for _module_role, modules in self.modules.items():
