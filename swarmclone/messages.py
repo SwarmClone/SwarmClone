@@ -1,16 +1,17 @@
 from __future__ import annotations # 为了延迟注解评估
 
 import time
-from typing import TYPE_CHECKING, Any, TypeVar, Generic, TypedDict
+from typing import TYPE_CHECKING, Any, TypeVar, Generic, TypedDict, cast
+from collections.abc import Mapping
 from swarmclone.constants import *
 from swarmclone.utils import *
 
 if TYPE_CHECKING:
     from swarmclone.module_manager import ModuleBase  # 使用延迟导入解决循环依赖
 
-T = TypeVar('T', bound=TypedDict)
+T = TypeVar('T', bound=Mapping[str, Any])
 
-class Message(Generic [T]):
+class Message(Generic[T]):
     def __init__(self, message_type: MessageType,
                  source: ModuleBase, destinations: list[ModuleRoles | type],
                  **kwargs: Any):
