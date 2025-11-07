@@ -1,4 +1,5 @@
 from typing import Any
+from swarmclone.types import ConfigInfo
 from swarmclone.constants import *
 from swarmclone.messages import *
 from dataclasses import dataclass
@@ -11,7 +12,7 @@ class ModuleManager(type):
         if name != "ModuleBase" and attrs["role"] not in [ModuleRoles.CONTROLLER]:
             assert attrs["role"] != ModuleRoles.UNSPECIFIED, "请指定模块角色"
             print(f"Registering module {name}")
-            module_classes[attrs["role"]][name] = new_class
+            module_classes[attrs["role"]][name] = new_class # type[ModuleBase] 就是 Self@ModuleManager # pyright: ignore[reportArgumentType]
         return new_class
 
 @dataclass
@@ -24,8 +25,8 @@ class ModuleBase(metaclass=ModuleManager):
     name: str = "ModuleBase" # 会由metaclass自动赋值为类名
     def __init__(self, config: config_class | None = None, **kwargs):
         self.config = self.config_class(**kwargs) if config is None else config
-        self.task_queue: asyncio.Queue[Message] = asyncio.Queue(maxsize=128)
-        self.results_queue: asyncio.Queue[Message] = asyncio.Queue(maxsize=128)
+        self.task_queue: asyncio.Queue[Message[Any]] = asyncio.Queue(maxsize=128)
+        self.results_queue: asyncio.Queue[Message[Any]] = asyncio.Queue(maxsize=128)
         self.running = False
         self.err: BaseException | None = None
     
@@ -44,7 +45,7 @@ class ModuleBase(metaclass=ModuleManager):
         return f"<{self.role} {self.name}>"
 
     @classmethod
-    def get_config_schema(cls) -> dict[str, Any]:
+    def get_config_schema(cls) -> ConfigInfo:
         """
         获取模块的配置信息模式
         
@@ -72,7 +73,7 @@ class ModuleBase(metaclass=ModuleManager):
         from dataclasses import fields, MISSING
         from swarmclone.utils import escape_all
         
-        config_info = {
+        config_info: ConfigInfo = {
             "module_name": cls.name,
             "desc": cls.__doc__ or "",
             "config": []
@@ -152,7 +153,7 @@ class ModuleBase(metaclass=ModuleManager):
         
         return config_info
 
-    async def process_task(self, task: Message | None) -> Message | None:
+    async def process_task(self, task: Message[Any] | None) -> Message[Any] | None:
         """
         处理任务的方法，每个循环会自动调用
         返回None表示不需要返回结果，返回Message对象则表示需要返回结果，返回的对象会自动放入results_queue中。

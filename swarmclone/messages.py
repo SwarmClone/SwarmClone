@@ -1,19 +1,23 @@
 from __future__ import annotations # 为了延迟注解评估
 
 import time
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, TypeVar, Generic, cast
+from collections.abc import Mapping
 from swarmclone.constants import *
 from swarmclone.utils import *
+from swarmclone.types import *
 
 if TYPE_CHECKING:
     from swarmclone.module_manager import ModuleBase  # 使用延迟导入解决循环依赖
 
-class Message:
+T = TypeVar('T', bound=Mapping[str, Any])
+
+class Message(Generic[T]):
     def __init__(self, message_type: MessageType,
                  source: ModuleBase, destinations: list[ModuleRoles | type],
                  **kwargs: Any):
         self.message_type: MessageType = message_type # 消息类型，数据型/信号型
-        self.kwargs: dict[str, Any] = kwargs # 消息内容
+        self.kwargs: T = cast(T, kwargs) # 消息内容
         self.source: ModuleBase = source # 消息来源，发送者对象
         self.destinations: list[ModuleRoles | type] = destinations # 消息目标，发送到哪几个角色/模块中
         self.getters: list[dict[str, str | int]] = [] # 获取了信息的模块名
@@ -29,7 +33,7 @@ class Message:
         kwrepr = kwrepr[:-2] + "}"
         return f"{self.message_type.value} {kwrepr}"
     
-    def get_value(self, getter: ModuleBase | None = None) -> dict[str, Any]:
+    def get_value(self, getter: ModuleBase | None = None) -> T:
         """
         获取消息内容，若指定了获取者，则检查获取者是否为有效的获取者，若有效则返回消息内容，否则返回空字典；若未指定获取者则跳过检查。
         """
@@ -46,7 +50,7 @@ class Message:
                     break
         if not getter_valid:
             print(f"{getter} <x {self} (-> {[destination.value if isinstance(destination, ModuleRoles) else get_type_name(destination) for destination in self.destinations]})")
-            return {}
+            return cast(T, {})
         print(f"{getter} <- {self}")
         self.getters.append({
             'name': getter.name,
@@ -106,7 +110,7 @@ class Message:
             "getters": self.getters
         }
 
-class ASRActivated(Message):
+class ASRActivated(Message[SignalContent]):
     """
     语音活动激活信号，用于打断正在播放的语音和正在生成的回复
     """
@@ -118,7 +122,7 @@ class ASRActivated(Message):
             name="ASRActivated"
         )
 
-class ASRMessage(Message):
+class ASRMessage(Message[ASRContent]):
     """
     语音识别信息
     .speaker_name: 说话人
@@ -133,7 +137,7 @@ class ASRMessage(Message):
             message=message
         )
 
-class LLMEOS(Message):
+class LLMEOS(Message[SignalContent]):
     """
     LLM 生成结束信号
     """
@@ -145,14 +149,14 @@ class LLMEOS(Message):
             name="LLMEOS"
         )
 
-class LLMMessage(Message):
+class LLMMessage(Message[LLMContent]):
     """
     LLM 生成的信息
     .content：生成的信息
     .id：消息的 id（uuid）
     .emotion：情感信息。含有like disgust anger happy sad neutral五个情感的概率
     """
-    def __init__(self, source: ModuleBase, content: str, id: str, emotion: dict[str, float]):
+    def __init__(self, source: ModuleBase, content: str, id: str, emotion: Emotion):
         super().__init__(
             MessageType.DATA,
             source,
@@ -162,7 +166,7 @@ class LLMMessage(Message):
             emotion=emotion
         )
 
-class AudioFinished(Message):
+class AudioFinished(Message[SignalContent]):
     """
     音频播放完毕信号
     """
@@ -173,8 +177,8 @@ class AudioFinished(Message):
             destinations=[ModuleRoles.LLM],
             name="AudioFinished"
         )
- 
-class TTSAlignedAudio(Message):
+
+class TTSAlignedAudio(Message[TTSAlignedContent]):
     """
     TTS 音频
     .id：消息的 id（uuid）
@@ -185,7 +189,7 @@ class TTSAlignedAudio(Message):
                  source: ModuleBase, 
                  id: str, 
                  audio_data: bytes, 
-                 align_data: list[dict[str, str | float]]
+                 align_data: AlignedSequence
                  ):
         super().__init__(
             MessageType.DATA,
@@ -196,7 +200,7 @@ class TTSAlignedAudio(Message):
             align_data=align_data
         )
 
-class ChatMessage(Message):
+class ChatMessage(Message[ChatContent]):
     """
     聊天信息
     .user：用户名
@@ -211,14 +215,14 @@ class ChatMessage(Message):
             content=content
         )
 
-class MultiChatMessage(Message):
+class MultiChatMessage(Message[MultiChatContent]):
     """
     多用户聊天信息
     .messages: [
         {"user": "用户名", "content": "消息内容"},...
     ]
     """
-    def __init__(self, source: ModuleBase, messages: list[dict[str, str]]):
+    def __init__(self, source: ModuleBase, messages: list[ChatContent]):
         super().__init__(
             MessageType.DATA,
             source,
@@ -226,7 +230,7 @@ class MultiChatMessage(Message):
             messages=messages
         )
 
-class SongInfo(Message):
+class SongInfo(Message[SongInfoContent]):
     """
     歌曲信息
     .song_id: 歌曲 id
@@ -249,7 +253,7 @@ class SongInfo(Message):
             subtitle_path=subtitle_path
         )
 
-class ReadyToSing(Message):
+class ReadyToSing(Message[SingSigContent]):
     """
     开始播放歌曲
     """
@@ -261,7 +265,7 @@ class ReadyToSing(Message):
             song_id=song_id
         )
 
-class FinishedSinging(Message):
+class FinishedSinging(Message[SignalContent]):
     """
     完成播放歌曲
     """
@@ -272,7 +276,7 @@ class FinishedSinging(Message):
             destinations=[ModuleRoles.LLM]
         )
 
-class ActiveAction(Message):
+class ActiveAction(Message[ActiveActionContent]):
     """
     激活一个动作
     .action_ids: 要激活的动作名称列表，名称即为 action 动作文件中的 name 属性
@@ -285,7 +289,7 @@ class ActiveAction(Message):
             action_ids = action_ids
         )
 
-class ParametersUpdate(Message):
+class ParametersUpdate(Message[ParametersUpdateContent]):
     """
     更新参数
     .updates: 参数字典，键为参数名称，值为参数值
@@ -298,7 +302,7 @@ class ParametersUpdate(Message):
             updates = updates
         )
 
-class ProviderRequest(Message):
+class ProviderRequest(Message[ProviderRequestContent]):
     """
     向模型提供者发出一条请求
     .messages: 消息列表，每个消息为一个字典，包含 role 和 content 两个键
@@ -320,7 +324,7 @@ class ProviderRequest(Message):
             stream=stream
         )
 
-class ProviderResponseNonStream(Message):
+class ProviderResponseNonStream(Message[ProviderResponseContent]):
     """
     模型提供者的非流式响应
     .content: 模型提供者的响应内容
@@ -338,7 +342,7 @@ class ProviderResponseNonStream(Message):
             content=content
         )
 
-class ProviderResponseStream(Message):
+class ProviderResponseStream(Message[ProviderResponseStreamContent]):
     """
     模型提供者的流式响应
     .delta: 模型提供者的增量响应内容
@@ -377,5 +381,5 @@ __all__ = [
     "ParametersUpdate",
     "ProviderRequest",
     "ProviderResponseNonStream",
-    "ProviderResponseStream"
+    "ProviderResponseStream",
 ]

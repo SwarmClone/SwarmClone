@@ -6,6 +6,7 @@
 """
 from swarmclone.module_bootstrap import *
 import transformers as tf # TransFormers, not TensorFlow LOL
+from typing import Any
 
 @dataclass
 class ProviderTransformersConfig(ModuleConfig):
@@ -48,7 +49,7 @@ class PrimaryProviderTransformers(ModuleBase):
     async def run(self) -> None:
         try:
             while True:
-                message: Message = await self.task_queue.get()
+                message: Message[Any] = await self.task_queue.get()
                 if not isinstance(message, ProviderRequest):
                     continue # 不是需要处理的请求
                 request_data = message.get_value(self)

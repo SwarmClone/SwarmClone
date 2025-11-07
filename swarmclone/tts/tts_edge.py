@@ -27,7 +27,7 @@ class TTSEdge(TTSBase):
         super().__init__(config, **kwargs)
         self.voice = self.config.voice
     
-    async def generate_sentence(self, id: str, content: str, emotions: dict[str, float]) -> TTSAlignedAudio:
+    async def generate_sentence(self, id: str, content: str, emotions: Emotion) -> TTSAlignedAudio:
         try:
             communicate = edge_tts.Communicate(content, self.voice)
             

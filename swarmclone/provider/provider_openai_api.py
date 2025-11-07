@@ -7,6 +7,7 @@
 import openai
 from torch.cuda import temperature
 from swarmclone.module_bootstrap import *
+from typing import Any
 
 @dataclass
 class ProviderOpenAIAPIConfig(ModuleConfig):
@@ -48,7 +49,7 @@ class PrimaryProviderOpenAIAPI(ModuleBase):
     async def run(self) -> None:
         try:
             while True:
-                message: Message = await self.task_queue.get()
+                message: Message[Any] = await self.task_queue.get()
                 if not isinstance(message, ProviderRequest):
                     continue # 不是需要处理的请求
                 request_data = message.get_value(self)

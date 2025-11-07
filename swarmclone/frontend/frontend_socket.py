@@ -70,7 +70,7 @@ class FrontendSocket(ModuleBase):
             if message["message_type"] == "Signal":
                 await self.results_queue.put(AudioFinished(self))
 
-    def load(self, task: Message) -> str:
+    def load(self, task: Message[Any]) -> str:
         d = {
             "message_type": task.message_type.value,
             "source": task.source.role.value,

@@ -1,10 +1,11 @@
 from swarmclone.module_bootstrap import *
+from typing import Any
 
 class TTSBase(ModuleBase):
     role: ModuleRoles = ModuleRoles.TTS
     def __init__(self, config: ModuleConfig | None = None, **kwargs):
         super().__init__(config, **kwargs)
-        self.processed_queue: asyncio.Queue[Message] = asyncio.Queue(128)
+        self.processed_queue: asyncio.Queue[Message[Any]] = asyncio.Queue(128)
 
     async def run(self):
         loop = asyncio.get_running_loop()
@@ -29,5 +30,5 @@ class TTSBase(ModuleBase):
             else:
                 await self.processed_queue.put(task)
 
-    async def generate_sentence(self, id: str, content: str, emotions: dict[str, float]) -> TTSAlignedAudio:
+    async def generate_sentence(self, id: str, content: str, emotions: Emotion) -> TTSAlignedAudio:
         raise NotImplementedError

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from ncatbot.core import BotClient, GroupMessage
 from swarmclone.module_bootstrap import *
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, TypedDict
 if TYPE_CHECKING:
     from swarmclone.frontend.frontend_qq import NCatBotFrontend
 
@@ -57,7 +57,7 @@ class NCatBotChat(ModuleBase):
             self.bot.clean_up()
             del self.bot
     
-    async def process_task(self, task: Message | None) -> Message | None:
+    async def process_task(self, task: Message[Any] | None) -> Message[Any] | None:
         if isinstance(task, NCatBotLLMMessage):
             await self.api.post_group_msg(self.target_group_id, task.get_value(self)["content"])
     
@@ -100,7 +100,9 @@ class NCatBotChat(ModuleBase):
             await self.results_queue.put(message)
             text = ""
 
-class NCatBotLLMMessage(Message):
+NCatBotChatContent = TypedDict("NCatBotChatContent", {"user": str, "content": str})
+    
+class NCatBotLLMMessage(Message[NCatBotChatContent]):
     def __init__(self, source: NCatBotFrontend, content: str):
         super().__init__(MessageType.DATA, source, [NCatBotChat], content=content)
 
