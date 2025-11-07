@@ -15,11 +15,9 @@ channels = [
 ]
 platforms = ["linux-64", "win-64"]
 
-[tool.pixi.host-dependencies]
+[tool.pixi.pypi-dependencies]
 pip = "*" # TensorRT 依赖这个才能成功构建
 setuptools = "<81"
-
-[tool.pixi.pypi-dependencies]
 swarmclone = { path = ".", editable = true }
 srt = { version = ">=3.5.3,<4" }
 fsspec = { version = ">=2022.5.0,<2025.0", extras = ["http"] }
