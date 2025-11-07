@@ -16,7 +16,7 @@ class Message(Generic[T]):
                  source: ModuleBase, destinations: list[ModuleRoles | type],
                  **kwargs: Any):
         self.message_type: MessageType = message_type # 消息类型，数据型/信号型
-        self.kwargs: T = kwargs # 消息内容
+        self.kwargs: T = cast(T, kwargs) # 消息内容
         self.source: ModuleBase = source # 消息来源，发送者对象
         self.destinations: list[ModuleRoles | type] = destinations # 消息目标，发送到哪几个角色/模块中
         self.getters: list[dict[str, str | int]] = [] # 获取了信息的模块名
@@ -49,7 +49,7 @@ class Message(Generic[T]):
                     break
         if not getter_valid:
             print(f"{getter} <x {self} (-> {[destination.value if isinstance(destination, ModuleRoles) else get_type_name(destination) for destination in self.destinations]})")
-            return T()
+            return cast(T, {})
         print(f"{getter} <- {self}")
         self.getters.append({
             'name': getter.name,
@@ -109,10 +109,8 @@ class Message(Generic[T]):
             "getters": self.getters
         }
 
-class SIGContent(TypedDict):
-    name: str
-
-class ASRActivated(Message[SIGContent]):
+SignalContent = TypedDict("SignalContent", {"name": str})
+class ASRActivated(Message[SignalContent]):
     """
     语音活动激活信号，用于打断正在播放的语音和正在生成的回复
     """
@@ -123,11 +121,9 @@ class ASRActivated(Message[SIGContent]):
             destinations=[ModuleRoles.TTS, ModuleRoles.FRONTEND, ModuleRoles.LLM],
             name="ASRActivated"
         )
-class ASRcoutent(TypedDict):
-    speaker_name: str
-    message: str
 
-class ASRMessage(Message[ASRcoutent]):
+ASRContent = TypedDict("ASRContent", {"speaker_name": str, "message": str})
+class ASRMessage(Message[ASRContent]):
     """
     语音识别信息
     .speaker_name: 说话人
@@ -142,7 +138,7 @@ class ASRMessage(Message[ASRcoutent]):
             message=message
         )
 
-class LLMEOS(Message[SIGContent]):
+class LLMEOS(Message[SignalContent]):
     """
     LLM 生成结束信号
     """
@@ -154,12 +150,8 @@ class LLMEOS(Message[SIGContent]):
             name="LLMEOS"
         )
 
-class LLMcontent(TypedDict):
-    content: str
-    id: str
-    emotion: dict[str, float]
-
-class LLMMessage(Message[LLMcontent]):
+LLMContent = TypedDict("LLMContent", {"content": str, "id": str, "emotion": dict[str, float]})
+class LLMMessage(Message[LLMContent]):
     """
     LLM 生成的信息
     .content：生成的信息
@@ -176,7 +168,7 @@ class LLMMessage(Message[LLMcontent]):
             emotion=emotion
         )
 
-class AudioFinished(Message[SIGContent]):
+class AudioFinished(Message[SignalContent]):
     """
     音频播放完毕信号
     """
@@ -188,12 +180,8 @@ class AudioFinished(Message[SIGContent]):
             name="AudioFinished"
         )
 
-class TTSAlignedcontent(TypedDict):
-    id: str
-    data: bytes
-    align_data: list[dict[str, str | float]]
-
-class TTSAlignedAudio(Message[TTSAlignedcontent]):
+TTSAlignedContent = TypedDict("TTSAlignedContent", {"id": str, "data": bytes, "align_data": list[dict[str, str | float]]})
+class TTSAlignedAudio(Message[TTSAlignedContent]):
     """
     TTS 音频
     .id：消息的 id（uuid）
@@ -215,11 +203,8 @@ class TTSAlignedAudio(Message[TTSAlignedcontent]):
             align_data=align_data
         )
 
-class Chatcontent(TypedDict):
-    user: str
-    content: str
-
-class ChatMessage(Message[Chatcontent]):
+ChatContent = TypedDict("ChatContent", {"user": str, "content": str})
+class ChatMessage(Message[ChatContent]):
     """
     聊天信息
     .user：用户名
@@ -233,17 +218,16 @@ class ChatMessage(Message[Chatcontent]):
             user=user,
             content=content
         )
-class MultiChatcontent(TypedDict):
-    messages: list[Chatcontent] 
 
-class MultiChatMessage(Message[MultiChatcontent]):
+MultiChatContent = TypedDict("MultiChatContent", {"messages": list[ChatContent]})
+class MultiChatMessage(Message[MultiChatContent]):
     """
     多用户聊天信息
     .messages: [
         {"user": "用户名", "content": "消息内容"},...
     ]
     """
-    def __init__(self, source: ModuleBase, messages: list[Chatcontent]):
+    def __init__(self, source: ModuleBase, messages: list[ChatContent]):
         super().__init__(
             MessageType.DATA,
             source,
@@ -251,12 +235,7 @@ class MultiChatMessage(Message[MultiChatcontent]):
             messages=messages
         )
 
-class SongInfoContent(TypedDict):
-    song_id: str
-    song_path: str
-    vocal_path: str
-    subtitle_path: str
-    
+SongInfoContent = TypedDict("SongInfoContent", {"song_id": str, "song_path": str, "vocal_path": str, "subtitle_path": str})
 class SongInfo(Message[SongInfoContent]):
     """
     歌曲信息
@@ -279,10 +258,9 @@ class SongInfo(Message[SongInfoContent]):
             vocal_path=vocal_path,
             subtitle_path=subtitle_path
         )
-class SingSigcontent(TypedDict):
-    song_id: str
 
-class ReadyToSing(Message[SingSigcontent]):
+SingSigContent = TypedDict("SingSigContent", {"song_id": str})
+class ReadyToSing(Message[SingSigContent]):
     """
     开始播放歌曲
     """
@@ -294,7 +272,7 @@ class ReadyToSing(Message[SingSigcontent]):
             song_id=song_id
         )
 
-class FinishedSinging(Message[SIGContent]):
+class FinishedSinging(Message[SignalContent]):
     """
     完成播放歌曲
     """
@@ -304,10 +282,9 @@ class FinishedSinging(Message[SIGContent]):
             source,
             destinations=[ModuleRoles.LLM]
         )
-class Actioncontent(TypedDict):
-    action_ids: list[str]
 
-class ActiveAction(Message[Actioncontent]):
+ActiveActionContent = TypedDict("ActiveActionContent", {"action_ids": list[str]})
+class ActiveAction(Message[ActiveActionContent]):
     """
     激活一个动作
     .action_ids: 要激活的动作名称列表，名称即为 action 动作文件中的 name 属性
@@ -319,10 +296,9 @@ class ActiveAction(Message[Actioncontent]):
             destinations=[ModuleRoles.PARAM_CONTROLLER],
             action_ids = action_ids
         )
-class ParametersUpdatecontent(TypedDict):
-    updates: dict[str,float]
 
-class ParametersUpdate(Message[ParametersUpdatecontent]):
+ParametersUpdateContent = TypedDict("ParametersUpdateContent", {"updates": dict[str,float]})
+class ParametersUpdate(Message[ParametersUpdateContent]):
     """
     更新参数
     .updates: 参数字典，键为参数名称，值为参数值
@@ -334,11 +310,9 @@ class ParametersUpdate(Message[ParametersUpdatecontent]):
             destinations=[ModuleRoles.FRONTEND],
             updates = updates
         )
-class providerRequestcontent(TypedDict):
-    messages: list[dict[str, str]]
-    stream: bool
 
-class ProviderRequest(Message[providerRequestcontent]):
+ProviderRequestContent = TypedDict("ProviderRequestContent", {"messages": list[dict[str, str]], "stream": bool})
+class ProviderRequest(Message[ProviderRequestContent]):
     """
     向模型提供者发出一条请求
     .messages: 消息列表，每个消息为一个字典，包含 role 和 content 两个键
@@ -359,12 +333,9 @@ class ProviderRequest(Message[providerRequestcontent]):
             messages=messages,
             stream=stream
         )
-class ProviderRequestcontent(TypedDict):
-    content: str
-    delta: str
-    end: bool
 
-class ProviderResponseNonStream(Message[ProviderRequestcontent]):
+ProviderResponseContent = TypedDict("ProviderResponseContent", {"content": str})
+class ProviderResponseNonStream(Message[ProviderResponseContent]):
     """
     模型提供者的非流式响应
     .content: 模型提供者的响应内容
@@ -382,7 +353,8 @@ class ProviderResponseNonStream(Message[ProviderRequestcontent]):
             content=content
         )
 
-class ProviderResponseStream(Message[ProviderRequestcontent]):
+ProviderResponseStreamContent = TypedDict("ProviderResponseStreamContent", {"delta": str, "end": bool})
+class ProviderResponseStream(Message[ProviderResponseStreamContent]):
     """
     模型提供者的流式响应
     .delta: 模型提供者的增量响应内容
