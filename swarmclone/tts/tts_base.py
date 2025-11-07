@@ -30,5 +30,5 @@ class TTSBase(ModuleBase):
             else:
                 await self.processed_queue.put(task)
 
-    async def generate_sentence(self, id: str, content: str, emotions: dict[str, float]) -> TTSAlignedAudio:
+    async def generate_sentence(self, id: str, content: str, emotions: Emotion) -> TTSAlignedAudio:
         raise NotImplementedError

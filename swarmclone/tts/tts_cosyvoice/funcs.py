@@ -1,7 +1,9 @@
 import torch
 from pathlib import Path
-from cosyvoice.cli.cosyvoice import CosyVoice 
-from cosyvoice.utils.file_utils import load_wav 
+from typing import cast
+from cosyvoice.cli.cosyvoice import CosyVoice
+from cosyvoice.utils.file_utils import load_wav
+from swarmclone.types import Emotion 
 
 emotion_to_prompt = {
     "like": "happily and shamefully",
@@ -20,8 +22,9 @@ adj_to_adv = {
     "sad": "sadly",
 }
 
-def get_emotion_prompt(emotions: dict[str, float]):
-    emotions_top2 = sorted(emotions.items(), key=lambda x: x[1], reverse=True)[:2]
+def get_emotion_prompt(emotions: Emotion):
+    emotions_dict = cast(dict[str, float], emotions)
+    emotions_top2 = sorted(emotions_dict.items(), key=lambda x: x[1], reverse=True)[:2]
     if emotions_top2[0][0] == "neutral":
         return "neutral"
     elif emotions_top2[0][1] > 0.5 and emotions_top2[1][0] != "neutral":
@@ -30,7 +33,7 @@ def get_emotion_prompt(emotions: dict[str, float]):
         return f"{adj_to_adv[emotions_top2[0][0]]} and {adj_to_adv[emotions_top2[1][0]]}"
 
 @torch.no_grad()
-def tts_generate(tts: tuple[CosyVoice | None, CosyVoice], s: str, tune: str, emotions: dict[str, float], is_linux: bool):
+def tts_generate(tts: tuple[CosyVoice | None, CosyVoice], s: str, tune: str, emotions: Emotion, is_linux: bool):
     """tts生成
 
     Args:

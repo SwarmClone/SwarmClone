@@ -1,4 +1,5 @@
 from typing import Any
+from swarmclone.types import ConfigInfo
 from swarmclone.constants import *
 from swarmclone.messages import *
 from dataclasses import dataclass
@@ -11,7 +12,7 @@ class ModuleManager(type):
         if name != "ModuleBase" and attrs["role"] not in [ModuleRoles.CONTROLLER]:
             assert attrs["role"] != ModuleRoles.UNSPECIFIED, "请指定模块角色"
             print(f"Registering module {name}")
-            module_classes[attrs["role"]][name] = new_class
+            module_classes[attrs["role"]][name] = new_class # type[ModuleBase] 就是 Self@ModuleManager # pyright: ignore[reportArgumentType]
         return new_class
 
 @dataclass
@@ -44,7 +45,7 @@ class ModuleBase(metaclass=ModuleManager):
         return f"<{self.role} {self.name}>"
 
     @classmethod
-    def get_config_schema(cls) -> dict[str, Any]:
+    def get_config_schema(cls) -> ConfigInfo:
         """
         获取模块的配置信息模式
         
@@ -72,7 +73,7 @@ class ModuleBase(metaclass=ModuleManager):
         from dataclasses import fields, MISSING
         from swarmclone.utils import escape_all
         
-        config_info = {
+        config_info: ConfigInfo = {
             "module_name": cls.name,
             "desc": cls.__doc__ or "",
             "config": []

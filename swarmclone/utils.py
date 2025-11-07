@@ -122,9 +122,8 @@ def get_live2d_actions() -> dict[str, str]:
     return actions
 
 import srt
-from typing import TypedDict
-Result = TypedDict("Result", {"token": str, "duration": float})
-def parse_srt_to_list(srt_text: str) -> list[Result]: # By: Kimi-K2
+from swarmclone.types import AlignedToken, AlignedSequence
+def parse_srt_to_list(srt_text: str) -> AlignedSequence: # By: Kimi-K2
     """
     把 SRT 全文转换成：
     [{'token': <歌词>, 'duration': <秒>}, ...]
@@ -134,7 +133,7 @@ def parse_srt_to_list(srt_text: str) -> list[Result]: # By: Kimi-K2
     if not subs:          # 空字幕直接返回
         return []
     
-    result: list[Result] = []
+    result: AlignedSequence = []
     total_expected = subs[-1].end.total_seconds()  # 歌曲总长度
     cursor = 0.0
 

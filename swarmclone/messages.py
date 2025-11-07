@@ -1,10 +1,11 @@
 from __future__ import annotations # 为了延迟注解评估
 
 import time
-from typing import TYPE_CHECKING, Any, TypeVar, Generic, TypedDict, cast
+from typing import TYPE_CHECKING, Any, TypeVar, Generic, cast
 from collections.abc import Mapping
 from swarmclone.constants import *
 from swarmclone.utils import *
+from swarmclone.types import *
 
 if TYPE_CHECKING:
     from swarmclone.module_manager import ModuleBase  # 使用延迟导入解决循环依赖
@@ -109,7 +110,6 @@ class Message(Generic[T]):
             "getters": self.getters
         }
 
-SignalContent = TypedDict("SignalContent", {"name": str})
 class ASRActivated(Message[SignalContent]):
     """
     语音活动激活信号，用于打断正在播放的语音和正在生成的回复
@@ -122,7 +122,6 @@ class ASRActivated(Message[SignalContent]):
             name="ASRActivated"
         )
 
-ASRContent = TypedDict("ASRContent", {"speaker_name": str, "message": str})
 class ASRMessage(Message[ASRContent]):
     """
     语音识别信息
@@ -150,7 +149,6 @@ class LLMEOS(Message[SignalContent]):
             name="LLMEOS"
         )
 
-LLMContent = TypedDict("LLMContent", {"content": str, "id": str, "emotion": dict[str, float]})
 class LLMMessage(Message[LLMContent]):
     """
     LLM 生成的信息
@@ -158,7 +156,7 @@ class LLMMessage(Message[LLMContent]):
     .id：消息的 id（uuid）
     .emotion：情感信息。含有like disgust anger happy sad neutral五个情感的概率
     """
-    def __init__(self, source: ModuleBase, content: str, id: str, emotion: dict[str, float]):
+    def __init__(self, source: ModuleBase, content: str, id: str, emotion: Emotion):
         super().__init__(
             MessageType.DATA,
             source,
@@ -180,7 +178,6 @@ class AudioFinished(Message[SignalContent]):
             name="AudioFinished"
         )
 
-TTSAlignedContent = TypedDict("TTSAlignedContent", {"id": str, "data": bytes, "align_data": list[dict[str, str | float]]})
 class TTSAlignedAudio(Message[TTSAlignedContent]):
     """
     TTS 音频
@@ -192,7 +189,7 @@ class TTSAlignedAudio(Message[TTSAlignedContent]):
                  source: ModuleBase, 
                  id: str, 
                  audio_data: bytes, 
-                 align_data: list[dict[str, str | float]]
+                 align_data: AlignedSequence
                  ):
         super().__init__(
             MessageType.DATA,
@@ -203,7 +200,6 @@ class TTSAlignedAudio(Message[TTSAlignedContent]):
             align_data=align_data
         )
 
-ChatContent = TypedDict("ChatContent", {"user": str, "content": str})
 class ChatMessage(Message[ChatContent]):
     """
     聊天信息
@@ -219,7 +215,6 @@ class ChatMessage(Message[ChatContent]):
             content=content
         )
 
-MultiChatContent = TypedDict("MultiChatContent", {"messages": list[ChatContent]})
 class MultiChatMessage(Message[MultiChatContent]):
     """
     多用户聊天信息
@@ -235,7 +230,6 @@ class MultiChatMessage(Message[MultiChatContent]):
             messages=messages
         )
 
-SongInfoContent = TypedDict("SongInfoContent", {"song_id": str, "song_path": str, "vocal_path": str, "subtitle_path": str})
 class SongInfo(Message[SongInfoContent]):
     """
     歌曲信息
@@ -259,7 +253,6 @@ class SongInfo(Message[SongInfoContent]):
             subtitle_path=subtitle_path
         )
 
-SingSigContent = TypedDict("SingSigContent", {"song_id": str})
 class ReadyToSing(Message[SingSigContent]):
     """
     开始播放歌曲
@@ -283,7 +276,6 @@ class FinishedSinging(Message[SignalContent]):
             destinations=[ModuleRoles.LLM]
         )
 
-ActiveActionContent = TypedDict("ActiveActionContent", {"action_ids": list[str]})
 class ActiveAction(Message[ActiveActionContent]):
     """
     激活一个动作
@@ -297,7 +289,6 @@ class ActiveAction(Message[ActiveActionContent]):
             action_ids = action_ids
         )
 
-ParametersUpdateContent = TypedDict("ParametersUpdateContent", {"updates": dict[str,float]})
 class ParametersUpdate(Message[ParametersUpdateContent]):
     """
     更新参数
@@ -311,7 +302,6 @@ class ParametersUpdate(Message[ParametersUpdateContent]):
             updates = updates
         )
 
-ProviderRequestContent = TypedDict("ProviderRequestContent", {"messages": list[dict[str, str]], "stream": bool})
 class ProviderRequest(Message[ProviderRequestContent]):
     """
     向模型提供者发出一条请求
@@ -334,7 +324,6 @@ class ProviderRequest(Message[ProviderRequestContent]):
             stream=stream
         )
 
-ProviderResponseContent = TypedDict("ProviderResponseContent", {"content": str})
 class ProviderResponseNonStream(Message[ProviderResponseContent]):
     """
     模型提供者的非流式响应
@@ -353,7 +342,6 @@ class ProviderResponseNonStream(Message[ProviderResponseContent]):
             content=content
         )
 
-ProviderResponseStreamContent = TypedDict("ProviderResponseStreamContent", {"delta": str, "end": bool})
 class ProviderResponseStream(Message[ProviderResponseStreamContent]):
     """
     模型提供者的流式响应

@@ -8,3 +8,4 @@ from swarmclone.constants import *
 from swarmclone.utils import *
 from swarmclone.messages import *
 from swarmclone.module_manager import *
+from swarmclone.types import *

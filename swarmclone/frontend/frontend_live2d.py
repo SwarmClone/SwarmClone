@@ -312,7 +312,7 @@ class FrontendLive2D(ModuleBase):
                     else:
                         self.singing = True
                         self.align_t0 = time.time()
-                        align_data = parse_srt_to_list(open(self.song_info[song_id]["subtitle_path"]).read())
+                        align_data: AlignedSequence = parse_srt_to_list(open(self.song_info[song_id]["subtitle_path"]).read())
                         self.message_queue.append({
                             "id": f"SONG_{song_id}",
                             "message": f"Model 唱了 {song_id}",

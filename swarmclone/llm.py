@@ -347,7 +347,7 @@ class LLM(ModuleBase):
             await self.results_queue.put(LLMEOS(self))
     
     @torch.no_grad()
-    async def get_emotion(self, text: str) -> dict[str, float]:
+    async def get_emotion(self, text: str) -> Emotion:
         print(text)
         labels = ['neutral', 'like', 'sad', 'disgust', 'anger', 'happy']
         ids = self.classifier_tokenizer([text], return_tensors="pt")['input_ids']
@@ -357,7 +357,16 @@ class LLM(ModuleBase):
             .softmax(dim=-1)
             .squeeze()
         )
-        return dict(zip(labels, probs.tolist()))
+        emotion_dict = dict(zip(labels, probs.tolist()))
+        # 创建符合Emotion TypedDict的对象，确保所有必需的键都存在
+        return Emotion(
+            neutral=emotion_dict.get("neutral", 0.0),
+            like=emotion_dict.get("like", 0.0),
+            sad=emotion_dict.get("sad", 0.0),
+            disgust=emotion_dict.get("disgust", 0.0),
+            anger=emotion_dict.get("anger", 0.0),
+            happy=emotion_dict.get("happy", 0.0)
+        )
 
     async def iter_sentences_emotions(self):
         text_buffer = ""

@@ -85,7 +85,7 @@ class TTSCosyvoice(TTSBase):
         self.cosyvoice_models = init_tts(self.config)
 
     @torch.no_grad()
-    async def generate_sentence(self, id: str, content: str, emotions: dict[str, float]) -> TTSAlignedAudio:
+    async def generate_sentence(self, id: str, content: str, emotions: Emotion) -> TTSAlignedAudio:
         try:
             assert isinstance((tune := self.config.tune), str)
             output = await asyncio.to_thread(
