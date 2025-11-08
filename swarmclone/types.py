@@ -25,9 +25,9 @@ ConfigField = TypedDict("ConfigField", {
     "required": bool,
     "default": Any,
     "options": list[Any],
-    "min": float,
-    "max": float,
-    "step": float,
+    "min": float | int | None,
+    "max": float | int | None,
+    "step": float | int | None,
     "password": bool,
     "multiline": bool
 })
