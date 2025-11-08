@@ -18,7 +18,20 @@ AlignedToken = TypedDict("AlignedToken", {"token": str, "duration": float})
 AlignedSequence = Sequence[AlignedToken]
 
 # Module Manager Types
-ConfigInfo = TypedDict("ConfigInfo", {"module_name": str, "desc": str, "config": list[dict[str, Any]]})
+ConfigField = TypedDict("ConfigField", {
+    "name": str,
+    "type": str,
+    "desc": str,
+    "required": bool,
+    "default": Any,
+    "options": list[Any],
+    "min": float,
+    "max": float,
+    "step": float,
+    "password": bool,
+    "multiline": bool
+})
+ConfigInfo = TypedDict("ConfigInfo", {"module_name": str, "desc": str, "config": list[ConfigField]})
 
 # Message Types
 SignalContent = TypedDict("SignalContent", {"name": str})

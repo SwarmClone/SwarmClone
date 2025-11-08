@@ -389,15 +389,6 @@ class FrontendLive2D(ModuleBase):
             self.window.live2d_widget.live2d.dispose()
             self.app.quit()
 
-"""
-若你使用的是 NVIDIA GPU 且出现了着色器编译失败的情况，请通过 Zink 来使用 Vulkan 代替 OpenGL ，此处以 Arch Linux 为例子：
-env __GLX_VENDOR_LIBRARY_NAME=mesa __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json MESA_LOADER_DRIVER_OVERRIDE=zink GALLIUM_DRIVER=zink python -m swarmclone
-若你使用的是 Wayland ，且出现了无法拖动窗口的情况，请通过 XWayland 来使用 X11 代替 Wayland：
-QT_QPA_PLATFORM="xcb" python -m swarmclone
-若你同时出现以上两种情况，则请将两种方法结合使用：
-env __GLX_VENDOR_LIBRARY_NAME=mesa __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json MESA_LOADER_DRIVER_OVERRIDE=zink GALLIUM_DRIVER=zink QT_QPA_PLATFORM="xcb" python -m swarmclone
-"""
-
 __all__ = [
     "FrontendLive2D"
 ]

@@ -6,7 +6,7 @@
 """
 from swarmclone.module_bootstrap import *
 import transformers as tf # TransFormers, not TensorFlow LOL
-from typing import Any
+from typing import Any, cast
 
 @dataclass
 class ProviderTransformersConfig(ModuleConfig):
@@ -35,7 +35,7 @@ class PrimaryProviderTransformers(ModuleBase):
         super().__init__(config, **kwargs)
         self.model_path = self.config.model_path
         self.temperature = self.config.temperature
-        self.tokenizer: tf.PreTrainedTokenizer = tf.AutoTokenizer.from_pretrained(
+        self.tokenizer: tf.AutoTokenizer = tf.AutoTokenizer.from_pretrained(
             self.model_path,
             trust_remote_code=True
         )
@@ -67,7 +67,7 @@ class PrimaryProviderTransformers(ModuleBase):
             await asyncio.gather(*self.generation_tasks, return_exceptions=True)
 
     async def generate_stream(self, messages: list[dict[str, str]], request_source: type[ModuleBase]):
-        inputs = self.tokenizer.apply_chat_template(
+        inputs: tf.BatchEncoding = cast(tf.PreTrainedTokenizer, self.tokenizer).apply_chat_template( # pyright: ignore[reportAssignmentType, reportInvalidCast]
             messages,
             tokenize=True,
             add_generation_prompt=True,
@@ -78,7 +78,7 @@ class PrimaryProviderTransformers(ModuleBase):
         gen_task = asyncio.create_task(
             asyncio.to_thread(
                 self.model.generate,
-                **inputs,
+                **inputs,  # pyright: ignore[reportArgumentType]
                 streamer=streamer,
                 temperature=self.temperature,
                 max_new_tokens=self.max_new_tokens
@@ -107,20 +107,24 @@ class PrimaryProviderTransformers(ModuleBase):
             pass
 
     async def generate(self, messages: list[dict[str, str]], request_source: type[ModuleBase]):
-        inputs = self.tokenizer.apply_chat_template(
+        inputs: tf.BatchEncoding = cast(tf.PreTrainedTokenizer, self.tokenizer).apply_chat_template(  # pyright: ignore[reportInvalidCast, reportAssignmentType]
             messages,
             tokenize=True,
             add_generation_prompt=True,
             return_dict=True,
             return_tensors="pt"
         )
-        outputs = await asyncio.to_thread(
+        outputs: tf.generation.utils.GenerateOutput = await asyncio.to_thread( # pyright: ignore[reportAssignmentType]
             self.model.generate,
-            **inputs,
+            **inputs, # pyright: ignore[reportArgumentType]
             temperature=self.temperature,
-            max_new_tokens=self.max_new_tokens
+            max_new_tokens=self.max_new_tokens,
+            return_dict_in_generate=True # 此处已经确保返回值为 GenerateOutput
         )
-        response = self.tokenizer.decode(outputs[0][inputs["input_ids"].shape[1]:], skip_special_tokens=True)
+        response = cast(tf.PreTrainedTokenizer, self.tokenizer).decode(  # pyright: ignore[reportInvalidCast]
+            outputs[0][inputs["input_ids"].shape[1]:],  # pyright: ignore[reportAttributeAccessIssue]
+            skip_special_tokens=True
+        )
         await self.results_queue.put(ProviderResponseNonStream(
             source=self,
             content=response,

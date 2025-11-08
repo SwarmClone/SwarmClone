@@ -122,7 +122,7 @@ def get_live2d_actions() -> dict[str, str]:
     return actions
 
 import srt
-from swarmclone.types import AlignedToken, AlignedSequence
+from swarmclone.types import AlignedSequence
 def parse_srt_to_list(srt_text: str) -> AlignedSequence: # By: Kimi-K2
     """
     把 SRT 全文转换成：
@@ -207,7 +207,7 @@ def multioctave_perlin_noise(
     total = 0
     amplitudes = [persistence ** i for i in range(octaves)]
     total_amp = sum(amplitudes)
-    x: float = x / 20 + bias
+    x = x / 20 + bias
     for i in range(octaves):
         frequency = 2 ** i
         total += smooth_perlin_noise(x * frequency, interpolation) * amplitudes[i]
