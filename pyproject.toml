@@ -1,7 +1,7 @@
 [project]
 authors = [{name = "kyv001", email = "kyvyang@foxmail.com"}]
 name = "swarmclone"
-requires-python = ">= 3.10, < 3.11"
+requires-python = ">=3.13"
 version = "0.1.0"
 
 [build-system]
@@ -22,7 +22,6 @@ swarmclone = { path = ".", editable = true }
 srt = { version = ">=3.5.3,<4" }
 fsspec = { version = ">=2022.5.0,<2025.0", extras = ["http"] }
 playsound = { url = "https://www.piwheels.org/simple/playsound/playsound-1.3.0-py3-none-any.whl" }
-sc-cosyvoice = { url = "http://pixelstonelab.com:5005/sc_cosyvoice-0.2.0-py3-none-any.whl" }
 ncatbot = { version = ">=3.8.10.post5,<4" }
 openai = { version = ">=1.102.0,<2" }
 edge-tts = { version = ">=7.2.1,<8" }
@@ -69,10 +68,6 @@ torchaudio = {version = ">=2.0.0,<2.8.0", index = "https://mirrors.nju.edu.cn/py
 cpu = ["cpu"]
 default = ["cuda"]
 
-[tool.pixi.target.linux-64.pypi-dependencies]
-ttsfrd = { url = "http://pixelstonelab.com:5005/ttsfrd-0.4.2-cp310-cp310-linux_x86_64.whl" }
-ttsfrd-dependency = { url = "http://pixelstonelab.com:5005/ttsfrd_dependency-0.1-py3-none-any.whl" }
-
 [tool.pixi.dependencies]
-pynini = "==2.1.6"
+pynini = ">=2.1.6"
 sox = ">=14.4.2,<15"
