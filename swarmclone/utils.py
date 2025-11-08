@@ -171,7 +171,7 @@ def get_voices():
         chinese_voices = voices.find(Gender="Female", Locale="zh-CN")
         return [
             {
-                'friendly_name': f"{voice['FriendlyName']}",
+                'friendly_name': f"{voice['DisplayName']}",
                 'voice': voice['ShortName']
             }
             for voice in chinese_voices
