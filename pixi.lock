@@ -3316,8 +3316,8 @@ packages:
   requires_python: '>=3.9'
 - pypi: ./
   name: swarmclone
-  version: 0.1.0
-  sha256: 0e221b35d2969405e205c990fa40bc37daa28525d9cb54426c007c8c3e71daf5
+  version: 0.3a0
+  sha256: eb8fdb55841e817453734aa4788f9dee55048315338794f107952c3a94f6e5c5
   requires_python: '>=3.13'
   editable: true
 - pypi: https://mirrors.cloud.tencent.com/pypi/packages/a2/09/77d55d46fd61b4a135c444fc97158ef34a095e5681d0a6c10b75bf356191/sympy-1.14.0-py3-none-any.whl
