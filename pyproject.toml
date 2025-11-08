@@ -69,5 +69,4 @@ cpu = ["cpu"]
 default = ["cuda"]
 
 [tool.pixi.dependencies]
-pynini = ">=2.1.6"
 sox = ">=14.4.2,<15"
