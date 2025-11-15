@@ -130,9 +130,19 @@ class ModuleBase(metaclass=ModuleManager):
                 default = escape_all(default)  # 进行转义
             
             # 如果有的话，提供最大最小值和步长
-            minimum = float(field.metadata.get("min", 0))
-            maximum = float(field.metadata.get("max", 10))
-            step = float(field.metadata.get("step", 0.01 if _type == "float" else 1))
+            minimum = field.metadata.get("min")
+            if minimum is not None:
+                minimum = float(minimum)
+            maximum = field.metadata.get("max")
+            if maximum is not None:
+                maximum = float(maximum)
+            step = field.metadata.get("step")
+            if step is not None:
+                step = float(step)
+            elif _type == "int":
+                step = 1.0
+            elif _type == "float":
+                step = 0.01
             
             # 是否需要隐藏输入值？
             password = field.metadata.get("password", False)
