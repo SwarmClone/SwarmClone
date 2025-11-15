@@ -67,7 +67,7 @@ class TTSEdge(TTSBase):
         except:
             import traceback; traceback.print_exc()
             audio_data = b''
-            intervals = [{"token": " ", "duration": 0.1}] # 生成错误则返回空数据
+            intervals: AlignedSequence = [{"token": " ", "duration": 0.1}] # 生成错误则返回空数据
         return TTSAlignedAudio(self, id, audio_data, intervals)
 
 __all__ = [
