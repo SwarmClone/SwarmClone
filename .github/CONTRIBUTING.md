@@ -2,7 +2,7 @@
 ## Start contributing to `SwarmClone`!
 
 <div align="center">
-<strong>English</strong> | <a href="./CONTRIBUTING_zh-cn.md">简体中文</a>
+<strong>English</strong> | <a href="./.github/CONTRIBUTING_zh-cn.md">简体中文</a>
 </div>
 
 ## 🤝 Welcome Contributors
@@ -180,4 +180,4 @@ Refer to the "Quick Start" section in the project's [README.md](README.md) file 
 
 ## 📄 License
 
-By contributing code to this project, you agree that your contributions will be licensed under the [Apache License 2.0](../LICENSE).
+By contributing code to this project, you agree that your contributions will be licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0.html).

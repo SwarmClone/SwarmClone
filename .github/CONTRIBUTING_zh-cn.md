@@ -3,7 +3,7 @@
 ## 开始为 `SwarmClone` 做出贡献！
 
 <div align="center">
-<strong>简体中文</strong> | <a href="./CONTRIBUTING.md">English</a>
+<strong>简体中文</strong> | <a href="./.github/CONTRIBUTING.md">English</a>
 </div>
 
 
@@ -184,4 +184,4 @@ Closes #456
 
 ## 📄 许可证
 
-通过向本项目贡献代码，你同意你的贡献将在 [Apache License 2.0](../LICENSE) 下授权。
+通过向本项目贡献代码，你同意你的贡献将在 [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0.html) 下授权。
