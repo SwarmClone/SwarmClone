@@ -3,6 +3,8 @@
 <br><br>
 <h1>SwarmClone AI Framework<br><br></h1>
 
+<strong>简体中文</strong> | <a href="./docs/README_en.md">English</a>
+<br><br>
 一个完全开源、可高度定制的AI虚拟主播开发框架
 <br><br>
 
@@ -11,8 +13,7 @@
 [![Status](https://img.shields.io/badge/Status-Active-2ea44f.svg)]()
 [![Python](https://img.shields.io/badge/Python-3.13-0078D4.svg)](https://www.python.org)
 [![QQ群](https://custom-icon-badges.demolab.com/badge/QQ群-1048307485-0078D4?style=flat&logo=tencent-qq)](https://qm.qq.com/q/8IUfgmDqda)
-<br><br>
-<strong>简体中文</strong> | <a href="./docs/README_en.md">English</a>
+
 <br><br>
 
 </div>
