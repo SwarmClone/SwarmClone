@@ -163,7 +163,7 @@ Add any other relevant context or screenshots
 
 ## 🔧 Development Environment Setup
 
-Refer to the "Quick Start" section in the project's [README.md](README.md) file for detailed development environment setup.
+Refer to the "Quick Start" section in the project's [README.md](../README.md) file for detailed development environment setup.
 
 ## 📚 Code Standards
 
