@@ -1,9 +1,10 @@
 <div align="center">
 <img src="docs/assets/heading.png"/>
 <br><br>
+<h1>SwarmClone AI Framework<br><br></h1>
+
 一个完全开源、可高度定制的AI虚拟主播开发框架
 <br><br>
-<!-下面这行空行千万别删->
 
 ![STARS](https://img.shields.io/github/stars/SwarmClone/SwarmCloneBackend?color=yellow&label=Github%20Stars)
 [![License](https://img.shields.io/badge/License-Apache%202.0-2ea44f)](https://github.com/SwarmClone/SwarmCloneBackend/blob/main/LICENSE)
@@ -19,27 +20,9 @@
 这是一个代码完全开源、可高度定制的AI虚拟主播开发框架，致力于为开发者和研究者提供构建智能虚拟主播的全套解决方案。我们的目标是打造一个能够在B站、Twitch等主流直播平台实现高质量实时互动的AI主播系统，同时保持框架的灵活性和可扩展性。
 
 ### 特色
-1. ✅**自主可控的核心架构**：从底层交互逻辑到上层应用全部开源，开发者可以完全掌控系统行为
-2. ✅**灵活的 AI 模型支持**：适配 OpenAI Chat Completion API，轻松接入 Qwen、DeepSeek 等大模型，也可使用 Ollama 本地部署模型
-3. ✅**完善的直播功能**：支持弹幕实时互动等核心直播场景
-4. **模块化设计理念**：各功能组件可自由替换，方便开发者按需定制
-
----
-
-# 技术栈与技术路线
-1) 基础大语言模型搭建（技术探索项目，见[MiniLM2](https://github.com/SwarmClone/MiniLM2)）*已基本结束*
-2) 虚拟形象设定 *进行中*
-3) 直播画面设计 *进行中*
-4) 技术整合（对语言大模型、语音模型、虚拟形象、语音输入等，统一调度）*进行中*
-5) 接入直播平台
-6) 精进：
-    - 长期记忆 RAG
-    - 联网 RAG
-    - 与外界主动互动（发评论/私信？）
-    - 多模态（视觉听觉，甚至其他？）
-    - 整活（翻滚/b动静等）
-    - 唱歌
-    - 玩 Minecraft 、无人深空等游戏
+1. **灵活的 AI 模型支持**：适配 OpenAI Chat Completion API，轻松接入 Qwen、DeepSeek 等大模型，也可使用 Ollama 本地部署模型
+2. **完善的直播功能**：支持弹幕实时互动等核心直播场景
+3. **模块化设计理念**：各功能组件可自由替换，方便开发者按需定制
 
 ---
 
