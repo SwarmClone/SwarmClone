@@ -14,8 +14,6 @@
 [![Python](https://img.shields.io/badge/Python-3.13-0078D4.svg)](https://www.python.org)
 [![QQ群](https://custom-icon-badges.demolab.com/badge/QQ群-1048307485-0078D4?style=flat&logo=tencent-qq)](https://qm.qq.com/q/8IUfgmDqda)
 
-<br><br>
-
 </div>
 
 这是一个代码完全开源、可高度定制的AI虚拟主播开发框架，致力于为开发者和研究者提供构建智能虚拟主播的全套解决方案。我们的目标是打造一个能够在B站、Twitch等主流直播平台实现高质量实时互动的AI主播系统，同时保持框架的灵活性和可扩展性。
