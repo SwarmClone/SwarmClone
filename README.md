@@ -1,3 +1,5 @@
+## 本项目目前处于重构状态，相关代码正在迁移至 [SwarmCloneBackend](https://github.com/SwarmClone/SwarmCloneBackend)
+
 <div align="center">
 <img src="docs/assets/heading.png"/>
 <br><br>
