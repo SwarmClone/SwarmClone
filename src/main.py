@@ -1,5 +1,8 @@
+from core.module_manager import Controller
+
 def main():
-    print("Hello from swarmclone!")
+    controller = Controller()
+    controller.run()
 
 
 if __name__ == "__main__":
