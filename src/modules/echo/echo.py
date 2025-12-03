@@ -1,27 +1,53 @@
+import asyncio
 from ..base_module import BaseModule
+from typing import Any
 
 class Echo(BaseModule):
-    def __init__(self, config):
-        super().__init__(config)
+    # Implementation of the echo module that simply echoes back messages
+    def __init__(self, module_name: str):
+        super().__init__(module_name)
         self.name = "echo"
-        self.enabled = config.get("enabled", True)
-        self.prefix = config.get("prefix", "[ECHO]")
+        self.enabled = True
+        self.prefix = "[ECHO]"
+        # List of required configuration keys for this module
+        self.required_configs = []
 
-    def initialize(self):
+    async def _register_config_callbacks(self):
+        # Register callbacks for configuration changes if needed
+        pass
+
+    async def init(self):
+        # Initialize the module
         print(f"{self.prefix} Echo module initialized")
+        # Register message handlers
+        self._register_echo_handler()
 
-    def start(self):
+    async def run(self):
+        # Main entry point for module logic
         if self.enabled:
-            print(f"{self.prefix} Echo module started")
-            self._register_echo_handler()
+            print(f"{self.prefix} Echo module running")
+            try:
+                # Keep the module running until interrupted
+                while True:
+                    print(f"{self.prefix} Echo module is alive...")
+                    await asyncio.sleep(2)
+            except asyncio.CancelledError:
+                print(f"{self.prefix} Echo module run task cancelled")
 
-    def stop(self):
+    async def pause(self):
+        # Pause the module operations
+        print(f"{self.prefix} Echo module paused")
+
+    async def stop(self):
+        # Cleanup and shutdown the module
         print(f"{self.prefix} Echo module stopped")
 
     def _register_echo_handler(self):
+        # Register handlers for processing messages
         print(f"{self.prefix} Echo handler registered")
 
-    def process_message(self, message):
+    def process_message(self, message: Any) -> Any:
+        # Process and echo back incoming messages
         if self.enabled:
             response = f"{self.prefix} Echo: {message}"
             print(response)

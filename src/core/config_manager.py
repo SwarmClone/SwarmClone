@@ -9,17 +9,17 @@ class ConfigEventBus:
     def __init__(self):
 
         # str: event_type, Dict[str, Callable]: module_name to callback
-        self._subscribers = Dict[str, Dict[str, Callable]] = {} # type: ignore
+        self._subscribers: Dict[str, Dict[str, Callable]] = {} # type: ignore
 
     # Only the module subscribed to the same event_type can receive the specific config changes
     # This takes into account that one change in config may require 
     # more then one module to deal with it
-    def subscribe(self, module_name: str, event_type: str, callback: Callable[[Dict], None]) -> None:
+    def subscribe(self, module_name: str, event_type: str, callback: Callable[[Any], None]) -> None:
         if event_type not in self._subscribers:
             self._subscribers[event_type] = {}
-        self._subscribers[module_name][event_type] = callback
+        self._subscribers[event_type][module_name] = callback
     
-    def publish(self, event_type: str, config_data: Dict) -> None:
+    def publish(self, event_type: str, config_data: Any) -> None:
         if event_type in self._subscribers:
             for module_name, callback in self._subscribers[event_type].items():
                 try:

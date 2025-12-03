@@ -13,11 +13,11 @@ class BaseModule(ABC):
         # Just key names, e.g. ["api_key", "model_name"]
         self.required_configs: List[str] = []
 
-    async def pre_init(self, config_manager, file_manager, message_bus, event_bus):
+    # TODO； finish file_manager and message_bus
+    async def pre_init(self, config_manager, file_manager = None, message_bus = None):
         self.config_manager = config_manager
         self.file_manager = file_manager
         self.message_bus = message_bus
-        self.event_bus = event_bus
 
         await self._register_config_callbacks()
         await self._check_and_init()
@@ -58,6 +58,12 @@ class BaseModule(ABC):
         # This is the enrty point of your module logic
         pass
 
+    @abstractmethod
+    async def pause(self):
+        # Pause the module, it must override in your module class
+        # For example, the LLM module send a pause request to the LLM service (interrupt)
+        pass
+        
     @abstractmethod
     async def stop(self):
         # You must put your module cleanup code here
