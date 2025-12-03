@@ -4,6 +4,9 @@ from typing import Any, Callable, Dict
 
 from fastapi import APIRouter, HTTPException
 
+from core.logger import log
+
+
 class ConfigEventBus:
     # This is the event bus for processing configuration changes
     def __init__(self):
@@ -25,7 +28,8 @@ class ConfigEventBus:
                 try:
                     callback(config_data)
                 except Exception as e:
-                    print(f"Error notifying module {module_name} for event {event_type}: {e}")
+                    log.error(f"Error notifying module {module_name} for event {event_type}: {e}")
+
 
 class ConfigManager:
     # ConfigManager can load and save configuration data from/to a JSON file
@@ -41,20 +45,23 @@ class ConfigManager:
             try:
                 with open(self.config_file, 'r', encoding='utf-8') as f:
                     self.config_data = json.load(f)
+                log.info(f"Configuration loaded from {self.config_file}")
             except json.JSONDecodeError as e:
-                print(f"Error loading configuration: {e}")
+                log.error(f"Error loading configuration: {e}")
                 self.config_data = {}
         else:
             self.config_data = {}
             self._save_config()
+            log.info(f"Created new configuration file at {self.config_file}")
 
     def _save_config(self) -> None:
         try:
             self.config_file.parent.mkdir(parents=True, exist_ok=True)
             with open(self.config_file, 'w', encoding='utf-8') as f:
                 json.dump(self.config_data, f, indent=4)    # four space indentation
+            log.info(f"Configuration saved to {self.config_file}")
         except Exception as e:
-            print(f"Error saving configuration: {e}")
+            log.error(f"Error saving configuration: {e}")
     
     def get(self, config_key: str, default: Any = None) -> Any:
         return self.config_data.get(config_key, default)
@@ -71,7 +78,7 @@ class ConfigManager:
         router = APIRouter(prefix="/config")
 
         @router.get("/")
-        async def get_all_config(config_key: str):
+        async def get_all_config():
             return self.config_data
         
         @router.get("/{config_key}")

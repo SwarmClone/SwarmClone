@@ -2,6 +2,8 @@ import asyncio
 from ..base_module import BaseModule
 from typing import Any
 
+from core.logger import log
+
 class Dummy(BaseModule):
     # Implementation of the dummy module for testing purposes
     def __init__(self, module_name: str):
@@ -18,38 +20,38 @@ class Dummy(BaseModule):
 
     async def init(self):
         # Initialize the module
-        print(f"{self.prefix} Dummy module initialized")
+        log.info(f"{self.prefix} Dummy module initialized")
         # Simulate initialization process
         self._register_echo_handler()
 
     async def run(self):
         # Main entry point for module logic
         if self.enabled:
-            print(f"{self.prefix} Dummy module running")
+            log.info(f"{self.prefix} Dummy module running")
             try:
                 # Keep the module running until interrupted
                 while True:
-                    print(f"{self.prefix} Dummy module is alive...")
+                    log.info(f"{self.prefix} Dummy module is alive...")
                     await asyncio.sleep(1)
             except asyncio.CancelledError:
-                print(f"{self.prefix} Dummy module run task cancelled")
+                log.warning(f"{self.prefix} Dummy module run task cancelled")
 
     async def pause(self):
         # Pause the module operations
-        print(f"{self.prefix} Dummy module paused")
+        log.info(f"{self.prefix} Dummy module paused")
 
     async def stop(self):
         # Cleanup and shutdown the module
-        print(f"{self.prefix} Dummy module stopped")
+        log.info(f"{self.prefix} Dummy module stopped")
 
     def _register_echo_handler(self):
         # Register handlers for processing messages or events
-        print(f"{self.prefix} Dummy handler registered")
+        log.info(f"{self.prefix} Dummy handler registered")
 
     def process_message(self, message: Any) -> Any:
         # Process incoming messages
         if self.enabled:
             response = f"{self.prefix} Dummy: {message}"
-            print(response)
+            log.info(response)
             return response
         return None

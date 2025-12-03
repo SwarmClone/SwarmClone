@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import List
 
+from core.logger import log
+
 
 class BaseModule(ABC):
     # This is the base class for all modules
@@ -30,15 +32,15 @@ class BaseModule(ABC):
                     missing_configs.append(config)
             
             if missing_configs:
-                print(f"Module {self.module_name} is missing required configs: {missing_configs}")
+                log.warning(f"Module {self.module_name} is missing required configs: {missing_configs}")
                 self.is_ready = False
             else:
                 self.is_ready = True
                 await self.init()
                 self.is_init = True
-                print(f"Module {self.module_name} initialized and ready.")
+                log.info(f"Module {self.module_name} initialized and ready.")
         except Exception as e:
-            print(f"Error during initialization of module {self.module_name}: {e}")
+            log.error(f"Error during initialization of module {self.module_name}: {e}")
             self.is_ready = False
 
     async def _register_config_callbacks(self):

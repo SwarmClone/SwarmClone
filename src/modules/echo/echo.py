@@ -2,6 +2,8 @@ import asyncio
 from ..base_module import BaseModule
 from typing import Any
 
+from core.logger import log
+
 class Echo(BaseModule):
     # Implementation of the echo module that simply echoes back messages
     def __init__(self, module_name: str):
@@ -18,38 +20,38 @@ class Echo(BaseModule):
 
     async def init(self):
         # Initialize the module
-        print(f"{self.prefix} Echo module initialized")
+        log.info(f"{self.prefix} Echo module initialized")
         # Register message handlers
         self._register_echo_handler()
 
     async def run(self):
         # Main entry point for module logic
         if self.enabled:
-            print(f"{self.prefix} Echo module running")
+            log.info(f"{self.prefix} Echo module running")
             try:
                 # Keep the module running until interrupted
                 while True:
-                    print(f"{self.prefix} Echo module is alive...")
+                    log.info(f"{self.prefix} Echo module is alive...")
                     await asyncio.sleep(2)
             except asyncio.CancelledError:
-                print(f"{self.prefix} Echo module run task cancelled")
+                log.info(f"{self.prefix} Echo module run task cancelled")
 
     async def pause(self):
         # Pause the module operations
-        print(f"{self.prefix} Echo module paused")
+        log.info(f"{self.prefix} Echo module paused")
 
     async def stop(self):
         # Cleanup and shutdown the module
-        print(f"{self.prefix} Echo module stopped")
+        log.info(f"{self.prefix} Echo module stopped")
 
     def _register_echo_handler(self):
         # Register handlers for processing messages
-        print(f"{self.prefix} Echo handler registered")
+        log.info(f"{self.prefix} Echo handler registered")
 
     def process_message(self, message: Any) -> Any:
         # Process and echo back incoming messages
         if self.enabled:
             response = f"{self.prefix} Echo: {message}"
-            print(response)
+            log.info(response)
             return response
         return None
