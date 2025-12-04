@@ -32,6 +32,10 @@ class Echo(BaseModule):
                 # Keep the module running until interrupted
                 while True:
                     log.info(f"{self.prefix} Echo module is alive...")
+                    log.error(f"{self.prefix} This is a sample error log from Echo module")
+                    log.critical(f"{self.prefix} This is a sample critical log from Echo module")
+                    log.debug(f"{self.prefix} This is a sample debug log from Echo module")
+                    log.warning(f"{self.prefix} This is a sample warning log from Echo module")
                     await asyncio.sleep(2)
             except asyncio.CancelledError:
                 log.info(f"{self.prefix} Echo module run task cancelled")

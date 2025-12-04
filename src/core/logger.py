@@ -1,9 +1,46 @@
+# SwarmCloneBackend
+# Copyright (c) 2025 SwarmClone <github.com/SwarmClone> and contributors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import sys
 import logging
 import threading
 import datetime
 from typing import Optional
 from pathlib import Path
+
+class ColoredFormatter(logging.Formatter):
+    
+    COLORS = {
+        'DEBUG': '\033[34m',
+        'INFO': '\033[32m',
+        'WARNING': '\033[33m',
+        'ERROR': '\033[31m',
+        'CRITICAL': '\033[31m',
+    }
+    RESET = '\033[0m'
+    
+    def format(self, record):
+        formatted = super().format(record)
+        
+        color = self.COLORS.get(record.levelname, self.RESET)
+        
+        # Add color if terminal supports it
+        if hasattr(sys.stdout, 'isatty') and sys.stdout.isatty():
+            return f"{color}{formatted}{self.RESET}"
+        else:
+            return formatted
 
 
 class LoggerManager:
@@ -35,10 +72,10 @@ class LoggerManager:
             self.root_logger.removeHandler(handler)
         
         console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.INFO)
+        console_handler.setLevel(logging.DEBUG)  # Default level: debug
         
-        console_formatter = logging.Formatter(
-            '[{asctime}.{msecs:03.0f}] [{levelname}] {name}:{module} — {message}',
+        console_formatter = ColoredFormatter(
+            '[{asctime}.{msecs:03.0f}] [{levelname}] {name} — {message}',
             datefmt='%Y-%m-%d %H:%M:%S',
             style='{'
         )
@@ -61,7 +98,7 @@ class LoggerManager:
         self._file_handler.setLevel(logging.DEBUG)
         
         file_formatter = logging.Formatter(
-            '[{asctime}.{msecs:03.0f}] [{levelname}] {name}:{module} — {message}',
+            '[{asctime}.{msecs:03.0f}] [{levelname}] {name} — {message}',
             datefmt='%Y-%m-%d %H:%M:%S',
             style='{'
         )
