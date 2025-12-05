@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # SwarmCloneBackend
 # Copyright (c) 2025 SwarmClone <github.com/SwarmClone> and contributors
 #
@@ -9,28 +10,29 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from core.module_manager import Controller
+import asyncio
 import sys
 
 from core.logger import log
+from core.controller import Controller
 
 
-def main():
-    log.info("Starting SwarmCloneBackend...")
-    controller = Controller()
-    controller.run()
+def main() -> None:
+    log.info("Starting SwarmClone Backend...")
+    
+    try:
+        controller = Controller()
+        asyncio.run(controller.run_forever())
+    except KeyboardInterrupt:
+        log.info("Application interrupted by user")
+    except Exception as e:
+        log.error(f"Fatal error: {e}", exc_info=True)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        log.info("Program terminated by user")
-        sys.exit(0)
-    except Exception as e:
-        log.error(f"Error: {e}")
-        sys.exit(1)
+    main()

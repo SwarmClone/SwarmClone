@@ -13,15 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import asyncio
-from typing import Any, List
+from typing import Any
 
 from core.base_module import BaseModule
 from core.logger import log
 
 
-class Echo(BaseModule):
-    """Echo module that demonstrates basic module functionality"""
+class Dummy111(BaseModule):
     
     def __init__(self, module_name: str):
         super().__init__(module_name)
@@ -31,7 +29,6 @@ class Echo(BaseModule):
         """Initialize the echo module"""
         await super().init()
         
-        # Register message handlers
         await self.subscribe("echo.request", self._handle_echo_request)
         await self.subscribe("echo.*", self._handle_wildcard_echo)
         
