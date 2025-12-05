@@ -57,19 +57,6 @@ class Dummy111(BaseModule):
         iteration = 0
         while self.is_running:
             iteration += 1
-            
-            # Demonstrate various log levels
-            if iteration % 10 == 0:
-                log.error(f"{self.prefix} This is a sample error log (iteration {iteration})")
-            elif iteration % 7 == 0:
-                log.critical(f"{self.prefix} This is a sample critical log (iteration {iteration})")
-            elif iteration % 5 == 0:
-                log.warning(f"{self.prefix} This is a sample warning log (iteration {iteration})")
-            elif iteration % 3 == 0:
-                log.debug(f"{self.prefix} This is a sample debug log (iteration {iteration})")
-            else:
-                log.info(f"{self.prefix} Echo module alive (iteration {iteration})")
-            
             completed = await self.sleep_or_stop(0.001)
             if not completed:
                 log.info(f"{self.prefix} Stop requested, exiting run loop")
