@@ -33,7 +33,7 @@ class ModuleConfigError(Exception):
 
 
 class Controller:
-    def __init__(self, config_file: str = "config.json"):
+    def __init__(self, config_file: str = "config.yml"):
         self.modules: Dict[str, BaseModule] = {}
         self.message_bus = MessageBus()
         self.config_manager = ConfigManager(Path(config_file))

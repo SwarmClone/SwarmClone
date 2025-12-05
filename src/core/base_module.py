@@ -48,21 +48,6 @@ class BaseModule(ABC):
         """Called before module initialization for config setup"""
         self.config_manager = config_manager
         
-        # Load configuration
-        for key in self.required_configs:
-            value = config_manager.get(key)
-            if value is not None:
-                self.config[key] = value
-        
-        # Register for config changes
-        if self.required_configs:
-            for key in self.required_configs:
-                config_manager.subscribe(
-                    self.name,
-                    key,
-                    self._handle_config_change
-                )
-    
     async def init(self) -> None:
         """Initialize the module - override in derived classes"""
         log.info(f"{self.prefix} Module initialized")

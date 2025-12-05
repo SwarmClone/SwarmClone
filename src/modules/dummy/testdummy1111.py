@@ -31,6 +31,26 @@ class Dummy111(BaseModule):
         
         await self.subscribe("echo.request", self._handle_echo_request)
         await self.subscribe("echo.*", self._handle_wildcard_echo)
+
+        if self.config_manager:
+            self.config_manager.register(
+                self.name,
+                "response_delay",
+                0.5,
+                self._handle_config_change
+            )
+            self.config_manager.register(
+                self.name,
+                "echo_count",
+                0,
+                self._handle_config_change
+            )
+            self.config_manager.register(
+                self.name,
+                "wildcard_echo",
+                True,
+                self._handle_config_change
+            )
         
         log.info(f"{self.prefix} Echo handlers registered")
     
