@@ -37,13 +37,12 @@
 > **不建议在较低版本的系统上运行本项目，如 Windows 7 SP1 等**
 
 ```console
-
+# 克隆项目
 git clone https://github.com/SwarmClone/SwarmCloneBackend.git
-
 cd SwarmCloneBackend
-
+# 同步项目依赖
 uv sync
-
+# 启动
 uv run start
 ```
 
