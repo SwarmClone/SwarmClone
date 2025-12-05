@@ -36,7 +36,7 @@
 > 
 > **不建议在较低版本的系统上运行本项目，如 Windows 7 SP1 等**
 
-```console
+```bash
 # Clone the project
 git clone https://github.com/SwarmClone/SwarmCloneBackend.git
 cd SwarmCloneBackend
