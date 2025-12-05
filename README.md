@@ -28,65 +28,22 @@
 ---
 
 # 快速开始
-#### 先决条件：
-- xxx
-- xxx
-- xxx
 
-### 1. 克隆本项目并准备部署：
 
-请确保您的磁盘中有足够的可用空间.
-
+> [!note]
+> 
+> **本项目需要依赖 Python 3.13 及以上版本运行**
+> 
+> **不建议在较低版本的系统上运行本项目，如 Windows 7 SP1 等**
 
 ```console
+
 git clone https://github.com/SwarmClone/SwarmCloneBackend.git
-```
 
-### 2. 安装系统依赖：
+cd SwarmCloneBackend
 
-如果您此前安装过这些系统依赖，您可以选择暂时跳过本步骤。若后续操作出现缺少依赖项的报错，您可以在这里核对您是否安装了所有依赖项。
+uv sync
 
-#### Linux 系统依赖
-
-若您使用的是 Linux 系统或 WSL 子系统，请根据您的 Linux 发行版选择相应命令执行：
-
-**Ubuntu/Debian**
-
-```console
-
-
-```
-
-**Fedora/CentOS/RHEL**
-```console
-
-
-```
-
-**Arch Linux**
-```console
-
-
-```
->💡对于使用其他包管理工具的发行版，请根据您的发行版选择类似的包。
-
-#### Windows 系统依赖
-
-若您使用的是 Windows 系统，您需要安装 Visual Studio，并在安装时勾选 C 语言相关选项，确保安装了可用的 C 语言编译器。然后，安装`xxx`：
-```console
-
-
-```
-
-### 3. 设置 Python 环境
-```console
-
-```
->💡在 Windows 系统下 deepspeed 的安装有可能引发错误，声称无法导入 torch，可以在 powershell 下运行 `$env:DS_BUILD_OPS="0"` 以设置环境变量然后重新运行上述命令解决。
-
-### 5. 启动项目
-在项目根目录执行下面的命令：
-```console
 uv run start
 ```
 
