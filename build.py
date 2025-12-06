@@ -6,7 +6,6 @@ import shutil
 import os
 import configparser
 import tempfile
-import re
 
 def get_module_extension():
     """Get compiled module extension based on platform"""
@@ -45,7 +44,7 @@ def copy_modules_to_build(src_modules: Path, build_temp: Path) -> Path:
         '.pytest_cache', '.coverage', 'htmlcov', '.mypy_cache'
     ]
     
-    def ignore_patterns(dir_path, names):
+    def ignore_patterns(directory, names):
         ignored = []
         for pattern in exclude_patterns:
             for name in names:
@@ -67,8 +66,10 @@ def compile_python_file(py_file: Path, output_file: Path, extension: str) -> boo
         # Create a proper module name for the extension
         module_name = py_file.stem
         
-        # Create a temporary setup.py
-        setup_content = f"""
+        py_file_path = str(py_file.absolute()).replace('\\', '/')
+        output_file_path = str(output_file.absolute()).replace('\\', '/')
+        
+        setup_content = f"""# -*- coding: utf-8 -*-
 from Cython.Build import cythonize
 from setuptools import setup
 from setuptools.extension import Extension
@@ -76,11 +77,11 @@ import os
 import sys
 
 # Ensure the output directory exists
-os.makedirs(os.path.dirname(r'{output_file.absolute()}'), exist_ok=True)
+os.makedirs(os.path.dirname(r'{output_file_path}'), exist_ok=True)
 
 ext = Extension(
     name='{module_name}',
-    sources=[r'{py_file.absolute()}'],
+    sources=[r'{py_file_path}'],
     language='c',
     define_macros=[('CYTHON_LIMITED_API', '1')]
 )
@@ -109,15 +110,23 @@ setup(
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
             setup_file = temp_path / "setup.py"
-            setup_file.write_text(setup_content)
             
-            # Run setup.py
+            with open(setup_file, 'w', encoding='utf-8') as f:
+                f.write(setup_content)
+            
+            env = os.environ.copy()
+            env['PYTHONIOENCODING'] = 'utf-8'
+            env['PYTHONUTF8'] = '1'
+            
             result = subprocess.run(
                 [sys.executable, str(setup_file), "build_ext", "--inplace"],
                 cwd=temp_path,
                 capture_output=True,
                 text=True,
-                timeout=60
+                timeout=60,
+                encoding='utf-8',
+                errors='replace',
+                env=env
             )
             
             if result.returncode != 0:
@@ -186,7 +195,8 @@ def compile_module_in_build(build_module_dir: Path, extension: str) -> int:
                     entry = entry.strip().strip('"').strip("'")
                     if entry.endswith('.py'):
                         entry_file = build_module_dir / entry
-        except:
+        except Exception as e:
+            print(f"  ⚠️  读取module.ini失败: {e}")
             pass
     
     # Find all Python files
@@ -224,8 +234,11 @@ def compile_module_in_build(build_module_dir: Path, extension: str) -> int:
                 # Remove empty parent directories
                 parent = py_file.parent
                 while parent != build_module_dir and not any(parent.iterdir()):
-                    parent.rmdir()
-                    parent = parent.parent
+                    try:
+                        parent.rmdir()
+                        parent = parent.parent
+                    except:
+                        break
             except:
                 pass
     
@@ -319,21 +332,6 @@ def clean_build_module_directory(build_module_dir: Path, extension: str):
     """Clean build module directory to only keep necessary files"""
     print(f"  🧹 清理构建文件...")
     
-    # Keep these patterns
-    keep_patterns = [
-        'module.ini',
-        f'*{extension}',
-        '__init__.py',
-        'requirements.txt',
-        'README.md',
-        'LICENSE',
-        '*.json',
-        '*.txt',
-        '*.md',
-        '*.yml',
-        '*.yaml'
-    ]
-    
     # First pass: remove all .py files except those we want to keep
     for py_file in build_module_dir.rglob("*.py"):
         if py_file.name not in ['__init__.py', 'module.ini']:
@@ -356,7 +354,7 @@ def clean_build_module_directory(build_module_dir: Path, extension: str):
                 pass
     
     # Third pass: remove empty directories
-    for root, dirs, files in os.walk(build_module_dir, topdown=False):
+    for root, dirs, _files in os.walk(build_module_dir, topdown=False):
         for dir_name in dirs:
             dir_path = Path(root) / dir_name
             try:
@@ -452,23 +450,6 @@ def compile_modules_in_build(build_modules: Path) -> int:
     
     return success_count
 
-def copy_build_modules_to_dist(build_temp: Path, dist_dir: Path):
-    """Copy compiled modules from build temp to distribution directory"""
-    build_modules = build_temp / "modules"
-    dist_modules = dist_dir / "modules"
-    
-    if not build_modules.exists():
-        print("📁 构建modules目录不存在")
-        return
-    
-    print(f"\n📁 复制构建的模块到发布目录...")
-    
-    if dist_modules.exists():
-        shutil.rmtree(dist_modules)
-    
-    shutil.copytree(build_modules, dist_modules)
-    print(f"  ✅ 复制完成: {dist_modules}")
-
 def clean_dist_directory(dist_dir: Path):
     """Clean distribution directory of unwanted files"""
     print(f"\n🧹 清理发布目录...")
@@ -478,6 +459,7 @@ def clean_dist_directory(dist_dir: Path):
     
     # Patterns to clean
     clean_patterns = [
+
         '**/__pycache__',
         '**/*.egg-info',
         '**/*.py',
@@ -508,8 +490,7 @@ def clean_dist_directory(dist_dir: Path):
 
 def escape_windows_path(path: str) -> str:
     """Escape Windows path for use in Python strings"""
-    # Replace backslashes with double backslashes
-    return path.replace('\\', '\\\\')
+    return path.replace('\\', '\\\\').encode('unicode_escape').decode('utf-8')
 
 def create_pyinstaller_spec(project_root: Path, build_temp: Path, dist_dir: Path):
     """Create PyInstaller spec file"""
@@ -519,8 +500,7 @@ def create_pyinstaller_spec(project_root: Path, build_temp: Path, dist_dir: Path
         return None
     
     build_modules = build_temp / "modules"
-    
-    # Escape Windows paths
+
     main_py_path = escape_windows_path(str(main_py.absolute()))
     project_root_path = escape_windows_path(str(project_root.absolute()))
     build_modules_path = escape_windows_path(str(build_modules.absolute()))
@@ -583,7 +563,8 @@ exe = EXE(
 """
     
     spec_file = project_root / "backend.spec"
-    spec_file.write_text(spec_content)
+    with open(spec_file, 'w', encoding='utf-8') as f:
+        f.write(spec_content)
     print(f"📝 创建 spec 文件: {spec_file}")
     
     return spec_file
@@ -599,6 +580,10 @@ def run_pyinstaller(project_root: Path, spec_file: Path, dist_dir: Path):
         if pyinstaller_build.exists():
             shutil.rmtree(pyinstaller_build, ignore_errors=True)
         
+        env = os.environ.copy()
+        env['PYTHONIOENCODING'] = 'utf-8'
+        env['PYTHONUTF8'] = '1'
+        
         result = subprocess.run([
             sys.executable, "-m", "PyInstaller",
             "--distpath", str(dist_dir),
@@ -606,7 +591,7 @@ def run_pyinstaller(project_root: Path, spec_file: Path, dist_dir: Path):
             "--noconfirm",
             "--clean",
             str(spec_file)
-        ], capture_output=True, text=True)
+        ], capture_output=True, text=True, encoding='utf-8', errors='replace', env=env)
         
         if result.returncode == 0:
             print("  ✅ PyInstaller打包完成")
@@ -649,10 +634,13 @@ def main():
     # Install dependencies
     print("\n📦 安装依赖...")
     try:
+        env = os.environ.copy()
+        env['PYTHONIOENCODING'] = 'utf-8'
+        
         result = subprocess.run([
             sys.executable, "-m", "pip", "install", 
             "pyinstaller>=5.0", "cython>=3.0", "setuptools>=65.0", "-q"
-        ], capture_output=True, text=True)
+        ], capture_output=True, text=True, encoding='utf-8', errors='replace', env=env)
         
         if result.returncode == 0:
             print("  ✅ 依赖安装完成")
@@ -685,62 +673,8 @@ def main():
     
     # Run PyInstaller
     if not run_pyinstaller(project_root, spec_file, dist_dir):
-        print("⚠️  PyInstaller打包失败，尝试使用简化的spec文件...")
-        # Create a simpler spec file without modules
-        simple_spec_content = """# -*- mode: python ; coding: utf-8 -*-
-import sys
-import os
-
-block_cipher = None
-
-a = Analysis(
-    ['src/main.py'],
-    pathex=[],
-    binaries=[],
-    datas=[],
-    hiddenimports=[],
-    hookspath=[],
-    hooksconfig={},
-    runtime_hooks=[],
-    excludes=[],
-    win_no_prefer_redirects=False,
-    win_private_assemblies=False,
-    cipher=block_cipher,
-    noarchive=False,
-)
-pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
-
-exe = EXE(
-    pyz,
-    a.scripts,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
-    [],
-    name='backend',
-    debug=False,
-    bootloader_ignore_signals=False,
-    strip=False,
-    upx=True,
-    upx_exclude=[],
-    runtime_tmpdir=None,
-    console=True,
-    disable_windowed_traceback=False,
-    argv_emulation=False,
-    target_arch=None,
-    codesign_identity=None,
-    entitlements_file=None,
-)
-"""
-        spec_file.write_text(simple_spec_content)
-        print("📝 创建简化的spec文件")
-        
-        # Try again with simplified spec
-        if not run_pyinstaller(project_root, spec_file, dist_dir):
-            return
-    
-    # Copy compiled modules to dist
-    copy_build_modules_to_dist(build_temp, dist_dir)
+        print("⚠️  PyInstaller打包失败")
+        return
     
     # Clean dist directory
     clean_dist_directory(dist_dir)

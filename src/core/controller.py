@@ -97,7 +97,7 @@ class Controller:
             entry_path = module_dir / entry_file
             if not entry_path.exists():
                 raise ModuleConfigError(f"Entry file not found: {entry_path}")
-            if not entry_file.endswith('.py'):
+            if not entry_file.endswith('.py') and not entry_file.endswith('.pyd'):
                 log.warning(f"Entry file {entry_file} doesn't have .py extension")
             
             return {
