@@ -168,16 +168,4 @@ class ConfigManager:
                 "value": value
             }
 
-        @router.delete("/modules/{module_name}/{config_key}")
-        async def delete_config_endpoint(module_name: str, config_key: str):
-            if self.delete_config(module_name, config_key):
-                return {
-                    "message": f"Config '{config_key}' deleted from module '{module_name}'"
-                }
-            else:
-                raise HTTPException(
-                    status_code=404,
-                    detail=f"Config '{config_key}' not found in module '{module_name}'"
-                )
-
         app.include_router(router)
