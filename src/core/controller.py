@@ -46,22 +46,15 @@ class Controller:
     def _parse_module_ini(self, module_dir: Path) -> dict:
         """
         Parse the module.ini file in a module directory.
-        
-        Args:
-            module_dir: Path to the module directory
-            
-        Returns:
-            Dictionary containing parsed configuration values
-            
-        Raises:
-            ModuleConfigError: If the configuration file is missing or invalid
-            
         The module.ini file should have the following format:
+
         [module]
         class_name = "MyClassName"
         entry = "my_module.py"
         
         Both class_name and entry are required fields.
+
+        NOTE: In packaged environment, the 'entry' file will auto set to .pyd file or .so file.
         """
         config_file = module_dir / "module.ini"
         
@@ -97,7 +90,8 @@ class Controller:
             entry_path = module_dir / entry_file
             if not entry_path.exists():
                 raise ModuleConfigError(f"Entry file not found: {entry_path}")
-            if not entry_file.endswith('.py') and not entry_file.endswith('.pyd'):
+            if not entry_file.endswith('.py') \
+                        and not entry_file.endswith('.pyd'):   # In unpackaged environment
                 log.warning(f"Entry file {entry_file} doesn't have .py extension")
             
             return {
@@ -211,7 +205,6 @@ class Controller:
         
         if not modules_path.exists():
             log.warning(f"Modules directory not found: {modules_path}")
-            # Create the directory for future use
             modules_path.mkdir(parents=True, exist_ok=True)
             log.info(f"Created modules directory: {modules_path}")
             return
@@ -359,5 +352,5 @@ class Controller:
             self.is_running = False
             log.info("Controller stopped")
     
-    async def run_forever(self) -> None:
+    async def start(self) -> None:
         await self.run()

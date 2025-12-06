@@ -26,7 +26,7 @@ def main() -> None:
     
     try:
         controller = Controller()
-        asyncio.run(controller.run_forever())
+        asyncio.run(controller.start())
     except KeyboardInterrupt:
         log.info("Application interrupted by user")
     except Exception as e:
