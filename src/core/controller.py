@@ -21,6 +21,7 @@ from configparser import ConfigParser
 from pathlib import Path
 from typing import Dict, List, Optional
 
+from core.api_server import get_api_server
 from core.logger import log
 from core.config_manager import ConfigManager
 from core.message import MessageBus
@@ -37,10 +38,10 @@ class Controller:
         self.modules: Dict[str, BaseModule] = {}
         self.message_bus = MessageBus()
         self.config_manager = ConfigManager(Path(config_file))
-        
+        self.api_server = None
+
         self.is_running = False
         self._shutdown_event = asyncio.Event()
-        
         self._module_tasks: List[asyncio.Task] = []
     
     def _parse_module_ini(self, module_dir: Path) -> dict:
@@ -117,8 +118,6 @@ class Controller:
             log.info(f"Loading module '{module_name}': class={class_name}, entry={entry_file}")
             
             entry_path = config['entry_path']
-            
-            # Get the absolute path to ensure proper module loading
             abs_entry_path = entry_path.resolve()
             
             # Create a unique module name to avoid conflicts
@@ -238,6 +237,11 @@ class Controller:
             try:
                 # Pre-initialize with config manager
                 await module.pre_init(self.config_manager)
+
+                module.message_bus = self.message_bus
+                module.config_manager = self.config_manager
+                if self.api_server:
+                    module.api_server = self.api_server
                 
                 # Initialize module-specific resources
                 await module.init()
@@ -250,7 +254,7 @@ class Controller:
                     exc_info=True
                 )
                 module.enabled = False
-    
+
     async def start_modules(self) -> None:
         log.info(f"Starting enabled modules...")
         

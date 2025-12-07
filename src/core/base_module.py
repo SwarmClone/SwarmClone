@@ -17,6 +17,7 @@ import asyncio
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict, List, Optional
 
+from core.api_server import APIServer
 from core.logger import log
 from core.message import MessageBus
 from core.config_manager import ConfigManager
@@ -29,9 +30,10 @@ class BaseModule(ABC):
     Each module runs in the same event loop but manages its own lifecycle
     """
     
-    def __init__(self, module_name: str):
+    def __init__(self, module_name: str, category: str = 'modules'):
         self.name = module_name
         self.prefix = f"[{module_name.upper()}]"
+        self.category = category
         self.enabled = True
         self.is_running = False
         self._task: Optional[asyncio.Task] = None
@@ -43,6 +45,7 @@ class BaseModule(ABC):
         # Dependencies (injected by Controller)
         self.message_bus: Optional[MessageBus] = None
         self.config_manager: Optional[ConfigManager] = None
+        self.api_server: Optional[APIServer] = None
     
     async def pre_init(self, config_manager: ConfigManager) -> None:
         """Called before module initialization for config setup"""
