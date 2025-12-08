@@ -25,9 +25,7 @@
 2. **完善的直播功能**：支持弹幕实时互动等核心直播场景
 3. **模块化设计理念**：各功能组件可自由替换，方便开发者按需定制
 
----
-
-# 快速开始
+## 快速开始
 
 
 > [!note]
@@ -46,18 +44,19 @@ uv sync
 uv run start
 ```
 
----
 
-# 如何参与开发？
+## 如何参与开发？
 - 您可以加入我们的开发QQ群：1017493942
 
 如果你对 AI 、虚拟主播、开源开发充满热情，无论你是框架开发者、模型训练师、前端/图形工程师、产品设计师，还是热情的测试者，蜂群克隆（SwarmClone）都欢迎你的加入！让我们共同创造下一代开源AI虚拟直播系统！
 
----
-
-# 项目开源协议
+## 项目开源协议
 
 本项目采用 [**Apache-2.0 license**](https://www.apache.org/licenses/LICENSE-2.0.html)作为开源许可证。  
 完整许可证文本请参阅 [**LICENSE**](/LICENSE) 文件。
 
 **在您复制、修改或分发本项目时，即表示您同意并愿意遵守 Apache-2.0 license 的全部条款。**
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=SwarmClone/SwarmCloneBackend&type=Date)](https://www.star-history.com/#SwarmClone/SwarmCloneBackend&Date)
