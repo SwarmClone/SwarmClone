@@ -16,44 +16,32 @@
 from typing import Any
 
 from core.base_module import BaseModule
+from core.config_manager import ConfigManager
 from core.logger import log
 
 
-class Dummy111(BaseModule):
+class SampleModule(BaseModule):
+    """Sample module that demonstrates basic module functionality"""
     
     def __init__(self, module_name: str):
         super().__init__(module_name)
         self.echo_count = 0
+
+    async def pre_init(self, config_manager: ConfigManager) -> None:
+        await super().pre_init(config_manager)
+
+        self.config_manager = config_manager
+        await self._register_message_handlers()
+
+        log.info(f"{self.prefix} Module Pre-initialized")
     
     async def init(self) -> None:
-        """Initialize the echo module"""
         await super().init()
         
+        # Register message handlers
         await self.subscribe("echo.request", self._handle_echo_request)
         await self.subscribe("echo.*", self._handle_wildcard_echo)
-
-        if self.config_manager:
-            self.config_manager.register(
-                self.name,
-                "response_delay",
-                0.5,
-                self._handle_config_change
-            )
-            self.config_manager.register(
-                self.name,
-                "echo_count",
-                0,
-                self._handle_config_change
-            )
-            self.config_manager.register(
-                self.name,
-                "wildcard_echo",
-                True,
-                self._handle_config_change
-            )
         
-        log.info(f"{self.prefix} Echo handlers registered")
-    
     async def _register_message_handlers(self) -> None:
         """Register additional message handlers"""
         # This is called by base class init
@@ -62,7 +50,7 @@ class Dummy111(BaseModule):
     async def _handle_echo_request(self, message: Any) -> Any:
         """Handle echo request messages"""
         self.echo_count += 1
-        response = f"{self.prefix} Echo #{self.echo_count}: {message}"
+        response = f"{self.prefix} Module received echo request #{self.echo_count}: {message}"
         log.info(response)
         return response
     
@@ -77,17 +65,20 @@ class Dummy111(BaseModule):
         iteration = 0
         while self.is_running:
             iteration += 1
+            
+            await self.publish("echo.request", f"{self.prefix} Echo #{iteration}")
+            
+            await self.publish("echo.123456", f"{self.prefix} Echo #111111111aaa{iteration}")
+            
             completed = await self.sleep_or_stop(0.001)
             if not completed:
                 log.info(f"{self.prefix} Stop requested, exiting run loop")
                 break
+
+    async def pause(self) -> None:
+        pass
     
     async def cleanup(self) -> None:
         """Clean up echo module resources"""
         log.info(f"{self.prefix} Cleaned up after {self.echo_count} echoes")
         await super().cleanup()
-    
-    # Public API methods
-    async def echo_message(self, message: Any) -> str:
-        """Public method to echo a message"""
-        return f"{self.prefix} {message}"

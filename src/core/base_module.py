@@ -45,16 +45,45 @@ class BaseModule(ABC):
         # Dependencies (injected by Controller)
         self.message_bus: Optional[MessageBus] = None
         self.config_manager: Optional[ConfigManager] = None
+
         self.api_server: Optional[APIServer] = None
-    
+
+    @abstractmethod
     async def pre_init(self, config_manager: ConfigManager) -> None:
         """Called before module initialization for config setup"""
-        self.config_manager = config_manager
-        
+        pass
+    
+    @abstractmethod
     async def init(self) -> None:
         """Initialize the module - override in derived classes"""
-        log.info(f"{self.prefix} Module initialized")
-        await self._register_message_handlers()
+        pass
+    
+    @abstractmethod
+    async def run(self) -> None:
+        """
+        Main module loop - implement in derived classes
+
+        Should periodically check self.is_running or self._stop_event
+        to allow graceful shutdown
+        """
+        pass
+
+    @abstractmethod
+    async def pause(self) -> None:
+        """Pause module operations - override in derived classes"""
+        log.info(f"{self.prefix} Module paused")
+
+    @abstractmethod
+    async def cleanup(self) -> None:
+        """Clean up module resources - override in derived classes"""
+        # Unsubscribe from message bus
+        if self.message_bus:
+            await self.message_bus.unsubscribe(self.name)
+    
+    @abstractmethod
+    async def _register_message_handlers(self) -> None:
+        """Register message handlers - override in derived classes"""
+        pass
     
     async def start(self) -> None:
         """Start the module's main loop"""
@@ -100,38 +129,9 @@ class BaseModule(ABC):
         await self.cleanup()
         log.info(f"{self.prefix} Module stopped")
     
-    async def cleanup(self) -> None:
-        """Clean up module resources - override in derived classes"""
-        # Unsubscribe from message bus
-        if self.message_bus:
-            await self.message_bus.unsubscribe(self.name)
-    
-    async def pause(self) -> None:
-        """Pause module operations - override in derived classes"""
-        log.info(f"{self.prefix} Module paused")
-    
-    async def resume(self) -> None:
-        """Resume module operations - override in derived classes"""
-        log.info(f"{self.prefix} Module resumed")
-    
-    @abstractmethod
-    async def run(self) -> None:
-        """
-        Main module loop - implement in derived classes
-        
-        Should periodically check self.is_running or self._stop_event
-        to allow graceful shutdown
-        """
-        pass
-    
-    async def _register_message_handlers(self) -> None:
-        """Register message handlers - override in derived classes"""
-        pass
-    
     def _handle_config_change(self, config_data: Any) -> None:
         """Handle configuration changes - override in derived classes"""
         log.info(f"{self.prefix} Configuration changed: {config_data}")
-    
     
     async def wait_for_stop(self) -> None:
         """Wait until stop is requested"""
