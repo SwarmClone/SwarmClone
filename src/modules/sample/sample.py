@@ -14,10 +14,18 @@
 # limitations under the License.
 
 from typing import Any
+from pydantic import BaseModel
 
 from core.base_module import BaseModule
 from core.config_manager import ConfigManager
+from core.api_server import RequestType
 from core.logger import log
+
+
+class SampleRequest(BaseModel):
+    """Sample request model for demonstration"""
+    message: str
+    count: int = 1
 
 
 class SampleModule(BaseModule):
@@ -32,7 +40,20 @@ class SampleModule(BaseModule):
 
         self.config_manager = config_manager
 
-        await self._register_config_items()
+        self.register_config_with_routes(
+            config_key="config_item_1_test01",
+            default_value="This is a test config item",
+            callback=self.config_callback_01,
+            private=False
+        )
+        
+        self.register_config_with_routes(
+            config_key="private_config_item",
+            default_value="This is a private config item",
+            callback=self.config_callback_02,
+            private=True    # This config item will not be exposed via API
+        )
+
         await self._register_message_handlers()
 
         self.echo_count = 0
@@ -42,26 +63,32 @@ class SampleModule(BaseModule):
     async def init(self) -> None:
         await super().init()
         
-    async def _register_config_items(self) -> None:
-        if self.config_manager:
-            self.config_item_1 = self.config_manager.register(
-                self.name,
-                "config_item_1_test01",
-                "This is a test config item",
-                self.config_callback_01
-                )
-            self.config_item_2 = self.config_manager.register(
-                self.name,
-                "config_item_2_test02",
-                123456,
-                self.config_callback_02
-                )
-            self.config_item_3 = self.config_manager.register(
-                self.name,
-                "config_item_2_test03",
-                False,
-                self.config_callback_03
-                )
+        self.register_control_api(
+            request_type=RequestType.GET,
+            path="/",
+            endpoint=self.get_module_info,
+            summary="Get module information",
+            description="Returns information about the sample module"
+        )
+        
+        self.register_control_api(
+            request_type=RequestType.POST,
+            path="/echo",
+            endpoint=self.echo_message,
+            response_model=dict,
+            summary="Echo a message",
+            description="Echoes back the provided message"
+        )
+        
+        self.register_control_api(
+            request_type=RequestType.GET,
+            path="/stats",
+            endpoint=self.get_stats,
+            summary="Get module statistics",
+            description="Returns statistical information about the module"
+        )
+        
+        log.info(f"{self.prefix} Module initialized with custom APIs")
         
     async def _register_message_handlers(self) -> None:
         # Register message handlers
@@ -83,35 +110,68 @@ class SampleModule(BaseModule):
         """Handle config item 1 changes"""
         log.info(f"{self.prefix} Config item 1 changed: {config_data}")
 
-    def config_callback_03(self, config_data: Any) -> None:
-        """Handle config item 3 changes"""
-        log.info(f"{self.prefix} Config item 3 changed: {config_data}")
-        
     def config_callback_02(self, config_data: Any) -> None:
         """Handle config item 2 changes"""
-        log.info(f"{self.prefix} Config item 2 changed: {config_data}")
+        log.info(f"{self.prefix} Private config item changed: {config_data}")
+    
+    # API Endpoints
+    async def get_module_info(self):
+        """Get module information endpoint"""
+        return {
+            "module": self.name,
+            "category": self.category,
+            "enabled": self.enabled,
+            "running": self.is_running,
+            "echo_count": self.echo_count,
+            "description": "Sample module demonstrating API registration"
+        }
+    
+    async def echo_message(self, request: SampleRequest):
+        """Echo message endpoint"""
+        response = {
+            "original_message": request.message,
+            "count": request.count,
+            "echoed": [f"{self.prefix}: {request.message}" for _ in range(request.count)]
+        }
+        
+        await self.publish("echo.request", request.message)
+        
+        return response
+    
+    async def get_stats(self):
+        """Get module statistics endpoint"""
+        return {
+            "echo_count": self.echo_count,
+            "is_running": self.is_running,
+            "config_item_value": self.config_manager.get(self.name, "config_item_1_test01", "default"), # type: ignore
+            "status": "active" if self.is_running else "inactive"
+        }
     
     async def run(self) -> None:
         """Main module loop"""
-        log.info(f"{self.prefix} Echo module running")
+        log.info(f"{self.prefix} Sample module running")
         
         iteration = 0
         while self.is_running:
             iteration += 1
             
-            await self.publish("echo.request", f"{self.prefix} Echo #{iteration}")
+            if iteration % 50 == 0:
+                await self.publish("echo.request", f"{self.prefix} Automatic echo #{iteration}")
             
-            await self.publish("echo.123456", f"{self.prefix} Echo #111111111aaa{iteration}")
+            if iteration % 250 == 0:
+                current_config = self.config_manager.get(self.name, "config_item_1_test01", "default") # type: ignore
+                log.debug(f"{self.prefix} Current config: {current_config}")
             
-            completed = await self.sleep_or_stop(0.001)
+            completed = await self.sleep_or_stop(0.01)
             if not completed:
                 log.info(f"{self.prefix} Stop requested, exiting run loop")
                 break
 
     async def pause(self) -> None:
-        pass
+        """Pause module operations"""
+        log.info(f"{self.prefix} Module paused")
     
     async def cleanup(self) -> None:
-        """Clean up echo module resources"""
+        """Clean up sample module resources"""
         log.info(f"{self.prefix} Cleaned up after {self.echo_count} echoes")
         await super().cleanup()

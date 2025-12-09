@@ -17,7 +17,7 @@ import asyncio
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict, List, Optional
 
-from core.api_server import APIServer
+from core.api_server import APIServer, ModuleRouter, RequestType
 from core.logger import log
 from core.message import MessageBus
 from core.config_manager import ConfigManager
@@ -45,8 +45,8 @@ class BaseModule(ABC):
         # Dependencies (injected by Controller)
         self.message_bus: Optional[MessageBus] = None
         self.config_manager: Optional[ConfigManager] = None
-
         self.api_server: Optional[APIServer] = None
+        self.router: Optional[ModuleRouter] = None
 
     @abstractmethod
     async def pre_init(self, config_manager: ConfigManager) -> None:
@@ -84,6 +84,68 @@ class BaseModule(ABC):
     async def _register_message_handlers(self) -> None:
         """Register message handlers - override in derived classes"""
         pass
+    
+    def register_config_with_routes(self, config_key: str, default_value: Any, 
+                                   callback: Callable[[Any], None],
+                                   private: bool = False) -> None:
+        """
+        Register a config item and optionally create API routes
+        
+        Args:
+            config_key: The configuration key
+            default_value: Default value for the config
+            callback: Callback function when config changes
+            private: If True, no API routes will be created
+        """
+        if not self.config_manager:
+            log.error(f"{self.prefix} Config manager not available")
+            return
+            
+        # Register with config manager
+        self.config_manager.register(self.name, config_key, default_value, callback)
+        
+        # Create API routes if not private and router is available
+        if not private and self.router:
+            try:
+                # GET route to retrieve config value
+                @self.router.get(f"/config/{config_key}")
+                async def get_config():
+                    """Get configuration value"""
+                    value = self.config_manager.get(self.name, config_key, default_value) # type: ignore
+                    return {"module": self.name, "key": config_key, "value": value}
+                
+                # POST route to update config value
+                @self.router.post(f"/config/{config_key}")
+                async def set_config(value: Any):
+                    """Update configuration value"""
+                    self.config_manager.set(self.name, config_key, value) # type: ignore
+                    return {"module": self.name, "key": config_key, "value": value, "status": "updated"}
+                
+                log.info(f"{self.prefix} Created API routes for config: {config_key}")
+                
+            except Exception as e:
+                log.error(f"{self.prefix} Failed to create API routes for config {config_key}: {e}")
+    
+    def register_control_api(self, request_type: RequestType, path: str, 
+                           endpoint: Callable, **kwargs) -> None:
+        """
+        Register a control API endpoint for this module
+        
+        Args:
+            request_type: HTTP method type
+            path: API path (relative to module's base path)
+            endpoint: Endpoint function
+            **kwargs: Additional FastAPI route parameters
+        """
+        if not self.router:
+            log.error(f"{self.prefix} Router not available for registering API")
+            return
+            
+        try:
+            self.router.add(request_type, path, endpoint, **kwargs)
+            log.info(f"{self.prefix} Registered control API: {request_type.value} {path}")
+        except Exception as e:
+            log.error(f"{self.prefix} Failed to register control API {path}: {e}")
     
     async def start(self) -> None:
         """Start the module's main loop"""

@@ -136,36 +136,3 @@ class ConfigManager:
         # Get all configs for a specific module
         self._ensure_module_exists(module_name)
         return self.config_data[module_name]
-
-    def setup_fastapi_routes(self, app: Any) -> None:
-        router = APIRouter(prefix="/config", tags=["config"])
-
-        @router.get("/")
-        async def get_all_config():
-            return dict(self.config_data)
-
-        @router.get("/modules/{module_name}")
-        async def get_module_config(module_name: str):
-            module_config = self.get_module_configs(module_name)
-            return {module_name: dict(module_config)}
-
-        @router.get("/modules/{module_name}/{config_key}")
-        async def get_config(module_name: str, config_key: str):
-            if not self.has_config(module_name, config_key):
-                raise HTTPException(
-                    status_code=404,
-                    detail=f"Config '{config_key}' not found in module '{module_name}'"
-                )
-            return {config_key: self.get(module_name, config_key)}
-
-        @router.post("/modules/{module_name}/{config_key}")
-        async def set_config(module_name: str, config_key: str, value: Any):
-            self.set(module_name, config_key, value)
-            return {
-                "message": f"Config '{config_key}' updated successfully",
-                "module": module_name,
-                "config_key": config_key,
-                "value": value
-            }
-
-        app.include_router(router)

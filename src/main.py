@@ -195,12 +195,10 @@ app = _application.create_fastapi_app()
 
 
 def main() -> None:
-    """Main entry point"""
     import uvicorn
     
     log.info(f"Starting SwarmClone Backend v{__version__}...")
     
-    # Start application
     uvicorn.run(
         app,
         host="0.0.0.0",

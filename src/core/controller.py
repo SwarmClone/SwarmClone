@@ -38,7 +38,7 @@ class Controller:
         self.modules: Dict[str, BaseModule] = {}
         self.message_bus = MessageBus()
         self.config_manager = ConfigManager(Path(config_file))
-        self.api_server = None
+        self.api_server = get_api_server()
 
         self.is_running = False
         self._shutdown_event = asyncio.Event()
@@ -230,19 +230,26 @@ class Controller:
         log.info(f"Loaded {loaded_count} out of {len(list(modules_path.iterdir()))} module directories")
     
     async def initialize_modules(self) -> None:
-
         log.info(f"Initializing {len(self.modules)} modules...")
         
         for module_name, module in self.modules.items():
             try:
+                # Register module with APIServer to get a router
+                if self.api_server:
+                    module.router = self.api_server.register(
+                        category=module.category,
+                        module_name=module_name
+                    )
+                    log.info(f"{module.prefix} Registered API router at: /api/{module.category}/{module_name}")
+                
+                # Inject dependencies
+                module.message_bus = self.message_bus
+                module.config_manager = self.config_manager
+                module.api_server = self.api_server
+                
                 # Pre-initialize with config manager
                 await module.pre_init(self.config_manager)
 
-                module.message_bus = self.message_bus
-                module.config_manager = self.config_manager
-                if self.api_server:
-                    module.api_server = self.api_server
-                
                 # Initialize module-specific resources
                 await module.init()
                 
