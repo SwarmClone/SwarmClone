@@ -17,7 +17,6 @@
 import asyncio
 from contextlib import asynccontextmanager
 import signal
-import sys
 from typing import Dict, Any
 
 from fastapi import FastAPI
@@ -50,6 +49,8 @@ class Application:
         
         # Initialize modules (this will register API routes)
         await self.controller.initialize_modules()
+
+        self.api_server.print_all_routes()
         
         log.info("Application initialized")
         
@@ -96,6 +97,7 @@ class Application:
         async def lifespan(app: FastAPI):
             """Lifespan context manager for FastAPI"""
             await self.initialize()
+            self.api_server.print_all_routes()
             await self.start()
             
             # Store controller in app state for access in endpoints
@@ -115,12 +117,11 @@ class Application:
         
         # Use the API server's app instance
         api_server_app = self.api_server.app
-        
-        # Merge routes from API server into our app
-        app.router.routes.extend(api_server_app.router.routes)
-        
-        # Add system endpoints
+
         self._add_system_endpoints(app)
+
+        for route in api_server_app.router.routes:
+            app.router.routes.append(route)
         
         return app
         
@@ -201,7 +202,7 @@ def main() -> None:
     
     uvicorn.run(
         app,
-        host="0.0.0.0",
+        host="127.0.0.1",
         port=8000,
         log_level="info",
         access_log=True,

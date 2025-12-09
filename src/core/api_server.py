@@ -186,8 +186,46 @@ class APIServer:
         if module_name not in self._routers:
             raise KeyError(f"Module '{module_name}' is not registered")
         return self._routers[module_name]
+    
+    def get_all_routes(self) -> List[Dict[str, Any]]:
+        """
+        Get all registered routes in the FastAPI application
+        Returns a list of route information including path, methods, and name
+        """
+        routes_info = []
+        
+        # Get all routes from the FastAPI app
+        for route in self._app.router.routes:
+            if hasattr(route, 'methods') and hasattr(route, 'path'):
+                # For regular routes (not WebSocket)
+                routes_info.append({
+                    "path": route.path, # type: ignore
+                    "methods": list(route.methods), # type: ignore
+                    "name": getattr(route, 'name', 'unknown'),
+                    "endpoint": getattr(route, 'endpoint', None).__name__ if hasattr(route, 'endpoint') else 'unknown' # type: ignore
+                })
+            elif hasattr(route, 'path'):
+                # For WebSocket routes
+                routes_info.append({
+                    "path": route.path, # type: ignore
+                    "methods": ["WEBSOCKET"],
+                    "name": getattr(route, 'name', 'unknown'),
+                    "endpoint": getattr(route, 'endpoint', None).__name__ if hasattr(route, 'endpoint') else 'unknown' # type: ignore
+                })
+        
+        return routes_info
 
-
+    def print_all_routes(self):
+        from fastapi.routing import APIRoute
+        
+        log.info("=== REGISTERED ROUTES ===")
+        for route in self._app.router.routes:
+            if isinstance(route, APIRoute):
+                log.info(f"  {', '.join(route.methods)} {route.path} -> {route.name or route.endpoint.__name__}")
+            else:
+                log.info(f"  Router: {route.path if hasattr(route, 'path') else 'unknown'}") # type: ignore
+        log.info("=========================")
+        
 class ModuleRouter:
     """Wrapper for module-specific route registration"""
     
