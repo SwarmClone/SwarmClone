@@ -209,3 +209,4 @@ __marimo__/
 config.json
 /.VSCodeCounter
 *.yml
+/docs/node_modules
