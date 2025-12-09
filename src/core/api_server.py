@@ -14,11 +14,9 @@
 # limitations under the License.
 
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, TYPE_CHECKING
+from typing import Any, Callable, Dict, List, Optional
 from fastapi import APIRouter, FastAPI
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-import os
 
 from core import __version__
 from core.logger import log
@@ -260,27 +258,6 @@ class ModuleRouter:
         """
         decorator = self._create_decorator(request_type)
         decorator(path, **kwargs)(endpoint)
-    
-    def add_static(self, path: str, directory: str, name: str = "static"):
-        """
-        Add a static directory to the module router
-        
-        Args:
-            path: URL path for the static directory
-            directory: Local directory to serve static files from
-            name: Internal name for the static directory
-            
-        Raises:
-            FileNotFoundError: If the directory does not exist
-        """
-        if not os.path.exists(directory):
-            raise FileNotFoundError(f"Static directory not found: {directory}")
-        
-        if not os.path.isdir(directory):
-            raise NotADirectoryError(f"Path is not a directory: {directory}")
-        
-        self.router.mount(path, StaticFiles(directory=directory), name=name)
-        log.debug(f"Registered static directory '{directory}' at '{path}' for module '{self.module_name}'")
     
     def list_routes(self) -> List[RouteInfo]:
         """List all routes registered in current module"""

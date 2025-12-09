@@ -25,27 +25,48 @@ class SampleModule(BaseModule):
     
     def __init__(self, module_name: str):
         super().__init__(module_name)
-        self.echo_count = 0
+        self.config_item_1 = None
 
     async def pre_init(self, config_manager: ConfigManager) -> None:
         await super().pre_init(config_manager)
 
         self.config_manager = config_manager
+
+        await self._register_config_items()
         await self._register_message_handlers()
+
+        self.echo_count = 0
 
         log.info(f"{self.prefix} Module Pre-initialized")
     
     async def init(self) -> None:
         await super().init()
         
+    async def _register_config_items(self) -> None:
+        if self.config_manager:
+            self.config_item_1 = self.config_manager.register(
+                self.name,
+                "config_item_1_test01",
+                "This is a test config item",
+                self.config_callback_01
+                )
+            self.config_item_2 = self.config_manager.register(
+                self.name,
+                "config_item_2_test02",
+                123456,
+                self.config_callback_02
+                )
+            self.config_item_3 = self.config_manager.register(
+                self.name,
+                "config_item_2_test03",
+                False,
+                self.config_callback_03
+                )
+        
+    async def _register_message_handlers(self) -> None:
         # Register message handlers
         await self.subscribe("echo.request", self._handle_echo_request)
         await self.subscribe("echo.*", self._handle_wildcard_echo)
-        
-    async def _register_message_handlers(self) -> None:
-        """Register additional message handlers"""
-        # This is called by base class init
-        pass
     
     async def _handle_echo_request(self, message: Any) -> Any:
         """Handle echo request messages"""
@@ -57,6 +78,18 @@ class SampleModule(BaseModule):
     async def _handle_wildcard_echo(self, message: Any) -> None:
         """Handle wildcard echo messages (no response)"""
         log.debug(f"{self.prefix} Wildcard echo: {message}")
+
+    def config_callback_01(self, config_data: Any) -> None:
+        """Handle config item 1 changes"""
+        log.info(f"{self.prefix} Config item 1 changed: {config_data}")
+
+    def config_callback_03(self, config_data: Any) -> None:
+        """Handle config item 3 changes"""
+        log.info(f"{self.prefix} Config item 3 changed: {config_data}")
+        
+    def config_callback_02(self, config_data: Any) -> None:
+        """Handle config item 2 changes"""
+        log.info(f"{self.prefix} Config item 2 changed: {config_data}")
     
     async def run(self) -> None:
         """Main module loop"""
