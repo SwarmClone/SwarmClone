@@ -13,15 +13,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""This is the application factory for creating the FastAPI app instance"""
-
 from core.application import Application
+from core.logger import log
 
 
-def create_app():
+def create_app() -> Application:
+    """
+    Create and return the Application instance
+    
+    Returns:
+        Application instance configured with lifespan
+    """
+    log.info("Creating application instance...")
+    
     application = Application()
-    return application.create_fastapi_app()
+    application.create_fastapi_app()
+    
+    log.info("Application instance created successfully")
+    return application
 
 
-# Global application instance
-app = create_app()
+# The global application instance
+application = create_app()
+
+# Expose the FastAPI app for uvicorn
+app = application.app

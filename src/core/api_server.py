@@ -44,39 +44,25 @@ class RouteInfo(BaseModel):
 
 
 class APIServer:
-    """Singleton API server manager for modular route registration"""
+    """API server manager for modular route registration"""
     
-    _instance = None
-    DEFAULT_API_PREFIX = "/api/{category}/{module_name}"
-    
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
-    
-    def __init__(self, app: Optional[FastAPI] = None, api_prefix_format: Optional[str] = None, lifespan: Optional[Callable] = None):
+    def __init__(self, app: Optional[FastAPI] = None, api_prefix_format: Optional[str] = None):
         """
         Initialize the API server
         
         Args:
             app: FastAPI application instance. If None, creates a new one
             api_prefix_format: Format string for API paths. Defaults to "/api/{category}/{module_name}"
-            lifespan: Optional lifespan function for FastAPI application
         """
-        if hasattr(self, '_initialized'):
-            if app is not None and app is not self._app:
-                log.warning("APIServer already initialized. Provided app will be ignored.")
-            return
-        
         if app is None:
-            self._app = FastAPI(lifespan=lifespan)
+            log.warning("No FastAPI instance provided to APIServer, creating a new one. This may cause routing issues.")
+            self._app = FastAPI()
         else:
             self._app = app
 
         self._routers: Dict[str, APIRouter] = {}
         self._routes_registry: Dict[str, List[RouteInfo]] = {}
-        self._api_prefix_format = api_prefix_format or self.DEFAULT_API_PREFIX
-        self._initialized = True
+        self._api_prefix_format = api_prefix_format or "/api/{category}/{module_name}"
         
         self._setup_base_routes()
         log.info(f"APIServer initialized with prefix format: {self._api_prefix_format}")
@@ -214,17 +200,6 @@ class APIServer:
                 })
         
         return routes_info
-
-    def print_all_routes(self):
-        from fastapi.routing import APIRoute
-        
-        log.info("=== REGISTERED ROUTES ===")
-        for route in self._app.router.routes:
-            if isinstance(route, APIRoute):
-                log.info(f"  {', '.join(route.methods)} {route.path} -> {route.name or route.endpoint.__name__}")
-            else:
-                log.info(f"  Router: {route.path if hasattr(route, 'path') else 'unknown'}") # type: ignore
-        log.info("=========================")
         
 class ModuleRouter:
     """Wrapper for module-specific route registration"""
@@ -300,28 +275,3 @@ class ModuleRouter:
     def list_routes(self) -> List[RouteInfo]:
         """List all routes registered in current module"""
         return self.api_server.get_routes(self.module_name)
-
-
-# Global API server instance
-api_server = APIServer()
-
-
-def get_api_server() -> APIServer:
-    """Get the global APIServer instance"""
-    return api_server
-
-
-def register_module(category: str, module_name: str, prefix: str = None) -> "ModuleRouter": # type: ignore
-    """
-    Register a module router with the APIServer
-    
-    Args:
-        category: Category of the module, e.g. "core", "gaming", "tools"
-        module_name: Name of the module, e.g. "llm", "tts"
-        prefix: URL prefix for the module routes. 
-               Defaults to configured API prefix format
-               
-    Returns:
-        ModuleRouter instance for the registered module
-    """
-    return api_server.register(category, module_name, prefix)
