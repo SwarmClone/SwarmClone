@@ -10,7 +10,7 @@
 
 ![STARS](https://img.shields.io/github/stars/SwarmClone/SwarmCloneBackend?color=yellow&label=Github%20Stars)
 [![License](https://img.shields.io/badge/License-Apache%202.0-2ea44f)](https://github.com/SwarmClone/SwarmCloneBackend/blob/main/LICENSE)
-[![Status](https://img.shields.io/badge/Status-Active-2ea44f.svg)]()
+[![PRs Open](https://img.shields.io/github/issues-pr/SwarmClone/SwarmCloneBackend?state=open&style=flat&label=Pull%20requests&labelColor=444444&color=3AA558)](https://github.com/SwarmClone/SwarmCloneBackend/pulls?q=is%3Apr+is%3Aopen)
 [![Python](https://img.shields.io/badge/Python-3.13-0078D4.svg)](https://www.python.org)
 [![QQ群](https://custom-icon-badges.demolab.com/badge/QQ群-1048307485-0078D4?style=flat&logo=tencent-qq)](https://qm.qq.com/q/8IUfgmDqda)
 
@@ -57,6 +57,14 @@ uv run start
 
 **在您复制、修改或分发本项目时，即表示您同意并愿意遵守 Apache-2.0 license 的全部条款。**
 
-## Star History
+**( 注意：此声明并非法律建议，一切请以许可证内容为准 )**
+
+
+## 统计数据
+![Alt](https://repobeats.axiom.co/api/embed/324b7283073872defa1d2fca08a97d02eea211c9.svg "Repobeats analytics image")
 
 [![Star History Chart](https://api.star-history.com/svg?repos=SwarmClone/SwarmCloneBackend&type=Date)](https://www.star-history.com/#SwarmClone/SwarmCloneBackend&Date)
+
+## 贡献者
+[![](https://contrib.rocks/image?repo=SwarmClone/SwarmCloneBackend)](https://github.com/SwarmClone/SwarmCloneBackend/graphs/contributors)
+
