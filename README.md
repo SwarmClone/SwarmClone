@@ -1,9 +1,9 @@
 <div align="center">
-<img src="./.docs/assets/heading.png"/>
+<img src="docs/assets/heading.png"/>
 <br><br>
 <h1>SwarmClone AI Framework<br><br></h1>
 
-<strong>简体中文</strong> | <a href="./.docs/README_en.md">English</a>
+<strong>简体中文</strong> | <a href="./docs/README_en.md">English</a>
 <br><br>
 一个完全开源、可高度定制的AI虚拟主播开发框架
 <br><br>
