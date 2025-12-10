@@ -21,7 +21,7 @@ from configparser import ConfigParser
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from core.api_server import APIServer
+from core.api_server import get_api_server
 from core.logger import log
 from core.config_manager import ConfigManager
 from core.message import MessageBus
@@ -38,14 +38,25 @@ class Controller:
         self.modules: Dict[str, BaseModule] = {}
         self.message_bus = MessageBus()
         self.config_manager = ConfigManager(Path(config_file))
-        self.api_server: Optional[APIServer] = None
-        
+        self.api_server = None
+
         self.is_running = False
         self._shutdown_event = asyncio.Event()
         self._module_tasks: List[asyncio.Task] = []
     
     def _parse_module_ini(self, module_dir: Path) -> dict:
-        """Parse the module.ini file in a module directory."""
+        """
+        Parse the module.ini file in a module directory.
+        The module.ini file should have the following format:
+
+        [module]
+        class_name = "MyClassName"
+        entry = "my_module.py"
+        
+        Both class_name and entry are required fields.
+
+        NOTE: In packaged environment, the 'entry' file will auto set to .pyd file or .so file.
+        """
         config_file = module_dir / "module.ini"
         
         if not config_file.exists():
@@ -80,6 +91,9 @@ class Controller:
             entry_path = module_dir / entry_file
             if not entry_path.exists():
                 raise ModuleConfigError(f"Entry file not found: {entry_path}")
+            if not entry_file.endswith('.py') \
+                        and not entry_file.endswith('.pyd'):   # In unpackaged environment
+                log.warning(f"Entry file {entry_file} doesn't have .py extension")
             
             return {
                 'class_name': class_name,
@@ -90,44 +104,61 @@ class Controller:
         except UnicodeDecodeError as e:
             raise ModuleConfigError(f"Invalid encoding in {config_file}: {e}")
         except Exception as e:
+            # ConfigParser might raise various exceptions for malformed files
             raise ModuleConfigError(f"Error parsing {config_file}: {e}")
-    
+        
     def _load_single_module(self, module_dir: Path) -> Optional[BaseModule]:
         module_name = module_dir.name
         
         try:
             config = self._parse_module_ini(module_dir)
             class_name = config['class_name']
+            entry_file = config['entry_file']
+            
+            log.info(f"Loading module '{module_name}': class={class_name}, entry={entry_file}")
+            
             entry_path = config['entry_path']
+            abs_entry_path = entry_path.resolve()
             
-            log.info(f"Loading module '{module_name}': class={class_name}, entry={entry_path}")
+            # Create a unique module name to avoid conflicts
+            module_full_name = f"modules.{module_name}.{entry_path.stem}"
             
-            # Add the module directory to sys.path
+            # Add the module directory to sys.path to handle relative imports
             module_dir_str = str(module_dir.resolve())
             if module_dir_str not in sys.path:
                 sys.path.insert(0, module_dir_str)
             
-            # Create module spec and load
-            spec = spec_from_file_location(f"modules.{module_name}", entry_path)
+            spec = spec_from_file_location(module_full_name, abs_entry_path)
             
-            if spec is None or spec.loader is None:
-                log.error(f"Could not create module spec for {entry_path}")
+            if spec is None:
+                log.error(f"Could not create module spec for {abs_entry_path}")
+                return None
+            
+            if spec.loader is None:
+                log.error(f"Module loader is None for {abs_entry_path}")
                 return None
             
             module = module_from_spec(spec)
+            
+            # Set the __package__ attribute to handle relative imports
+            module.__package__ = f"modules.{module_name}"
+            
             sys.modules[spec.name] = module
             
             try:
                 spec.loader.exec_module(module)
             except Exception as e:
-                log.error(f"Error executing module {entry_path}: {e}")
+                log.error(f"Error executing module {abs_entry_path}: {e}")
                 sys.modules.pop(spec.name, None)
                 return None
             
             if not hasattr(module, class_name):
                 available_classes = [attr for attr in dir(module) 
                                    if attr[0].isupper() and not attr.startswith('_')]
-                log.error(f"Class '{class_name}' not found. Available: {available_classes}")
+                log.error(
+                    f"Class '{class_name}' not found in {entry_file}. "
+                    f"Available classes: {available_classes}"
+                )
                 return None
             
             module_class = getattr(module, class_name)
@@ -137,6 +168,8 @@ class Controller:
                 return None
             
             module_instance = module_class(module_name)
+            module_instance.message_bus = self.message_bus
+            
             log.info(f"Successfully loaded module: {module_name}")
             return module_instance
             
@@ -146,9 +179,27 @@ class Controller:
         except Exception as e:
             log.error(f"Unexpected error loading module {module_name}: {e}", exc_info=True)
             return None
-    
+        
     def load_modules(self) -> None:
-        """Discover and load all modules from the modules directory."""
+        """
+        Discover and load all modules from the modules directory.
+        
+        Each module directory must contain a module.ini file that specifies:
+        - class_name: The name of the class to instantiate
+        - entry: The Python file containing the class
+        
+        This allows module directories to have descriptive names (including
+        prefixes/suffixes) while keeping class names clean and readable.
+        
+        Example directory structure:
+        modules/
+        ├── echo/
+        │   ├── module.ini    # class_name="Echo", entry="echo.py"
+        │   └── echo.py       # Contains class Echo(BaseModule)
+        └── api-v1/
+            ├── module.ini    # class_name="ApiV1", entry="api_v1.py"
+            └── api_v1.py     # Contains class ApiV1(BaseModule)
+        """
         modules_path = Path(__file__).resolve().parent.parent / 'modules'
         
         if not modules_path.exists():
@@ -161,59 +212,50 @@ class Controller:
         
         loaded_count = 0
         for module_dir in modules_path.iterdir():
+            # Skip non-directories and special directories
             if not module_dir.is_dir():
                 continue
             
+            # Skip directories starting with __ (Python special) or . (hidden)
             dir_name = module_dir.name
             if dir_name.startswith('__') or dir_name.startswith('.'):
                 continue
             
+            # Try to load the module
             module_instance = self._load_single_module(module_dir)
             if module_instance is not None:
                 self.modules[dir_name] = module_instance
                 loaded_count += 1
         
-        log.info(f"Loaded {loaded_count} modules")
+        log.info(f"Loaded {loaded_count} out of {len(list(modules_path.iterdir()))} module directories")
     
     async def initialize_modules(self) -> None:
-        """Initialize all loaded modules."""
+
         log.info(f"Initializing {len(self.modules)} modules...")
         
         for module_name, module in self.modules.items():
             try:
-                # Inject dependencies BEFORE calling init()
+                # Pre-initialize with config manager
+                await module.pre_init(self.config_manager)
+
                 module.message_bus = self.message_bus
                 module.config_manager = self.config_manager
-                module.api_server = self.api_server
+                if self.api_server:
+                    module.api_server = self.api_server
                 
-                # Initialize module
+                # Initialize module-specific resources
                 await module.init()
-                
-                # Register default module info endpoint
-                if module.api_server and module._route_builder:
-                    @module._route_builder.get("/info", name="module_info")
-                    async def get_module_info():
-                        return {
-                            "name": module.name,
-                            "enabled": module.enabled,
-                            "running": module.is_running,
-                            "configs": list(module.config.keys()) if hasattr(module, 'config') else []
-                        }
                 
                 log.info(f"Initialized module: {module_name}")
             except Exception as e:
-                log.error(f"Failed to initialize module {module_name}: {e}", exc_info=True)
+                log.error(
+                    f"Failed to initialize module {module_name}: {e}\n"
+                    f"Module will be disabled.",
+                    exc_info=True
+                )
                 module.enabled = False
-        
-        # Log all registered routes for debugging
-        if self.api_server:
-            routes = self.api_server.list_routes_debug()
-            log.info(f"Total FastAPI routes registered: {len(routes)}")
-            for route in routes:
-                log.debug(f"  {route['methods']} {route['path']} -> {route['endpoint']}")
-    
+
     async def start_modules(self) -> None:
-        """Start all enabled modules."""
         log.info(f"Starting enabled modules...")
         
         enabled_count = 0
@@ -231,7 +273,6 @@ class Controller:
         log.info(f"Started {enabled_count} modules")
     
     async def stop_modules(self) -> None:
-        """Stop all modules."""
         log.info("Stopping all modules...")
         
         for module_name, module in reversed(list(self.modules.items())):
@@ -244,7 +285,17 @@ class Controller:
         await self.message_bus.cleanup()
     
     def _setup_signal_handlers(self) -> None:
-        """Set up signal handlers for graceful shutdown."""
+        """
+        Set up signal handlers for graceful shutdown on all platforms.
+        
+        Handles:
+        - SIGINT (Ctrl+C): Interrupt from keyboard
+        - SIGTERM: Termination request
+        
+        Uses platform-appropriate methods:
+        - Unix: asyncio.add_signal_handler() for thread safety
+        - Windows: signal.signal() as fallback
+        """
         try:
             loop = asyncio.get_running_loop()
         except RuntimeError:
@@ -252,24 +303,30 @@ class Controller:
         
         signals_to_handle = []
         
+        # SIGINT is available on all platforms
         if hasattr(signal, 'SIGINT'):
             signals_to_handle.append(signal.SIGINT)
         
+        # SIGTERM is Unix-only, but we check for it
         if hasattr(signal, 'SIGTERM'):
             signals_to_handle.append(signal.SIGTERM)
         
         for sig in signals_to_handle:
             try:
+                # Preferred method: thread-safe signal handler
                 loop.add_signal_handler(sig, self._signal_handler)
+                log.debug(f"Registered asyncio signal handler for {sig}")
             except (NotImplementedError, RuntimeError):
+                # Fallback for Windows or if add_signal_handler fails
+                # Use lambda to ignore signal number and frame
                 signal.signal(sig, lambda s, f: self._signal_handler())
+                log.debug(f"Registered fallback signal handler for {sig}")
     
     def _signal_handler(self) -> None:
         log.info("Shutdown signal received. Initiating graceful shutdown...")
         self._shutdown_event.set()
     
     async def run(self) -> None:
-        """Main controller run loop."""
         self.is_running = True
         self._setup_signal_handlers()
         
