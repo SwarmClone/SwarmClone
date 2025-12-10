@@ -10,7 +10,7 @@
 
 ![STARS](https://img.shields.io/github/stars/SwarmClone/SwarmCloneBackend?color=yellow&label=Github%20Stars)
 [![License](https://img.shields.io/badge/License-Apache%202.0-2ea44f)](https://github.com/SwarmClone/SwarmCloneBackend/blob/main/LICENSE)
-[![Issues](https://img.shields.io/github/issues/SwarmClone/SwarmCloneBackend?style=flat&label=Issues&labelColor=444444&color=3AA558)](https://github.com/SwarmClone/SwarmCloneBackend/issues)
+[![PRs Open](https://img.shields.io/github/issues-pr/SwarmClone/SwarmCloneBackend?state=open&style=flat&label=Pull%20requests&labelColor=444444&color=3AA558)](https://github.com/SwarmClone/SwarmCloneBackend/pulls?q=is%3Apr+is%3Aopen)
 [![Python](https://img.shields.io/badge/Python-3.13-0078D4.svg)](https://www.python.org)
 [![QQ群](https://custom-icon-badges.demolab.com/badge/QQ群-1048307485-0078D4?style=flat&logo=tencent-qq)](https://qm.qq.com/q/8IUfgmDqda)
 
