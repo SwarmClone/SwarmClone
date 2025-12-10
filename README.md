@@ -55,7 +55,9 @@ uv run start
 本项目采用 [**Apache-2.0 license**](https://www.apache.org/licenses/LICENSE-2.0.html)作为开源许可证。  
 完整许可证文本请参阅 [**LICENSE**](/LICENSE) 文件。
 
-**在您复制、修改或分发本项目时，即表示您同意并愿意遵守 Apache-2.0 license 的全部条款。（这并非是法律建议）**
+**在您复制、修改或分发本项目时，即表示您同意并愿意遵守 Apache-2.0 license 的全部条款。**
+
+**( 注意：此声明并非法律建议，一切请以许可证内容为准 )**
 
 
 ## 统计数据
