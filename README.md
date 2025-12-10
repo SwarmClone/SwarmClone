@@ -57,6 +57,12 @@ uv run start
 
 **在您复制、修改或分发本项目时，即表示您同意并愿意遵守 Apache-2.0 license 的全部条款。**
 
-## Star History
+
+## 统计数据
+![Alt](https://repobeats.axiom.co/api/embed/324b7283073872defa1d2fca08a97d02eea211c9.svg "Repobeats analytics image")
 
 [![Star History Chart](https://api.star-history.com/svg?repos=SwarmClone/SwarmCloneBackend&type=Date)](https://www.star-history.com/#SwarmClone/SwarmCloneBackend&Date)
+
+## 贡献者
+[![](https://contrib.rocks/image?repo=SwarmClone/SwarmCloneBackend)](https://github.com/SwarmClone/SwarmCloneBackend/graphs/contributors)
+
