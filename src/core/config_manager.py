@@ -16,7 +16,6 @@
 from pathlib import Path
 from typing import Any, Callable, Dict
 
-from fastapi import APIRouter, HTTPException
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
 
