@@ -17,7 +17,6 @@ import asyncio
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict, List, Optional
 
-from core.api_server import APIServer
 from core.logger import log
 from core.message import MessageBus
 from core.config_manager import ConfigManager
@@ -45,8 +44,6 @@ class BaseModule(ABC):
         # Dependencies (injected by Controller)
         self.message_bus: Optional[MessageBus] = None
         self.config_manager: Optional[ConfigManager] = None
-
-        self.api_server: Optional[APIServer] = None
 
     @abstractmethod
     async def pre_init(self, config_manager: ConfigManager) -> None:

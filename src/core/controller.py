@@ -21,7 +21,6 @@ from configparser import ConfigParser
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from core.api_server import get_api_server
 from core.logger import log
 from core.config_manager import ConfigManager
 from core.message import MessageBus
@@ -38,7 +37,6 @@ class Controller:
         self.modules: Dict[str, BaseModule] = {}
         self.message_bus = MessageBus()
         self.config_manager = ConfigManager(Path(config_file))
-        self.api_server = None
 
         self.is_running = False
         self._shutdown_event = asyncio.Event()
@@ -240,8 +238,6 @@ class Controller:
 
                 module.message_bus = self.message_bus
                 module.config_manager = self.config_manager
-                if self.api_server:
-                    module.api_server = self.api_server
                 
                 # Initialize module-specific resources
                 await module.init()
