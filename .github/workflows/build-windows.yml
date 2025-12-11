@@ -41,34 +41,11 @@ jobs:
           fi
           echo "backend.exe found."
 
-      - name: Prepare distribution package
-        shell: bash
-        run: |
-          # Create clean distribution folder
-          rm -rf dist/pkg
-          mkdir -p dist/pkg
-
-          # Main binary
-          cp dist/backend.exe dist/pkg/swarmclonebackend.exe
-
-          # Modules folder (if exists)
-          if [ -d "dist/modules" ]; then
-            cp -r dist/modules dist/pkg/
-          fi
-
-          # Optional top-level files
-          for f in config.yml config.yaml README.md LICENSE; do
-            [ -f "$f" ] && cp "$f" dist/pkg/
-          done
-
-          echo "Distribution contents:"
-          find dist/pkg -type f | sort
-
       - name: Create ZIP archive
         shell: bash
         run: |
           cd dist
-          7z a -tzip swarmclonebackend-windows.zip pkg/
+          7z a -tzip swarmclonebackend-windows.zip .
 
       - name: Upload artifact (30 days)
         uses: actions/upload-artifact@v4
