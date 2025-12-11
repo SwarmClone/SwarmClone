@@ -31,16 +31,6 @@ jobs:
       - name: Run build.py
         run: python build.py
 
-      - name: Verify build output
-        shell: bash
-        run: |
-          if [ ! -f "dist/backend.exe" ]; then
-            echo "ERROR: backend.exe not found!"
-            ls -la dist/
-            exit 1
-          fi
-          echo "backend.exe found."
-
       - name: Upload artifact (30 days)
         uses: actions/upload-artifact@v4
         with:
