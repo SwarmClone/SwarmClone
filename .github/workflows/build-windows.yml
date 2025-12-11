@@ -14,9 +14,9 @@ jobs:
     env:
       PYTHONIOENCODING: utf-8
       PYTHONUTF8: 1
-      TEMP: ${{ github.workspace }}/build/temp
-      TMP: ${{ github.workspace }}/build/temp
-      PYINSTALLER_CONFIG_DIR: ${{ github.workspace }}/build/pyinstaller
+      TEMP: ${{ github.workspace }}\build\temp
+      TMP: ${{ github.workspace }}\build\temp
+      PYINSTALLER_CONFIG_DIR: ${{ github.workspace }}\build\pyinstaller
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -34,10 +34,11 @@ jobs:
       - name: Create build directories with proper permissions
         shell: powershell
         run: |
-          $buildDir = "${{ github.workspace }}/build"
-          $tempDir = "${{ github.workspace }}/build/temp"
-          $pyinstallerDir = "${{ github.workspace }}/build/pyinstaller"
-          $pyinstallerTemp = "${{ github.workspace }}/build/pyinstaller/temp"
+          $workspace = "${{ github.workspace }}"
+          $buildDir = "$workspace\build"
+          $tempDir = "$workspace\build\temp"
+          $pyinstallerDir = "$workspace\build\pyinstaller"
+          $pyinstallerTemp = "$workspace\build\pyinstaller\temp"
           
           # Clean existing directories
           if (Test-Path $buildDir) {
@@ -62,16 +63,8 @@ jobs:
           $acl.SetAccessRule($accessRule)
           Set-Acl $buildDir $acl
           
-          # Verify permissions
-          $currentAcl = Get-Acl $buildDir
-          Write-Host "Build directory permissions:"
-          $currentAcl.Access | Format-Table
-          
-          Write-Host "✅ Build directories created with proper permissions"
-          Write-Host "📁 Build directory: $buildDir"
-          Write-Host "📁 Temp directory: $tempDir"
-          Write-Host "📁 PyInstaller directory: $pyinstallerDir"
-          Write-Host "📁 PyInstaller temp: $pyinstallerTemp"
+          Write-Host " Build directories created with proper permissions"
+          Write-Host " Build directory: $buildDir"
 
       - name: Install build dependencies
         shell: bash
@@ -92,64 +85,33 @@ jobs:
           cython --version
 
       - name: Run build.py with detailed logging
-        shell: powershell
-        run: |
-          # Set environment variables explicitly
-          $env:PYTHONIOENCODING = "utf-8"
-          $env:PYTHONUTF8 = "1"
-          $env:TEMP = "${{ github.workspace }}/build/temp"
-          $env:TMP = "${{ github.workspace }}/build/temp"
-          $env:PYINSTALLER_CONFIG_DIR = "${{ github.workspace }}/build/pyinstaller"
-          
-          # Verify environment
-          Write-Host "Environment variables:"
-          Write-Host "PYTHONIOENCODING: $env:PYTHONIOENCODING"
-          Write-Host "TEMP: $env:TEMP"
-          Write-Host "TMP: $env:TMP"
-          Write-Host "Current directory: $(Get-Location)"
-          
-          # Run the build script
-          python build.py
-          
-          # Check if build was successful
-          $exePath = "${{ github.workspace }}/dist/backend.exe"
-          if (Test-Path $exePath) {
-            $fileSize = (Get-Item $exePath).Length / 1KB
-            Write-Host "✅ Build successful! Executable created: $exePath"
-            Write-Host "✅ Executable size: $fileSize KB"
-            exit 0
-          } else {
-            Write-Host "❌ Build failed! Executable not found at: $exePath"
-            Write-Host "📁 Contents of dist directory:"
-            Get-ChildItem -Path "${{ github.workspace }}/dist" -Recurse | Format-Table
-            exit 1
-          }
+        run: python build.py
 
-      - name: Verify build output
+      - name: Verify build output and upload artifact
         shell: powershell
         run: |
-          $distDir = "${{ github.workspace }}/dist"
-          $exePath = "$distDir/backend.exe"
+          $workspace = "${{ github.workspace }}"
+          $distDir = "$workspace\dist"
+          $exePath = "$distDir\backend.exe"
           
-          Write-Host "📁 Verifying build output..."
-          Write-Host "📁 Dist directory: $distDir"
+          Write-Host " Verifying build output..."
+          Write-Host " Dist directory: $distDir"
           
           if (Test-Path $distDir) {
-            Write-Host "✅ Dist directory exists"
-            Write-Host "📁 Contents of dist directory:"
+            Write-Host " Dist directory exists"
+            Write-Host " Contents of dist directory:"
             Get-ChildItem -Path $distDir -Recurse | Format-Table
             
             if (Test-Path $exePath) {
               $fileSize = (Get-Item $exePath).Length / 1KB
-              Write-Host "✅ Executable found: $exePath"
-              Write-Host "✅ Executable size: $fileSize KB"
-              exit 0
+              Write-Host " Executable found: $exePath"
+              Write-Host " Executable size: $fileSize KB"
             } else {
-              Write-Host "❌ Executable not found at: $exePath"
+              Write-Host " Executable not found at: $exePath"
               exit 1
             }
           } else {
-            Write-Host "❌ Dist directory does not exist!"
+            Write-Host " Dist directory does not exist!"
             exit 1
           }
 
@@ -159,7 +121,6 @@ jobs:
           name: swarmclonebackend-windows-${{ github.sha }}
           path: dist/
           retention-days: 30
-        if: always()
 
       - name: Create GitHub Release (on tag only)
         if: startsWith(github.ref, 'refs/tags/v')
