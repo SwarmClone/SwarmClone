@@ -270,7 +270,7 @@ setup(
 
 def compile_module_in_build(build_module_dir: Path, extension: str) -> int:
     """Compile all Python files in a build module directory"""
-    print(f"  📄 Searching for Python files...")
+    print(f"Searching for Python files...")
     
     # First, read module.ini to know the entry point
     ini_path = build_module_dir / "module.ini"
