@@ -11,38 +11,164 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    env:
+      PYTHONIOENCODING: utf-8
+      PYTHONUTF8: 1
+      TEMP: ${{ github.workspace }}/build/temp
+      TMP: ${{ github.workspace }}/build/temp
+      PYINSTALLER_CONFIG_DIR: ${{ github.workspace }}/build/pyinstaller
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          submodules: recursive
 
       - name: Set up Python 3.12
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: '**/requirements.txt'
+
+      - name: Create build directories with proper permissions
+        shell: powershell
+        run: |
+          $buildDir = "${{ github.workspace }}/build"
+          $tempDir = "${{ github.workspace }}/build/temp"
+          $pyinstallerDir = "${{ github.workspace }}/build/pyinstaller"
+          $pyinstallerTemp = "${{ github.workspace }}/build/pyinstaller/temp"
+          
+          # Clean existing directories
+          if (Test-Path $buildDir) {
+            Remove-Item $buildDir -Recurse -Force -ErrorAction SilentlyContinue
+          }
+          
+          # Create directories
+          New-Item -Path $buildDir -ItemType Directory -Force
+          New-Item -Path $tempDir -ItemType Directory -Force
+          New-Item -Path $pyinstallerDir -ItemType Directory -Force
+          New-Item -Path $pyinstallerTemp -ItemType Directory -Force
+          
+          # Set full permissions for everyone (GitHub Actions needs this)
+          $acl = Get-Acl $buildDir
+          $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule(
+            "Everyone", 
+            "FullControl", 
+            "ContainerInherit,ObjectInherit", 
+            "None", 
+            "Allow"
+          )
+          $acl.SetAccessRule($accessRule)
+          Set-Acl $buildDir $acl
+          
+          # Verify permissions
+          $currentAcl = Get-Acl $buildDir
+          Write-Host "Build directory permissions:"
+          $currentAcl.Access | Format-Table
+          
+          Write-Host "✅ Build directories created with proper permissions"
+          Write-Host "📁 Build directory: $buildDir"
+          Write-Host "📁 Temp directory: $tempDir"
+          Write-Host "📁 PyInstaller directory: $pyinstallerDir"
+          Write-Host "📁 PyInstaller temp: $pyinstallerTemp"
 
       - name: Install build dependencies
         shell: bash
         run: |
-          pip install --upgrade pip
-          pip install pyinstaller cython setuptools wheel
+          # Upgrade pip first
+          python -m pip install --upgrade pip
+          
+          # Install core dependencies
+          pip install --upgrade pyinstaller cython setuptools wheel
+          
+          # Install additional dependencies
+          pip install --upgrade ruamel.yaml fastapi uvicorn pydantic aiohttp requests httpx
+          
+          # Verify installations
+          pip list
+          python --version
+          pyinstaller --version
+          cython --version
 
-      - name: Run build.py
-        run: python build.py
+      - name: Run build.py with detailed logging
+        shell: powershell
+        run: |
+          # Set environment variables explicitly
+          $env:PYTHONIOENCODING = "utf-8"
+          $env:PYTHONUTF8 = "1"
+          $env:TEMP = "${{ github.workspace }}/build/temp"
+          $env:TMP = "${{ github.workspace }}/build/temp"
+          $env:PYINSTALLER_CONFIG_DIR = "${{ github.workspace }}/build/pyinstaller"
+          
+          # Verify environment
+          Write-Host "Environment variables:"
+          Write-Host "PYTHONIOENCODING: $env:PYTHONIOENCODING"
+          Write-Host "TEMP: $env:TEMP"
+          Write-Host "TMP: $env:TMP"
+          Write-Host "Current directory: $(Get-Location)"
+          
+          # Run the build script
+          python build.py
+          
+          # Check if build was successful
+          $exePath = "${{ github.workspace }}/dist/backend.exe"
+          if (Test-Path $exePath) {
+            $fileSize = (Get-Item $exePath).Length / 1KB
+            Write-Host "✅ Build successful! Executable created: $exePath"
+            Write-Host "✅ Executable size: $fileSize KB"
+            exit 0
+          } else {
+            Write-Host "❌ Build failed! Executable not found at: $exePath"
+            Write-Host "📁 Contents of dist directory:"
+            Get-ChildItem -Path "${{ github.workspace }}/dist" -Recurse | Format-Table
+            exit 1
+          }
+
+      - name: Verify build output
+        shell: powershell
+        run: |
+          $distDir = "${{ github.workspace }}/dist"
+          $exePath = "$distDir/backend.exe"
+          
+          Write-Host "📁 Verifying build output..."
+          Write-Host "📁 Dist directory: $distDir"
+          
+          if (Test-Path $distDir) {
+            Write-Host "✅ Dist directory exists"
+            Write-Host "📁 Contents of dist directory:"
+            Get-ChildItem -Path $distDir -Recurse | Format-Table
+            
+            if (Test-Path $exePath) {
+              $fileSize = (Get-Item $exePath).Length / 1KB
+              Write-Host "✅ Executable found: $exePath"
+              Write-Host "✅ Executable size: $fileSize KB"
+              exit 0
+            } else {
+              Write-Host "❌ Executable not found at: $exePath"
+              exit 1
+            }
+          } else {
+            Write-Host "❌ Dist directory does not exist!"
+            exit 1
+          }
 
       - name: Upload artifact (30 days)
         uses: actions/upload-artifact@v4
         with:
-          name: swarmclonebackend-windows.zip
+          name: swarmclonebackend-windows-${{ github.sha }}
           path: dist/
           retention-days: 30
+        if: always()
 
       - name: Create GitHub Release (on tag only)
         if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
-          files: dist/swarmclonebackend-windows.zip
+          files: dist/backend.exe
+          tag_name: ${{ github.ref_name }}
           generate_release_notes: true
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
