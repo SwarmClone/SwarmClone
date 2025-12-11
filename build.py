@@ -637,7 +637,7 @@ exe = EXE(
     
     with open(config.spec_file, 'w', encoding='utf-8') as f:
         f.write(spec_content)
-    print(f"📝 Created spec file: {config.spec_file}")
+    print(f" Created spec file: {config.spec_file}")
     
     return config.spec_file
 
