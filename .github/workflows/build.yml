@@ -42,6 +42,193 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt-get update
+        sudo apt-get install -y build-essential python3-dev gcc zip
+
+    - name: Install system dependencies (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew update
+        brew install pkg-config
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install cython setuptools wheel
+        if [ -f requirements.txt ]; then
+          pip install -r requirements.txt
+        fi
+      shell: bash
+
+    - name: Install build dependencies
+      run: |
+        # 安装支持 Python 3.13 的 PyInstaller 版本
+        pip install pyinstaller>=6.0.0
+      shell: bash
+
+    - name: Debug project structure
+      run: |
+        echo "当前目录: $(pwd)"
+        echo "目录结构:"
+        find . -type f -name "*.py" | head -20
+        echo "检查 src 目录:"
+        ls -la src/ || echo "src 目录不存在"
+        echo "检查 src/main.py:"
+        ls -la src/main.py || echo "main.py 不存在"
+        echo "检查 src/modules:"
+        ls -la src/modules/ || echo "modules 目录不存在"
+      shell: bash
+
+    - name: Build binary
+      run: |
+        python build.py
+      env:
+        PYTHONIOENCODING: utf-8
+        PYTHONUTF8: "1"
+      shell: bash
+
+    - name: Check build output
+      run: |
+        echo "检查 dist 目录:"
+        ls -la dist/ 2>/dev/null || echo "dist 目录不存在"
+        echo "检查 dist 目录内容:"
+        find dist/ -type f 2>/dev/null || echo "dist 目录中没有文件"
+      shell: bash
+
+    - name: Prepare distribution files (all platforms)
+      run: |
+        echo "准备分发文件..."
+        mkdir -p dist/swarmclonebackend
+        
+        # 复制可执行文件
+        if [ "${{ matrix.os }}" == "windows-latest" ]; then
+          # Windows
+          if [ -f dist/backend.exe ]; then
+            cp dist/backend.exe dist/swarmclonebackend/
+            echo "复制了 backend.exe"
+          else
+            echo "警告: 未找到 backend.exe"
+            # 尝试查找其他可执行文件
+            find dist/ -name "*.exe" -exec cp {} dist/swarmclonebackend/ \; 2>/dev/null || true
+          fi
+          
+          # 复制 DLL 文件
+          if ls dist/*.dll 1>/dev/null 2>&1; then
+            cp dist/*.dll dist/swarmclonebackend/
+            echo "复制了 DLL 文件"
+          fi
+        else
+          # Linux/macOS
+          if [ -f dist/backend ]; then
+            cp dist/backend dist/swarmclonebackend/
+            echo "复制了 backend"
+          else
+            echo "警告: 未找到 backend"
+            # 尝试查找其他可执行文件
+            find dist/ -type f -executable -exec cp {} dist/swarmclonebackend/ \; 2>/dev/null || true
+          fi
+        fi
+        
+        # 复制 modules 目录
+        if [ -d dist/modules ]; then
+          cp -r dist/modules dist/swarmclonebackend/
+          echo "复制了 modules 目录"
+        else
+          echo "警告: 未找到 modules 目录"
+        fi
+        
+        # 复制配置文件
+        if [ -f config.yml ]; then
+          cp config.yml dist/swarmclonebackend/
+          echo "复制了 config.yml"
+        else
+          echo "警告: 未找到 config.yml"
+        fi
+        
+        # 显示准备的文件
+        echo "准备的文件:"
+        find dist/swarmclonebackend -type f 2>/dev/null || echo "没有文件"
+      shell: bash
+
+    - name: Create zip archive (Linux/macOS)
+      if: matrix.os != 'windows-latest'
+      run: |
+        cd dist/swarmclonebackend
+        # 检查是否有文件
+        if [ -z "$(find . -type f -name '*')" ]; then
+          echo "错误: 没有文件可以打包"
+          exit 1
+        fi
+        # 创建zip文件
+        zip -r ../${{ matrix.artifact_name }} .
+        echo "创建了 zip 文件: ../${{ matrix.artifact_name }}"
+        cd ../..
+        # 检查zip文件
+        ls -lh dist/*.zip
+      shell: bash
+
+    - name: Create zip archive (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        cd dist\swarmclonebackend
+        # 检查是否有文件
+        if not exist *.* (
+          echo "错误: 没有文件可以打包"
+          exit 1
+        )
+        # 创建zip文件
+        Compress-Archive -Path * -DestinationPath ..\${{ matrix.artifact_name }}
+        echo "创建了 zip 文件: ..\${{ matrix.artifact_name }}"
+        cd ..\..
+        # 检查zip文件
+        Get-ChildItem dist\*.zip | Format-Table Name, Length
+      shell: powershell
+
+    - name: Upload build artifact
+      if: success()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.artifact_name }}
+        path: dist/${{ matrix.artifact_name }}
+        retention-days: 7
+
+  release:
+    needs: build
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+        
+    - name: Display structure of downloaded files
+      run: |
+        echo "下载的文件结构:"
+        find artifacts/ -type f -name "*.zip" | xargs -I {} ls -lh {}
+      shell: bash
+
+    - name: Create Release
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          artifacts/swarmclonebackend-windows.zip
+          artifacts/swarmclonebackend-linux.zip
+          artifacts/swarmclonebackend-macos.zip
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+
+    - name: Install system dependencies (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
         sudo apt-get install -y build-essential python3-dev gcc
 
     - name: Install system dependencies (macOS)
