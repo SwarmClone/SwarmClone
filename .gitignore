@@ -208,5 +208,5 @@ __marimo__/
 /.idea
 config.json
 /.VSCodeCounter
-*.yml
+config.yml
 /docs/node_modules
