@@ -80,13 +80,13 @@ class BuildLogger:
         self.logger.error(message)
     
     def success(self, message: str):
-        self.logger.info(f"✅ {message}")
+        self.logger.info(f"{message}")
     
     def failure(self, message: str):
-        self.logger.error(f"❌ {message}")
+        self.logger.error(f"{message}")
     
     def step(self, message: str):
-        self.logger.info(f"\n🔧 {message}")
+        self.logger.info(f"\n{message}")
         self.logger.info("-" * 40)
 
 @contextmanager
@@ -121,7 +121,7 @@ def setup_build_environment(config: BuildConfig) -> Path:
     
     build_temp.mkdir(parents=True, exist_ok=True)
     
-    print(f"📁 Build temporary directory: {build_temp}")
+    print(f"Build temporary directory: {build_temp}")
     return build_temp
 
 def copy_modules_to_build(src_modules: Path, build_temp: Path) -> Path:
@@ -147,7 +147,7 @@ def copy_modules_to_build(src_modules: Path, build_temp: Path) -> Path:
     
     shutil.copytree(src_modules, build_modules, ignore=ignore_patterns)
     
-    print(f"📁 Copied modules to build directory: {build_modules}")
+    print(f"Copied modules to build directory: {build_modules}")
     return build_modules
 
 def compile_python_file(py_file: Path, output_file: Path, extension: str) -> bool:
@@ -220,7 +220,7 @@ setup(
             )
             
             if result.returncode != 0:
-                print(f"  ❌ Compilation failed: {py_file.name}")
+                print(f"Compilation failed: {py_file.name}")
                 if result.stderr:
                     error_lines = result.stderr.split('\n')
                     for line in error_lines[-5:]:  # Show last 5 error lines
@@ -262,10 +262,10 @@ setup(
         return False
         
     except subprocess.TimeoutExpired:
-        print(f"  ⏰ Compilation timeout: {py_file.name}")
+        print(f"Compilation timeout: {py_file.name}")
         return False
     except Exception as e:
-        print(f"  ❌ Compilation exception: {py_file.name} - {str(e)[:100]}")
+        print(f"Compilation exception: {py_file.name} - {str(e)[:100]}")
         return False
 
 def compile_module_in_build(build_module_dir: Path, extension: str) -> int:
@@ -286,7 +286,7 @@ def compile_module_in_build(build_module_dir: Path, extension: str) -> int:
                     if entry.endswith('.py'):
                         entry_file = build_module_dir / entry
         except Exception as e:
-            print(f"  ⚠️  Failed to read module.ini: {e}")
+            print(f"Failed to read module.ini: {e}")
             pass
     
     # Find all Python files
@@ -301,16 +301,16 @@ def compile_module_in_build(build_module_dir: Path, extension: str) -> int:
         python_files.append(py_file)
     
     if not python_files:
-        print(f"  ℹ️  No compilable Python files found")
+        print(f"No compilable Python files found")
         return 0
     
-    print(f"  📊 Found {len(python_files)} Python files")
+    print(f"Found {len(python_files)} Python files")
     
     # Compile each file
     success_count = 0
     for py_file in python_files:
         relative_path = py_file.relative_to(build_module_dir)
-        print(f"  🔨 Compiling: {relative_path}")
+        print(f"Compiling: {relative_path}")
         
         # Determine output path (same directory, different extension)
         output_file = py_file.parent / f"{py_file.stem}{extension}"
@@ -337,7 +337,7 @@ def update_module_ini_in_build(build_module_dir: Path, extension: str) -> bool:
     """Update module.ini in build directory to point to compiled files"""
     ini_path = build_module_dir / "module.ini"
     if not ini_path.exists():
-        print(f"  ❌ Missing module.ini")
+        print(f"Missing module.ini")
         return False
     
     try:
@@ -345,12 +345,12 @@ def update_module_ini_in_build(build_module_dir: Path, extension: str) -> bool:
         config.read(ini_path, encoding='utf-8')
         
         if 'module' not in config:
-            print(f"  ❌ module.ini format error: Missing [module] section")
+            print(f"module.ini format error: Missing [module] section")
             return False
         
         entry = config['module'].get('entry', '')
         if not entry:
-            print(f"  ❌ module.ini missing entry field")
+            print(f"module.ini missing entry field")
             return False
         
         # Clean entry value
@@ -361,10 +361,10 @@ def update_module_ini_in_build(build_module_dir: Path, extension: str) -> bool:
             # Check if the compiled file exists
             compiled_file = build_module_dir / entry
             if compiled_file.exists():
-                print(f"  ℹ️  Entry is already compiled file: {entry}")
+                print(f"Entry is already compiled file: {entry}")
                 return True
             else:
-                print(f"  ⚠️  Compiled file does not exist: {entry}")
+                print(f"Compiled file does not exist: {entry}")
                 return False
         
         # Update to compiled extension
@@ -382,7 +382,7 @@ def update_module_ini_in_build(build_module_dir: Path, extension: str) -> bool:
             config['module']['entry'] = new_entry
             with open(ini_path, 'w', encoding='utf-8') as f:
                 config.write(f)
-            print(f"  📝 Updated entry: {entry} -> {new_entry}")
+            print(f"Updated entry: {entry} -> {new_entry}")
             return True
         else:
             # Try to find the compiled file in subdirectories
@@ -400,26 +400,26 @@ def update_module_ini_in_build(build_module_dir: Path, extension: str) -> bool:
                     config['module']['entry'] = str(relative_path)
                     with open(ini_path, 'w', encoding='utf-8') as f:
                         config.write(f)
-                    print(f"  📝 Updated entry: {entry} -> {relative_path}")
+                    print(f"Updated entry: {entry} -> {relative_path}")
                     return True
             
             # If we can't find the compiled file, check if we should keep the .py entry
             # (maybe the file wasn't meant to be compiled)
             original_py_file = build_module_dir / f"{base_name}.py"
             if original_py_file.exists():
-                print(f"  ℹ️  Keeping original entry: {entry} (file exists but not compiled)")
+                print(f"Keeping original entry: {entry} (file exists but not compiled)")
                 return True
             else:
-                print(f"  ⚠️  File does not exist and not compiled: {base_name}")
+                print(f"File does not exist and not compiled: {base_name}")
                 return False
             
     except Exception as e:
-        print(f"  ❌ Failed to update module.ini: {e}")
+        print(f"Failed to update module.ini: {e}")
         return False
 
 def clean_build_module_directory(build_module_dir: Path, extension: str):
     """Clean build module directory to only keep necessary files"""
-    print(f"  🧹 Cleaning build files...")
+    print(f"Cleaning build files...")
     
     # First pass: remove all .py files except those we want to keep
     for py_file in build_module_dir.rglob("*.py"):
@@ -455,17 +455,17 @@ def clean_build_module_directory(build_module_dir: Path, extension: str):
 def process_module_in_build(build_module_dir: Path, extension: str) -> bool:
     """Process a single module in build directory"""
     module_name = build_module_dir.name
-    print(f"\n📦 Processing module: {module_name}")
+    print(f"\nProcessing module: {module_name}")
     
     # Skip egg-info directories
     if module_name.endswith('.egg-info'):
-        print(f"  ⏭️  Skipping egg-info directory")
+        print(f"Skipping egg-info directory")
         return False
     
     # Check if module has module.ini
     ini_path = build_module_dir / "module.ini"
     if not ini_path.exists():
-        print(f"  ⚠️  Missing module.ini, skipping")
+        print(f"Missing module.ini, skipping")
         return False
     
     try:
@@ -479,7 +479,7 @@ def process_module_in_build(build_module_dir: Path, extension: str) -> bool:
                 entry = entry.strip().strip('"').strip("'")
                 if entry.endswith('.py'):
                     entry_file = build_module_dir / entry
-                    print(f"  📄 Entry file: {entry}")
+                    print(f" Entry file: {entry}")
         
         # Compile Python files
         compiled_count = compile_module_in_build(build_module_dir, extension)
@@ -489,17 +489,17 @@ def process_module_in_build(build_module_dir: Path, extension: str) -> bool:
         
         # If we couldn't update module.ini but we have an entry file that wasn't compiled
         if not update_success and entry_file and entry_file.exists():
-            print(f"  ℹ️  Using original entry file: {entry_file.name}")
+            print(f"Using original entry file: {entry_file.name}")
             # module.ini already points to the .py file, which still exists
         
         # Clean directory
         clean_build_module_directory(build_module_dir, extension)
         
-        print(f"  ✅ Successfully compiled {compiled_count} files")
+        print(f"Successfully compiled {compiled_count} files")
         return compiled_count > 0 or update_success
         
     except Exception as e:
-        print(f"  ❌ Processing failed: {e}")
+        print(f"Processing failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -507,7 +507,7 @@ def process_module_in_build(build_module_dir: Path, extension: str) -> bool:
 def compile_modules_in_build(build_modules: Path) -> int:
     """Compile all modules in build directory"""
     extension = get_module_extension()
-    print(f"🔧 Target platform: {platform.system()}, compilation extension: {extension}")
+    print(f"Target platform: {platform.system()}, compilation extension: {extension}")
     
     # Get all module directories
     module_dirs = []
@@ -521,10 +521,10 @@ def compile_modules_in_build(build_modules: Path) -> int:
         module_dirs.append(item)
     
     if not module_dirs:
-        print("ℹ️  No module directories found")
+        print("No module directories found")
         return 0
     
-    print(f"📊 Found {len(module_dirs)} modules")
+    print(f"Found {len(module_dirs)} modules")
     
     # Process each module
     success_count = 0
@@ -532,7 +532,7 @@ def compile_modules_in_build(build_modules: Path) -> int:
         if process_module_in_build(module_dir, extension):
             success_count += 1
     
-    print(f"\n📊 Compilation statistics:")
+    print(f"\nCompilation statistics:")
     print(f"   Total modules: {len(module_dirs)}")
     print(f"   Successfully compiled: {success_count}")
     print(f"   Failed: {len(module_dirs) - success_count}")
@@ -541,7 +541,7 @@ def compile_modules_in_build(build_modules: Path) -> int:
 
 def clean_dist_directory(dist_dir: Path):
     """Clean distribution directory of unwanted files"""
-    print(f"\n🧹 Cleaning distribution directory...")
+    print(f"\nCleaning distribution directory...")
     
     if not dist_dir.exists():
         return
@@ -559,9 +559,9 @@ def clean_dist_directory(dist_dir: Path):
                     path.unlink()
                     files_removed += 1
             except Exception as e:
-                print(f"  ⚠️  Unable to delete {path.relative_to(dist_dir)}: {e}")
+                print(f"Unable to delete {path.relative_to(dist_dir)}: {e}")
     
-    print(f"  📊 Cleanup complete: Removed {files_removed} files, {dirs_removed} directories")
+    print(f"Cleanup complete: Removed {files_removed} files, {dirs_removed} directories")
 
 def escape_windows_path(path: str) -> str:
     """Escape Windows path for use in Python strings"""
@@ -570,7 +570,7 @@ def escape_windows_path(path: str) -> str:
 def create_pyinstaller_spec(config: BuildConfig):
     """Create PyInstaller spec file"""
     if not config.main_py.exists():
-        print(f"❌ Main program does not exist: {config.main_py}")
+        print(f"Main program does not exist: {config.main_py}")
         return None
     
     build_modules = config.build_temp / "modules"
@@ -635,13 +635,13 @@ exe = EXE(
     
     with open(config.spec_file, 'w', encoding='utf-8') as f:
         f.write(spec_content)
-    print(f"📝 Created spec file: {config.spec_file}")
+    print(f"Created spec file: {config.spec_file}")
     
     return config.spec_file
 
 def run_pyinstaller(config: BuildConfig):
     """Run PyInstaller with the spec file"""
-    print("\n🚀 Running PyInstaller packaging...")
+    print("\nRunning PyInstaller packaging...")
     print("-" * 40)
     
     try:
@@ -663,10 +663,10 @@ def run_pyinstaller(config: BuildConfig):
         ], capture_output=True, text=True, encoding='utf-8', errors='replace', env=env)
         
         if result.returncode == 0:
-            print("  ✅ PyInstaller packaging completed")
+            print("PyInstaller packaging completed")
             return True
         else:
-            print(f"  ❌ PyInstaller packaging failed")
+            print(f"PyInstaller packaging failed")
             if result.stdout:
                 print(f"     Output: {result.stdout[:500]}")
             if result.stderr:
@@ -676,12 +676,12 @@ def run_pyinstaller(config: BuildConfig):
                         print(f"     Error: {line}")
             return False
     except Exception as e:
-        print(f"  ❌ PyInstaller packaging exception: {e}")
+        print(f"PyInstaller packaging exception: {e}")
         return False
 
 def install_dependencies():
     """Install required dependencies"""
-    print("\n📦 Installing dependencies...")
+    print("\nInstalling dependencies...")
     try:
         env = os.environ.copy()
         env['PYTHONIOENCODING'] = 'utf-8'
@@ -692,16 +692,16 @@ def install_dependencies():
         ], capture_output=True, text=True, encoding='utf-8', errors='replace', env=env)
         
         if result.returncode == 0:
-            print("  ✅ Dependencies installed successfully")
+            print("Dependencies installed successfully")
         else:
-            print(f"  ⚠️  Dependencies installation may have issues, continuing...")
-            print(f"     Error: {result.stderr[:200]}")
+            print(f"Dependencies installation may have issues, continuing...")
+            print(f"Error: {result.stderr[:200]}")
     except Exception as e:
-        print(f"  ⚠️  Dependencies installation exception: {e}")
+        print(f"Dependencies installation exception: {e}")
 
 def clean_previous_builds(config: BuildConfig):
     """Clean previous build artifacts"""
-    print("\n🧹 Cleaning previous build files...")
+    print("\nCleaning previous build files...")
     for path in [config.dist_dir, config.project_root / "build"]:
         if path.exists():
             shutil.rmtree(path, ignore_errors=True)
@@ -710,11 +710,11 @@ def clean_previous_builds(config: BuildConfig):
 def validate_project_structure(config: BuildConfig) -> bool:
     """Validate that required project files exist"""
     if not config.src_modules.exists():
-        print(f"❌ Source modules directory does not exist: {config.src_modules}")
+        print(f"Source modules directory does not exist: {config.src_modules}")
         return False
     
     if not config.main_py.exists():
-        print(f"❌ Main program does not exist: {config.main_py}")
+        print(f"Main program does not exist: {config.main_py}")
         return False
     
     return True
@@ -722,7 +722,7 @@ def validate_project_structure(config: BuildConfig) -> bool:
 def show_build_summary(config: BuildConfig):
     """Display build summary and final structure"""
     print("\n" + "=" * 60)
-    print("✅ Build completed!")
+    print("Build completed!")
     print("=" * 60)
     
     # Show final structure
@@ -733,7 +733,7 @@ def show_build_summary(config: BuildConfig):
         
         if exe_path.exists():
             exe_size = exe_path.stat().st_size // 1024
-            print(f"\n📁 Output structure:")
+            print(f"\nOutput structure:")
             print(f"  Main program: {exe_path.name} ({exe_size} KB)")
         
         if modules_path.exists():
@@ -746,7 +746,7 @@ def show_build_summary(config: BuildConfig):
                     if files:
                         print(f"    • {module_dir.name}: {', '.join(files)}")
     
-    print("\n🎉 Build completed successfully!")
+    print("\nBuild completed successfully!")
     print("=" * 60)
 
 def main():
@@ -754,7 +754,7 @@ def main():
     config = BuildConfig(project_root)
     
     print("=" * 60)
-    print("🔨 SwarmCloneBackend Build Tool")
+    print("SwarmCloneBackend Build Tool")
     print("=" * 60)
     
     # Validate project structure
@@ -768,20 +768,20 @@ def main():
     install_dependencies()
     
     # Setup build environment
-    print("\n🔧 Setting up build environment...")
+    print("\nSetting up build environment...")
     build_temp = setup_build_environment(config)
     
     # Copy modules to build directory
     build_modules = copy_modules_to_build(config.src_modules, build_temp)
     
     # Compile modules in build directory
-    print("\n🔧 Compiling modules to binary files...")
+    print("\nCompiling modules to binary files...")
     print("-" * 40)
     
     success_count = compile_modules_in_build(build_modules)
     
     if success_count == 0:
-        print("⚠️  No successfully compiled modules, packaging with original code...")
+        print("No successfully compiled modules, packaging with original code...")
     
     # Create PyInstaller spec file
     spec_file = create_pyinstaller_spec(config)
@@ -790,14 +790,14 @@ def main():
     
     # Run PyInstaller
     if not run_pyinstaller(config):
-        print("⚠️  PyInstaller packaging failed")
+        print("PyInstaller packaging failed")
         return
     
     # Clean dist directory
     clean_dist_directory(config.dist_dir)
     
     # Clean up build directory (keep for debugging if needed)
-    print("\n🧹 Cleaning build temporary files...")
+    print("\nCleaning build temporary files...")
     if config.build_temp.exists():
         shutil.rmtree(config.build_temp, ignore_errors=True)
         print(f"  Cleaned build temporary directory")
