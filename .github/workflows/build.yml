@@ -43,50 +43,6 @@ jobs:
       run: |
         echo "Running build.py..."
         python build.py
-        
-        if [[ "${{ matrix.platform_name }}" == "windows" ]]; then
-          if [[ -f "dist/backend.exe" ]]; then
-            echo "Build successful!"
-            echo "binary_path=dist/backend.exe" >> $GITHUB_OUTPUT
-          else
-            echo "Build failed - no binary found in dist/"
-            ls -la dist/
-            exit 1
-          fi
-        else
-          if [[ -f "dist/backend" ]]; then
-            echo "Build successful!"
-            echo "binary_path=dist/backend" >> $GITHUB_OUTPUT
-          else
-            echo "Build failed - no binary found in dist/"
-            ls -la dist/
-            exit 1
-          fi
-        fi
-      shell: bash
-
-    - name: Create distribution directory structure (Linux/macOS)
-      if: runner.os != 'Windows'
-      run: |
-        mkdir -p dist/swarmclonebackend
-        
-        if [[ -f "dist/backend" ]]; then
-          cp dist/backend dist/swarmclonebackend/swarmclonebackend
-          chmod +x dist/swarmclonebackend/swarmclonebackend
-        fi
-        
-        if [[ -d "dist/modules" ]]; then
-          cp -r dist/modules dist/swarmclonebackend/
-        fi
-        
-        for file in config.yml config.yaml README.md LICENSE; do
-          if [[ -f "$file" ]]; then
-            cp "$file" dist/swarmclonebackend/
-          fi
-        done
-        
-        echo "Distribution structure created:"
-        find dist/swarmclonebackend -type f | sort
       shell: bash
 
     - name: Create distribution directory structure (Windows)
@@ -127,61 +83,12 @@ jobs:
       shell: bash
       if: runner.os != 'Windows'
 
-    - name: Verify distribution directory (Windows)
-      shell: powershell
-      if: runner.os == 'Windows'
-      run: |
-        if (Get-ChildItem -Path "dist/swarmclonebackend" -Recurse -File) {
-          Write-Host "Distribution directory has files:"
-          Get-ChildItem -Path "dist/swarmclonebackend" -Recurse | Format-List
-          $fileCount = (Get-ChildItem -Path "dist/swarmclonebackend" -Recurse -File).Count
-          Write-Host "File count: $fileCount"
-        } else {
-          Write-Host "ERROR: Distribution directory is empty!" -ForegroundColor Red
-          Write-Host "Available in dist/:"
-          Get-ChildItem -Path "dist/" -Recurse | Format-List
-          exit 1
-        }
-
     - name: Create zip archive (Windows)
       if: runner.os == 'Windows'
       shell: powershell
       run: |
         cd dist
         Compress-Archive -Path "swarmclonebackend/*" -DestinationPath "${{ matrix.artifact_name }}" -Force
-
-    - name: Verify zip archive
-      run: |
-        if [[ -f "dist/${{ matrix.artifact_name }}" ]]; then
-          echo "Zip archive created successfully:"
-          ls -lh "dist/${{ matrix.artifact_name }}"
-          
-          unzip -l "dist/${{ matrix.artifact_name }}" | head -20
-        else
-          echo "ERROR: Zip archive not created!"
-          ls -la dist/
-          exit 1
-        fi
-      shell: bash
-      if: runner.os != 'Windows'
-
-    - name: Verify zip archive (Windows)
-      shell: powershell
-      if: runner.os == 'Windows'
-      run: |
-        if (Test-Path "dist/${{ matrix.artifact_name }}") {
-          Write-Host "Zip archive created successfully:"
-          Get-Item "dist/${{ matrix.artifact_name }}" | Format-List
-          
-          if (Get-Command "7z" -ErrorAction SilentlyContinue) {
-            Write-Host "Zip contents:"
-            7z l "dist/${{ matrix.artifact_name }}" | Select-Object -First 20
-          }
-        } else {
-          Write-Host "ERROR: Zip archive not created!" -ForegroundColor Red
-          Get-ChildItem -Path "dist/" | Format-List
-          exit 1
-        }
 
     - name: Upload artifact (keep for 30 days)
       uses: actions/upload-artifact@v4
@@ -200,12 +107,3 @@ jobs:
         files: dist/${{ matrix.artifact_name }}
         generate_release_notes: true
         prerelease: false
-
-    - name: Clean up build cache (Windows)
-      if: always() && runner.os == 'Windows'
-      shell: powershell
-      run: |
-        Write-Host "Cleaning up build files..."
-        Remove-Item -Path "dist/swarmclonebackend/" -Recurse -Force -ErrorAction SilentlyContinue
-        Remove-Item -Path "build/" -Recurse -Force -ErrorAction SilentlyContinue
-        Remove-Item -Path "*.spec" -Force -ErrorAction SilentlyContinue
