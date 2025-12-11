@@ -1,0 +1,83 @@
+name: Build Backend Binary (Windows)
+
+on:
+  push:
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install build dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pyinstaller==6.9.0 cython setuptools wheel
+
+      - name: Run build.py
+        run: python build.py
+
+      - name: Verify build output
+        run: |
+          if [ ! -f "dist/backend.exe" ]; then
+            echo "ERROR: backend.exe not found!"
+            ls -la dist/
+            exit 1
+          fi
+          echo "backend.exe found."
+
+      - name: Prepare distribution package
+        run: |
+          # Create clean distribution folder
+          rm -rf dist/pkg
+          mkdir -p dist/pkg
+
+          # Main binary
+          cp dist/backend.exe dist/pkg/swarmclonebackend.exe
+
+          # Modules folder (if exists)
+          if [ -d "dist/modules" ]; then
+            cp -r dist/modules dist/pkg/
+          fi
+
+          # Optional top-level files
+          for f in config.yml config.yaml README.md LICENSE; do
+            [ -f "$f" ] && cp "$f" dist/pkg/
+          done
+
+          echo "Distribution contents:"
+          find dist/pkg -type f | sort
+
+      - name: Create ZIP archive
+        run: |
+          cd dist
+          7z a -tzip swarmclonebackend-windows.zip pkg/
+
+      - name: Upload artifact (30 days)
+        uses: actions/upload-artifact@v4
+        with:
+          name: swarmclonebackend-windows.zip
+          path: dist/swarmclonebackend-windows.zip
+          retention-days: 30
+
+      - name: Create GitHub Release (on tag only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/swarmclonebackend-windows.zip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
