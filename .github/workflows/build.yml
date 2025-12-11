@@ -1,4 +1,4 @@
-name: Build Bakcend Binary
+name: Build Binary
 
 on:
   push:
@@ -42,7 +42,7 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential python3-dev
+        sudo apt-get install -y build-essential python3-dev gcc
 
     - name: Install system dependencies (macOS)
       if: matrix.os == 'macos-latest'
@@ -61,6 +61,7 @@ jobs:
 
     - name: Install build dependencies
       run: |
+        # 安装支持 Python 3.13 的 PyInstaller 版本
         pip install pyinstaller>=6.0.0
       shell: bash
 
@@ -75,17 +76,22 @@ jobs:
       if: matrix.os != 'windows-latest'
       run: |
         mkdir -p dist/swarmclonebackend
+        # 查找可执行文件
         if [ -f dist/backend ]; then
           cp -r dist/backend dist/swarmclonebackend/ 2>/dev/null || true
         fi
         cp -r dist/modules dist/swarmclonebackend/ 2>/dev/null || true
         cp config.yml dist/swarmclonebackend/ 2>/dev/null || true
+        # 复制其他必要的文件
+        cp -r dist/*.so dist/swarmclonebackend/ 2>/dev/null || true
+        cp -r dist/*.dylib dist/swarmclonebackend/ 2>/dev/null || true
       shell: bash
 
     - name: Prepare distribution files (Windows)
       if: matrix.os == 'windows-latest'
       run: |
         mkdir -p dist/swarmclonebackend
+        # Windows 上查找文件
         if exist dist\backend.exe (
           copy dist\backend.exe dist\swarmclonebackend\ 2>nul || true
         )
@@ -97,6 +103,9 @@ jobs:
         )
         if exist config.yml (
           copy config.yml dist\swarmclonebackend\ 2>nul || true
+        )
+        if exist dist\*.pyd (
+          copy dist\*.pyd dist\swarmclonebackend\ 2>nul || true
         )
       shell: cmd
 
