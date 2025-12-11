@@ -51,7 +51,7 @@ jobs:
           New-Item -Path $pyinstallerDir -ItemType Directory -Force
           New-Item -Path $pyinstallerTemp -ItemType Directory -Force
           
-          # Set full permissions for everyone (GitHub Actions needs this)
+          # Set full permissions
           $acl = Get-Acl $buildDir
           $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule(
             "Everyone", 
@@ -64,7 +64,6 @@ jobs:
           Set-Acl $buildDir $acl
           
           Write-Host " Build directories created with proper permissions"
-          Write-Host " Build directory: $buildDir"
 
       - name: Install build dependencies
         shell: bash
@@ -83,6 +82,28 @@ jobs:
           python --version
           pyinstaller --version
           cython --version
+
+      - name: Create config.yml if it doesn't exist
+        shell: powershell
+        run: |
+          $configPath = "${{ github.workspace }}\config.yml"
+          if (-not (Test-Path $configPath)) {
+            Write-Host " Creating default config.yml..."
+            $defaultConfig = @{
+                server = @{
+                    host = "0.0.0.0"
+                    port = 8000
+                }
+                logging = @{
+                    level = "INFO"
+                    file = "backend.log"
+                }
+            } | ConvertTo-Json -Depth 4
+            $defaultConfig | Out-File -FilePath $configPath -Encoding UTF8
+            Write-Host " Default config.yml created"
+          } else {
+            Write-Host " config.yml already exists"
+          }
 
       - name: Run build.py with detailed logging
         run: python build.py

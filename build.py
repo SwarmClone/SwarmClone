@@ -619,7 +619,7 @@ def create_pyinstaller_spec(config: BuildConfig):
     print(f"{'='*50}")
     
     if not config.main_py.exists():
-        print(f"  Main program does not exist: {config.main_py}")
+        print(f" ❌ Main program does not exist: {config.main_py}")
         print(f"   Current working directory: {Path.cwd()}")
         print(f"   Project root: {config.project_root}")
         print(f"   Available files in src:")
@@ -631,7 +631,7 @@ def create_pyinstaller_spec(config: BuildConfig):
     build_modules = config.build_temp / "modules"
     
     if not build_modules.exists():
-        print(f"  Build modules directory does not exist: {build_modules}")
+        print(f" ❌ Build modules directory does not exist: {build_modules}")
         print(f"   Creating empty modules directory for packaging...")
         build_modules.mkdir(parents=True, exist_ok=True)
     
@@ -644,6 +644,23 @@ def create_pyinstaller_spec(config: BuildConfig):
     print(f"   Main program path: {main_py_path}")
     print(f"   Project root path: {project_root_path}")
     print(f"   Build modules path: {build_modules_path}")
+    
+    # Check if config.yml exists before adding to datas
+    datas_entries = []
+    
+    # Add config.yml only if it exists
+    config_yml_path = config.project_root / "config.yml"
+    if config_yml_path.exists():
+        datas_entries.append(f"('config.yml', '.')")
+        print(f"   ✅ config.yml found and will be included")
+    else:
+        print(f"   ⚠️ config.yml not found, will not be included")
+    
+    # Always add modules directory
+    datas_entries.append(f"(r'{build_modules_path}', 'modules')")
+    
+    # Join datas entries properly
+    datas_str = ",\n        ".join(datas_entries) if datas_entries else ""
     
     spec_content = f"""# -*- mode: python ; coding: utf-8 -*-
 import sys
@@ -674,8 +691,7 @@ a = Analysis(
     pathex=[r'{project_root_path}'],
     binaries=[],
     datas=[
-        ('config.yml', '.') if os.path.exists(r'{project_root_path}\\\\config.yml') else None,
-        (r'{build_modules_path}', 'modules')
+        {datas_str}
     ],
     hiddenimports={json.dumps(HIDDEN_IMPORTS)},
     hookspath=[],
@@ -716,15 +732,12 @@ exe = EXE(
 )
 """
     
-    # Clean up None values from datas
-    spec_content = spec_content.replace(', None', '')
-    
     # Write spec file
     config.spec_file.parent.mkdir(parents=True, exist_ok=True)
     with open(config.spec_file, 'w', encoding='utf-8') as f:
         f.write(spec_content)
     
-    print(f" Created spec file: {config.spec_file}")
+    print(f" ✅ Created spec file: {config.spec_file}")
     
     # Verify spec file was created
     if config.spec_file.exists():
@@ -732,20 +745,8 @@ exe = EXE(
         print(f"\n   Spec file content preview:")
         with open(config.spec_file, 'r', encoding='utf-8') as f:
             lines = f.readlines()
-            for i, line in enumerate(lines[:15]):
+            for i, line in enumerate(lines[:25]):
                 print(f"     {i+1}: {line.rstrip()}")
-    
-    # Verify modules directory structure
-    print(f"\n   Build modules directory structure:")
-    if build_modules.exists():
-        for root, dirs, files in os.walk(build_modules):
-            level = len(Path(root).relative_to(build_modules).parts)
-            indent = '  ' * level
-            print(f"   {indent} {Path(root).name}/")
-            for file in files:
-                print(f"   {indent}   {file}")
-    else:
-        print(f"    Build modules directory does not exist!")
     
     return config.spec_file
 
