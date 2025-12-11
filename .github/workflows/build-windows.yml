@@ -26,7 +26,7 @@ jobs:
         shell: bash
         run: |
           pip install --upgrade pip
-          pip install pyinstaller==6.9.0 cython setuptools wheel
+          pip install pyinstaller cython setuptools wheel
 
       - name: Run build.py
         run: python build.py
@@ -41,17 +41,11 @@ jobs:
           fi
           echo "backend.exe found."
 
-      - name: Create ZIP archive
-        shell: bash
-        run: |
-          cd dist
-          7z a -tzip swarmclonebackend-windows.zip .
-
       - name: Upload artifact (30 days)
         uses: actions/upload-artifact@v4
         with:
           name: swarmclonebackend-windows.zip
-          path: dist/swarmclonebackend-windows.zip
+          path: dist/
           retention-days: 30
 
       - name: Create GitHub Release (on tag only)
