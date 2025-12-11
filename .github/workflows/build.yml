@@ -38,17 +38,17 @@ jobs:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
 
-    - name: Install system dependencies
+    - name: Install system dependencies (Linux)
+      if: matrix.os == 'ubuntu-latest'
       run: |
-        if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
-          sudo apt-get update
-          sudo apt-get install -y build-essential python3-dev
-        elif [ "${{ matrix.os }}" == "macos-latest" ]; then
-          brew update
-          brew install pkg-config
-        elif [ "${{ matrix.os }}" == "windows-latest" ]; then
-          echo "Windows build environment is ready"
-        fi
+        sudo apt-get update
+        sudo apt-get install -y build-essential python3-dev
+
+    - name: Install system dependencies (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew update
+        brew install pkg-config
 
     - name: Install Python dependencies
       run: |
@@ -57,53 +57,68 @@ jobs:
         if [ -f requirements.txt ]; then
           pip install -r requirements.txt
         fi
+      shell: bash
 
     - name: Install build dependencies
       run: |
         pip install pyinstaller==5.13.2
+      shell: bash
 
     - name: Build binary
       run: |
         python build.py
       env:
         PYTHONIOENCODING: utf-8
+      shell: bash
 
-    - name: Prepare distribution files
+    - name: Prepare distribution files (Linux/macOS)
+      if: matrix.os != 'windows-latest'
       run: |
-        if [ "${{ matrix.os }}" == "windows-latest" ]; then
-          # Windows specific
-          mkdir -p dist/swarmclonebackend
-          cp -r dist/*.exe dist/*.dll dist/swarmclonebackend/ 2>/dev/null || true
-          cp -r dist/modules dist/swarmclonebackend/ 2>/dev/null || true
-          cp config.yml dist/swarmclonebackend/ 2>/dev/null || true
-        else
-          # Linux and macOS
-          mkdir -p dist/swarmclonebackend
-          cp -r dist/backend dist/swarmclonebackend/ 2>/dev/null || true
-          cp -r dist/modules dist/swarmclonebackend/ 2>/dev/null || true
-          cp config.yml dist/swarmclonebackend/ 2>/dev/null || true
-        fi
+        mkdir -p dist/swarmclonebackend
+        cp -r dist/backend dist/swarmclonebackend/ 2>/dev/null || true
+        cp -r dist/modules dist/swarmclonebackend/ 2>/dev/null || true
+        cp config.yml dist/swarmclonebackend/ 2>/dev/null || true
+      shell: bash
 
-    - name: Create zip archive
+    - name: Prepare distribution files (Windows)
+      if: matrix.os == 'windows-latest'
       run: |
-        if [ "${{ matrix.os }}" == "windows-latest" ]; then
-          cd dist/swarmclonebackend
-          Compress-Archive -Path * -DestinationPath ../${{ matrix.artifact_name }}
-          cd ../..
-        else
-          cd dist/swarmclonebackend
-          zip -r ../${{ matrix.artifact_name }} .
-          cd ../..
-        fi
+        mkdir -p dist/swarmclonebackend
+        copy dist\*.exe dist\swarmclonebackend\ 2>nul || true
+        copy dist\*.dll dist\swarmclonebackend\ 2>nul || true
+        xcopy /E /I dist\modules dist\swarmclonebackend\modules 2>nul || true
+        copy config.yml dist\swarmclonebackend\ 2>nul || true
+      shell: cmd
 
-    - name: Verify artifact
+    - name: Create zip archive (Linux/macOS)
+      if: matrix.os != 'windows-latest'
+      run: |
+        cd dist/swarmclonebackend
+        zip -r ../${{ matrix.artifact_name }} .
+        cd ../..
+      shell: bash
+
+    - name: Create zip archive (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        cd dist\swarmclonebackend
+        Compress-Archive -Path * -DestinationPath ..\${{ matrix.artifact_name }}
+        cd ..\..
+      shell: powershell
+
+    - name: Verify artifact (Linux/macOS)
+      if: matrix.os != 'windows-latest'
       run: |
         echo "Artifact created: ${{ matrix.artifact_name }}"
-        if [ "${{ matrix.os }}" == "windows-latest" ]; then
-          Get-ChildItem dist/*.zip | Format-Table Name, Length
-        else
-          ls -lh dist/*.zip
-        fi
+        ls -lh dist/*.zip
+      shell: bash
+
+    - name: Verify artifact (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        echo "Artifact created: ${{ matrix.artifact_name }}"
+        Get-ChildItem dist\*.zip | Format-Table Name, Length
+      shell: powershell
 
     - name: Upload build artifact
       uses: actions/upload-artifact@v4
@@ -127,6 +142,7 @@ jobs:
         
     - name: Display structure of downloaded files
       run: ls -R artifacts/
+      shell: bash
 
     - name: Create Release
       id: create_release
