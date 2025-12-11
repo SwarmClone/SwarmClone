@@ -19,12 +19,15 @@ jobs:
           - os: ubuntu-latest
             platform_name: linux
             artifact_name: swarmclonebackend-linux.zip
+            binary_name: swarmclonebackend
           - os: windows-latest
             platform_name: windows
             artifact_name: swarmclonebackend-windows.zip
+            binary_name: swarmclonebackend.exe
           - os: macos-latest
             platform_name: macos
             artifact_name: swarmclonebackend-macos.zip
+            binary_name: swarmclonebackend
     
     steps:
     - name: Checkout repository
@@ -36,131 +39,142 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
-        cache: 'pip'
 
     - name: Install system dependencies (Linux)
-      if: matrix.os == 'ubuntu-latest'
+      if: runner.os == 'Linux'
       run: |
         sudo apt-get update
         sudo apt-get install -y build-essential python3-dev
+        
     - name: Install system dependencies (macOS)
-      if: matrix.os == 'macos-latest'
+      if: runner.os == 'macOS'
       run: |
-        brew update
-        brew install pkg-config
-    - name: Install Python dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install cython setuptools wheel
-        if [ -f requirements.txt ]; then
-          pip install -r requirements.txt
-        fi
-      shell: bash
-
+        # 确保有编译工具链
+        brew install gcc || true
+        
     - name: Install build dependencies
       run: |
-        pip install pyinstaller>=6.0.0
-      shell: bash
-
-    - name: Build binary
+        python -m pip install --upgrade pip
+        # 安装 build.py 所需的依赖
+        pip install pyinstaller cython setuptools
+        
+    - name: Run build.py to create binary
       run: |
+        echo "Running build.py..."
         python build.py
-      env:
-        PYTHONIOENCODING: utf-8
-      shell: bash
-
-    - name: Prepare distribution files (Linux/macOS)
-      if: matrix.os != 'windows-latest'
-      run: |
-        mkdir -p dist/swarmclonebackend
-        if [ -f dist/backend ]; then
-          cp -r dist/backend dist/swarmclonebackend/ 2>/dev/null || true
+        
+        # 检查构建是否成功
+        if [ -f "dist/backend" ] || [ -f "dist/backend.exe" ]; then
+          echo "Build successful!"
+        else
+          echo "Build failed - no binary found in dist/"
+          ls -la dist/
+          exit 1
         fi
-        cp -r dist/modules dist/swarmclonebackend/ 2>/dev/null || true
-        cp config.yml dist/swarmclonebackend/ 2>/dev/null || true
-      shell: bash
 
-    - name: Prepare distribution files (Windows)
-      if: matrix.os == 'windows-latest'
+    - name: Create distribution directory structure
       run: |
+        # 创建统一的输出目录结构
         mkdir -p dist/swarmclonebackend
-        if exist dist\backend.exe (
-          copy dist\backend.exe dist\swarmclonebackend\ 2>nul || true
-        )
-        if exist dist\*.dll (
-          copy dist\*.dll dist\swarmclonebackend\ 2>nul || true
-        )
-        if exist dist\modules (
-          xcopy /E /I dist\modules dist\swarmclonebackend\modules 2>nul || true
-        )
-        if exist config.yml (
-          copy config.yml dist\swarmclonebackend\ 2>nul || true
-        )
-      shell: cmd
+        
+        # 复制构建的二进制文件
+        if [ "${{ matrix.platform_name }}" == "windows" ]; then
+          # Windows 系统
+          if [ -f "dist/backend.exe" ]; then
+            cp dist/backend.exe dist/swarmclonebackend/swarmclonebackend.exe
+          elif [ -f "dist/backend" ]; then
+            cp dist/backend dist/swarmclonebackend/swarmclonebackend.exe
+          fi
+        else:
+          # Linux/macOS 系统
+          if [ -f "dist/backend" ]; then
+            cp dist/backend dist/swarmclonebackend/swarmclonebackend
+            chmod +x dist/swarmclonebackend/swarmclonebackend
+          fi
+        
+        # 复制 modules 目录（如果存在）
+        if [ -d "dist/modules" ]; then
+          cp -r dist/modules dist/swarmclonebackend/
+        fi
+        
+        # 复制其他必要的文件
+        for file in config.yml config.yaml README.md LICENSE; do
+          if [ -f "$file" ]; then
+            cp "$file" dist/swarmclonebackend/
+          fi
+        done
+        
+        echo "Distribution structure created:"
+        find dist/swarmclonebackend -type f | sort
 
-    - name: Create zip archive (Linux/macOS)
-      if: matrix.os != 'windows-latest'
+    - name: Verify distribution directory
+      run: |
+        if [ "$(ls -A dist/swarmclonebackend/ 2>/dev/null)" ]; then
+          echo "Distribution directory has files:"
+          ls -la dist/swarmclonebackend/
+          echo "File count: $(find dist/swarmclonebackend -type f | wc -l)"
+        else
+          echo "ERROR: Distribution directory is empty!"
+          echo "Available in dist/:"
+          ls -la dist/
+          exit 1
+        fi
+
+    - name: Create zip archive
       run: |
         cd dist/swarmclonebackend
-        zip -r ../${{ matrix.artifact_name }} .
-        cd ../..
-      shell: bash
+        if [ "$(ls -A .)" ]; then
+          echo "Creating zip archive..."
+          if [ "${{ matrix.platform_name }}" == "windows" ]; then
+            # Windows 使用 PowerShell 压缩
+            powershell Compress-Archive -Path * -DestinationPath ../${{ matrix.artifact_name }}
+          else:
+            # Linux/macOS 使用 zip
+            zip -r ../${{ matrix.artifact_name }} .
+        else
+          echo "Error: Directory is empty, cannot create zip!"
+          pwd
+          ls -la
+          exit 1
+        fi
 
-    - name: Create zip archive (Windows)
-      if: matrix.os == 'windows-latest'
+    - name: Verify zip archive
       run: |
-        cd dist\swarmclonebackend
-        Compress-Archive -Path * -DestinationPath ..\${{ matrix.artifact_name }}
-        cd ..\..
-      shell: powershell
+        if [ -f "dist/${{ matrix.artifact_name }}" ]; then
+          echo "Zip archive created successfully:"
+          ls -lh "dist/${{ matrix.artifact_name }}"
+          
+          # 显示zip内容（仅前几行）
+          if command -v unzip &> /dev/null; then
+            echo "Zip contents:"
+            unzip -l "dist/${{ matrix.artifact_name }}" | head -20
+          fi
+        else
+          echo "ERROR: Zip archive not created!"
+          exit 1
+        fi
 
-    - name: Verify artifact (Linux/macOS)
-      if: matrix.os != 'windows-latest'
-      run: |
-        echo "Artifact created: ${{ matrix.artifact_name }}"
-        ls -lh dist/*.zip
-      shell: bash
-
-    - name: Verify artifact (Windows)
-      if: matrix.os == 'windows-latest'
-      run: |
-        echo "Artifact created: ${{ matrix.artifact_name }}"
-        Get-ChildItem dist\*.zip | Format-Table Name, Length
-      shell: powershell
-
-    - name: Upload build artifact
+    - name: Upload artifact (keep for 30 days)
       uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.artifact_name }}
         path: dist/${{ matrix.artifact_name }}
-        retention-days: 7
+        retention-days: 30
 
-  release:
-    needs: build
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    
-    steps:
-    - name: Download all artifacts
-      uses: actions/download-artifact@v4
-      with:
-        path: artifacts
-        
-    - name: Display structure of downloaded files
-      run: ls -R artifacts/
-      shell: bash
-
+    # 如果推送的是标签，自动创建发布版本
     - name: Create Release
-      id: create_release
+      if: startsWith(github.ref, 'refs/tags/v')
       uses: softprops/action-gh-release@v1
-      with:
-        files: |
-          artifacts/swarmclonebackend-windows.zip
-          artifacts/swarmclonebackend-linux.zip
-          artifacts/swarmclonebackend-macos.zip
-        draft: false
-        prerelease: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        files: dist/${{ matrix.artifact_name }}
+        generate_release_notes: true
+        prerelease: false
+
+    - name: Clean up build cache
+      if: always()
+      run: |
+        # 删除构建中间文件，节省空间
+        rm -rf dist/swarmclonebackend/
+        rm -rf build/
