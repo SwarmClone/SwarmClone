@@ -7,7 +7,6 @@ import configparser
 import tempfile
 import json
 
-# === Windows-only constants ===
 MODULE_EXTENSION = ".pyd"
 EXCLUDE_PATTERNS = [
     '__pycache__', '*.pyc', '*.pyo', '*.pyd', '*.so',
@@ -20,6 +19,23 @@ HIDDEN_IMPORTS = [
 ]
 SKIP_FILES = ['__init__.py', 'setup.py']
 
+
+def install_build_deps():
+    """Install required build dependencies"""
+    print("Installing build dependencies: Cython, PyInstaller, setuptools...")
+    cmd = [
+        sys.executable, "-m", "pip", "install",
+        "--upgrade", "pip",
+        "cython>=3.0", "pyinstaller==6.9.0", "setuptools>=65.0", "wheel"
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        print("Failed to install dependencies:")
+        print(result.stderr)
+    else:
+        print("Dependencies installed.")
+
+
 class BuildConfig:
     def __init__(self, project_root: Path):
         self.project_root = project_root
@@ -29,11 +45,13 @@ class BuildConfig:
         self.main_py = project_root / "src" / "main.py"
         self.spec_file = project_root / "backend.spec"
 
+
 def setup_dirs(config: BuildConfig):
-    if config.build_temp.exists():
-        shutil.rmtree(config.build_temp, ignore_errors=True)
+    for p in [config.dist_dir, config.project_root / "build"]:
+        if p.exists():
+            shutil.rmtree(p, ignore_errors=True)
     config.build_temp.mkdir(parents=True, exist_ok=True)
-    print(f"Build temp dir: {config.build_temp}")
+
 
 def copy_modules(src: Path, dst: Path):
     def ignore_func(directory, names):
@@ -46,19 +64,17 @@ def copy_modules(src: Path, dst: Path):
                     ignored.append(name)
         return list(set(ignored))
     shutil.copytree(src, dst, ignore=ignore_func)
-    print(f"Copied modules to: {dst}")
+
 
 def compile_python_file(py_file: Path, output_file: Path) -> bool:
     try:
         module_name = py_file.stem
         py_file_abs = str(py_file.absolute()).replace('\\', '/')
-        parent_dir = str(py_file.parent.absolute()).replace('\\', '/')
 
         setup_content = f'''
 from Cython.Build import cythonize
 from setuptools import setup, Extension
 import os
-os.makedirs(r"{parent_dir}", exist_ok=True)
 ext = Extension(
     name="{module_name}",
     sources=[r"{py_file_abs}"],
@@ -103,7 +119,6 @@ setup(
                 print(f"Compile failed: {py_file.name}")
                 return False
 
-            # Find .pyd in source dir
             compiled = py_file.parent / f"{module_name}{MODULE_EXTENSION}"
             if compiled.exists():
                 output_file.parent.mkdir(parents=True, exist_ok=True)
@@ -115,8 +130,8 @@ setup(
         print(f"Exception compiling {py_file.name}: {e}")
         return False
 
+
 def compile_module_dir(module_dir: Path) -> int:
-    # Parse module.ini to get entry (to avoid skipping entry .py)
     entry_py = None
     ini_path = module_dir / "module.ini"
     if ini_path.exists():
@@ -144,6 +159,7 @@ def compile_module_dir(module_dir: Path) -> int:
             py.unlink(missing_ok=True)
     return success
 
+
 def update_module_ini(module_dir: Path):
     ini = module_dir / "module.ini"
     if not ini.exists():
@@ -155,26 +171,23 @@ def update_module_ini(module_dir: Path):
 
     entry = cfg['module']['entry'].strip().strip('"\'')
     if entry.endswith(('.pyd', '.so')):
-        return True  # already compiled
+        return True
 
     if entry.endswith('.py'):
         new_entry = entry[:-3] + MODULE_EXTENSION
-        compiled = module_dir / new_entry
-        if compiled.exists():
+        if (module_dir / new_entry).exists():
             cfg['module']['entry'] = new_entry
             with open(ini, 'w', encoding='utf-8') as f:
                 cfg.write(f)
-            print(f"Updated entry: {entry} → {new_entry}")
             return True
 
-    # Try fallback: keep .py if it still exists
-    if (module_dir / entry).exists():
-        return True
-    return False
+    # Fallback: keep .py if exists
+    return (module_dir / entry).exists()
+
 
 def clean_module_dir(module_dir: Path):
     for py in module_dir.rglob("*.py"):
-        if py.name not in ['__init__.py', 'module.ini']:
+        if py.name not in ['__init__.py', 'module_ini']:
             py.unlink(missing_ok=True)
     for pat in ['*.c', '*.pyc', '__pycache__', 'build', 'dist', '*.egg-info', 'setup.py']:
         for p in module_dir.rglob(pat):
@@ -182,6 +195,7 @@ def clean_module_dir(module_dir: Path):
                 shutil.rmtree(p, ignore_errors=True)
             else:
                 p.unlink(missing_ok=True)
+
 
 def process_module(module_dir: Path):
     print(f"\nProcessing module: {module_dir.name}")
@@ -194,21 +208,22 @@ def process_module(module_dir: Path):
     clean_module_dir(module_dir)
     return True
 
+
 def compile_all_modules(build_modules: Path):
     dirs = [d for d in build_modules.iterdir() if d.is_dir() and not d.name.startswith(('.', '__'))]
     print(f"Found {len(dirs)} modules")
     for d in dirs:
         process_module(d)
 
+
 def create_spec(config: BuildConfig):
     main_abs = str(config.main_py.absolute()).replace('\\', '\\\\')
     modules_abs = str((config.build_temp / "modules").absolute()).replace('\\', '\\\\')
-    project_abs = str(config.project_root.absolute()).replace('\\', '\\\\')
 
     spec = f'''# -*- coding: utf-8 -*-
 a = Analysis(
     [r"{main_abs}"],
-    pathex=[r"{project_abs}"],
+    pathex=[r"{str(config.project_root.absolute()).replace('\\\\', '\\\\')}"],
     binaries=[],
     datas=[(r"{modules_abs}", "modules")],
     hiddenimports={json.dumps(HIDDEN_IMPORTS)},
@@ -232,7 +247,7 @@ exe = EXE(
 )
 '''
     config.spec_file.write_text(spec, encoding='utf-8')
-    print(f"Created spec: {config.spec_file}")
+
 
 def run_pyinstaller(config: BuildConfig):
     env = os.environ.copy()
@@ -247,17 +262,17 @@ def run_pyinstaller(config: BuildConfig):
         str(config.spec_file)
     ]
     print("\nRunning PyInstaller...")
-    result = subprocess.run(cmd, env=env, capture_output=True, text=True, encoding='utf-8')
+    result = subprocess.run(cmd, env=env, capture_output=True, text=True)
     if result.returncode != 0:
-        print("PyInstaller failed:\n", result.stderr[-500:])
+        print("PyInstaller failed:")
+        print(result.stderr[-1000:])
         return False
     return True
+
 
 def main():
     project_root = Path(__file__).parent.absolute()
     config = BuildConfig(project_root)
-
-    print("=== Windows-only Build (Cython + PyInstaller) ===")
 
     if not config.src_modules.exists():
         print("ERROR: src/modules not found")
@@ -266,30 +281,25 @@ def main():
         print("ERROR: src/main.py not found")
         return
 
-    # Clean
-    for p in [config.dist_dir, config.project_root / "build"]:
-        if p.exists():
-            shutil.rmtree(p, ignore_errors=True)
+    install_build_deps()
 
-    # Setup
     setup_dirs(config)
+
     build_modules = config.build_temp / "modules"
     copy_modules(config.src_modules, build_modules)
-
-    # Compile
     print("\nCompiling modules to .pyd...")
     compile_all_modules(build_modules)
 
-    # Package
     create_spec(config)
     if not run_pyinstaller(config):
+        print("Build failed.")
         return
 
-    # Clean up
     config.spec_file.unlink(missing_ok=True)
     shutil.rmtree(config.build_temp, ignore_errors=True)
 
     print("\nBuild succeeded! Output in /dist")
+
 
 if __name__ == "__main__":
     main()
