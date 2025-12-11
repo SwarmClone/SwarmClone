@@ -19,7 +19,7 @@ jobs:
           - os: windows-latest
             platform_name: windows
             artifact_name: swarmclonebackend-windows.zip
-            binary_name: swarmclonebackend.exe
+            binary_name: backend.exe
 
     steps:
     - name: Checkout repository
