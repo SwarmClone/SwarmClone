@@ -1,78 +1,28 @@
 [project]
-authors = [{name = "kyv001", email = "kyvyang@foxmail.com"}]
 name = "swarmclone"
-requires-python = ">= 3.10, < 3.11"
-version = "0.1.0"
+version = "0.4.0"
+description = "SwarmClone AI Framework - An AI framework for building AI Streamers and more"
+license = "GPL-3.0-or-later"
+readme = "README.md"
+requires-python = ">=3.13"
+
+dependencies = [
+    "fastapi>=0.122.0",
+    "uvicorn>=0.38.0",
+    "pydantic>=2.12.5",
+    "ruamel-yaml>=0.18.16",
+]
+
+[project.optional-dependencies]
+dev = [
+]
 
 [build-system]
-build-backend = "hatchling.build"
-requires = ["hatchling"]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
 
-[tool.pixi.workspace]
-channels = [
-    "https://mirrors.nju.edu.cn/anaconda/cloud/conda-forge",
-    "https://prefix.dev/conda-forge"
-]
-platforms = ["linux-64", "win-64"]
+[tool.setuptools.packages.find]
+where = ["src"]
 
-[tool.pixi.pypi-dependencies]
-pip = "*" # TensorRT 依赖这个才能成功构建
-setuptools = "<81"
-swarmclone = { path = ".", editable = true }
-srt = { version = ">=3.5.3,<4" }
-fsspec = { version = ">=2022.5.0,<2025.0", extras = ["http"] }
-playsound = { url = "https://www.piwheels.org/simple/playsound/playsound-1.3.0-py3-none-any.whl" }
-sc-cosyvoice = { url = "http://pixelstonelab.com:5005/sc_cosyvoice-0.2.0-py3-none-any.whl" }
-ncatbot = { version = ">=3.8.10.post5,<4" }
-openai = { version = ">=1.102.0,<2" }
-edge-tts = { version = ">=7.2.1,<8" }
-modelscope = { version = ">=1.22.0,<1.23.dev0" }
-jieba = { version = ">=0.42.1,<0.43" }
-sherpa-onnx = { version = ">=1.12.10,<2" }
-live2d-py = ">=0.5.4,<0.6"
-pyside6 = ">=6.9.2,<7"
-pygame = ">=2.6.1,<3"
-bilibili-api-python = ">=17.3.0,<18"
-fastapi = ">=0.115.14,<0.116"
-uvicorn = ">=0.35.0,<0.36"
-markdown = ">=3.8.2,<4"
-transformers = ">=4.48.3,<5"
-pyside6-stubs = ">=6.7.3.0,<7"
-
-[tool.pixi.tasks]
-
-[tool.pixi.pypi-options]
-index-url = "http://mirrors.aliyun.com/pypi/simple/"
-extra-index-urls = [
-    "https://mirrors.cloud.tencent.com/pypi/simple/",
-    "https://repo.huaweicloud.com/repository/pypi/simple/",
-    "https://pypi.nvidia.cn",
-    "https://pypi.org/simple"
-]
-no-build-isolation = ["tensorrt-cu12"]
-
-[tool.hatch.metadata]
-allow-direct-references = true # 允许直接引用
-
-[tool.pixi.feature.cuda.system-requirements]
-cuda = "12"
-
-[tool.pixi.feature.cuda.pypi-dependencies]
-torch = {version = ">=2.0.0,<2.8.0", index = "https://mirrors.nju.edu.cn/pytorch/whl/cu128"}
-torchaudio = {version = ">=2.0.0,<2.8.0", index = "https://mirrors.nju.edu.cn/pytorch/whl/cu128"}
-
-[tool.pixi.feature.cpu.pypi-dependencies]
-torch = {version = ">=2.0.0,<2.8.0", index = "https://mirrors.nju.edu.cn/pytorch/whl/cpu"}
-torchaudio = {version = ">=2.0.0,<2.8.0", index = "https://mirrors.nju.edu.cn/pytorch/whl/cpu"}
-
-[tool.pixi.environments]
-cpu = ["cpu"]
-default = ["cuda"]
-
-[tool.pixi.target.linux-64.pypi-dependencies]
-ttsfrd = { url = "http://pixelstonelab.com:5005/ttsfrd-0.4.2-cp310-cp310-linux_x86_64.whl" }
-ttsfrd-dependency = { url = "http://pixelstonelab.com:5005/ttsfrd_dependency-0.1-py3-none-any.whl" }
-
-[tool.pixi.dependencies]
-pynini = "==2.1.6"
-sox = ">=14.4.2,<15"
+[project.scripts]
+start = "main:main"
