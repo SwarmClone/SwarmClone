@@ -36,8 +36,8 @@
 
 ```bash
 # Clone the project
-git clone https://github.com/SwarmClone/SwarmCloneBackend.git
-cd SwarmCloneBackend
+git clone https://github.com/SwarmClone/SwarmClone.git
+cd SwarmClone
 # Install project dependencies
 uv sync
 # Run
