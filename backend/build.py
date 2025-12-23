@@ -7,7 +7,6 @@ import os
 import configparser
 import tempfile
 import logging
-from typing import Dict, List, Tuple, Optional, Set, Any
 import json
 from contextlib import contextmanager
 
@@ -53,8 +52,8 @@ class BuildConfig:
         self.pyinstaller_build = project_root / "build" / "pyinstaller"
         self.main_py = project_root / "src" / "main.py"
         self.spec_file = project_root / "backend.spec"
-        self.module_extension = self._get_module_extension()
         self.system = platform.system()
+        self.module_extension = self._get_module_extension()
     
     def _get_module_extension(self) -> str:
         """Get compiled module extension based on platform"""
