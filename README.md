@@ -5,7 +5,7 @@
 
 <strong>简体中文</strong> | <a href="./.docs/README_en.md">English</a>
 <br><br>
-一个完全开源、可高度定制的AI虚拟主播开发框架
+一个完全开源、可高度定制的AI虚拟主播系统
 <br><br>
 
 ![STARS](https://img.shields.io/github/stars/SwarmClone/SwarmClone?color=yellow&label=Github%20Stars)
@@ -18,7 +18,7 @@
 <br>
 </div>
 
-这是一个代码完全开源、可高度定制的AI虚拟主播开发框架，致力于为开发者和研究者提供构建智能虚拟主播的全套解决方案。我们的目标是打造一个能够在B站、Twitch等主流直播平台实现高质量实时互动的AI主播系统，同时保持框架的灵活性和可扩展性。
+这是一个代码完全开源、可高度定制的AI虚拟主播系统，致力于为开发者和研究者提供构建智能虚拟主播的全套解决方案。我们的目标是打造一个能够在B站、Twitch等主流直播平台实现高质量实时互动的AI主播，同时保持框架的灵活性和可扩展性。
 
 ### 特色
 1. **灵活的 AI 模型支持**：适配 OpenAI Chat Completion API，轻松接入 Qwen、DeepSeek 等大模型，也可使用 Ollama 本地部署模型
