@@ -1,0 +1,4 @@
+sample:
+  config_item_1_test01: This is a test config item
+  config_item_2_test02: 123456
+  config_item_2_test03: false
