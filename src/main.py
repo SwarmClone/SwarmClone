@@ -93,8 +93,8 @@ from core import __version__
 
 async def run() -> None:
     controller = Controller()
-    await controller.start()
     log.info(f"Starting SwarmClone Backend v{__version__}...")
+    await controller.start()
 
 def main():
     asyncio.run(run())
