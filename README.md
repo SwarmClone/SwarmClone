@@ -61,7 +61,8 @@ uv run start
 
 
 ## 统计数据
-![Alt](https://repobeats.axiom.co/api/embed/324b7283073872defa1d2fca08a97d02eea211c9.svg "Repobeats analytics image")
+
+![Alt](https://repobeats.axiom.co/api/embed/2abb919acc1a0a272bf142fafe6895cc864b5e50.svg "Repobeats analytics image")
 
 [![Star History Chart](https://api.star-history.com/svg?repos=SwarmClone/SwarmClone&type=Date)](https://www.star-history.com/#SwarmClone/SwarmClone&Date)
 
