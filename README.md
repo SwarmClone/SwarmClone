@@ -8,9 +8,9 @@
 一个完全开源、可高度定制的AI虚拟主播开发框架
 <br><br>
 
-![STARS](https://img.shields.io/github/stars/SwarmClone/SwarmCloneBackend?color=yellow&label=Github%20Stars)
-[![License](https://img.shields.io/badge/License-Apache%202.0-2ea44f)](https://github.com/SwarmClone/SwarmCloneBackend/blob/main/LICENSE)
-[![PRs Open](https://img.shields.io/github/issues-pr/SwarmClone/SwarmCloneBackend?state=open&style=flat&label=Pull%20requests&labelColor=444444&color=3AA558)](https://github.com/SwarmClone/SwarmCloneBackend/pulls?q=is%3Apr+is%3Aopen)
+![STARS](https://img.shields.io/github/stars/SwarmClone/SwarmClone?color=yellow&label=Github%20Stars)
+[![License](https://img.shields.io/badge/License-Apache%202.0-2ea44f)](https://github.com/SwarmClone/SwarmClone/blob/main/LICENSE)
+[![PRs Open](https://img.shields.io/github/issues-pr/SwarmClone/SwarmClone?state=open&style=flat&label=Pull%20requests&labelColor=444444&color=3AA558)](https://github.com/SwarmClone/SwarmCloneBackend/pulls?q=is%3Apr+is%3Aopen)
 [![Python](https://img.shields.io/badge/Python-3.13-0078D4.svg)](https://www.python.org)
 [![QQ群](https://custom-icon-badges.demolab.com/badge/QQ群-1048307485-0078D4?style=flat&logo=tencent-qq)](https://qm.qq.com/q/8IUfgmDqda)
 
@@ -63,8 +63,8 @@ uv run start
 ## 统计数据
 ![Alt](https://repobeats.axiom.co/api/embed/324b7283073872defa1d2fca08a97d02eea211c9.svg "Repobeats analytics image")
 
-[![Star History Chart](https://api.star-history.com/svg?repos=SwarmClone/SwarmCloneBackend&type=Date)](https://www.star-history.com/#SwarmClone/SwarmCloneBackend&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=SwarmClone/SwarmClone&type=Date)](https://www.star-history.com/#SwarmClone/SwarmClone&Date)
 
 ## 贡献者
-[![](https://contrib.rocks/image?repo=SwarmClone/SwarmCloneBackend)](https://github.com/SwarmClone/SwarmCloneBackend/graphs/contributors)
+[![](https://contrib.rocks/image?repo=SwarmClone/SwarmCloneBackend)](https://github.com/SwarmClone/SwarmClone/graphs/contributors)
 
