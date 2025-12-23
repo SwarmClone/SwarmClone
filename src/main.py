@@ -15,11 +15,6 @@
 # limitations under the License.
 
 import asyncio
-from contextlib import asynccontextmanager
-import signal
-from typing import Dict, Any
-
-from fastapi import FastAPI
 
 from core.logger import log
 from core.controller import Controller
