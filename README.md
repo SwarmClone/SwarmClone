@@ -27,7 +27,7 @@
 
 ## 快速开始
 
-
+### Python 部分
 > [!note]
 > 
 > **本项目需要依赖 Python 3.13 及以上版本运行**
@@ -37,7 +37,7 @@
 ```bash
 # Clone the project
 git clone https://github.com/SwarmClone/SwarmClone.git
-cd SwarmClone
+cd SwarmClone/backend
 # Install project dependencies
 uv sync
 # Run
