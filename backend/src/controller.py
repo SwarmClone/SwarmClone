@@ -16,25 +16,19 @@
 import sys
 import signal
 import asyncio
-from importlib.util import spec_from_file_location, module_from_spec
-from configparser import ConfigParser
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from core.logger import log
-from core.config_manager import ConfigManager
-from core.message import MessageBus
-from core.base_module import BaseModule
-
-
-class ModuleConfigError(Exception):
-    """Exception raised when module configuration is invalid"""
-    pass
+from logger import log
+from module_manager import ModuleManager
 
 
 class Controller:
     def __init__(self, config_file: str = "config.yml"):
-        pass
+        self.module_manager = ModuleManager(config_file)
+        self.is_running = False
+        self._shutdown_event = asyncio.Event()
+        self.uptime = 0
     
     def _setup_signal_handlers(self) -> None:
         """
@@ -85,11 +79,11 @@ class Controller:
         log.info("Controller starting...")
 
         try:
-            self.load_modules()
-            await self.initialize_modules()
-            await self.start_modules()
+            self.module_manager.load_modules()
+            await self.module_manager.initialize_modules()
+            await self.module_manager.start_modules()
 
-            enabled_count = len([m for m in self.modules.values() if m.enabled])
+            enabled_count = len([m for m in self.module_manager.modules.values() if m.enabled])
             log.info(f"Controller running with {enabled_count} enabled modules")
             log.info("Press Ctrl+C to shutdown")
 
@@ -101,12 +95,17 @@ class Controller:
             log.info("Controller task was cancelled")
         except Exception as e:
             log.error(f"Controller encountered unexpected error: {e}", exc_info=True)
-            await self.stop_modules()
+            await self.module_manager.stop_modules()
             raise
         finally:
-            await self.stop_modules()
+            await self.module_manager.stop_modules()
             self.is_running = False
             log.info("Controller stopped")
 
     async def start(self) -> None:
         await self.run()
+        
+    @property
+    def modules(self):
+        """Get all modules from module manager"""
+        return self.module_manager.modules

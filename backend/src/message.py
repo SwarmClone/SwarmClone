@@ -20,7 +20,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from functools import lru_cache
 
-from core.logger import log
+from logger import log
 
 
 @dataclass

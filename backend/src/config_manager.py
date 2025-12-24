@@ -20,7 +20,7 @@ from fastapi import APIRouter, HTTPException
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
 
-from core.logger import log
+from logger import log
 
 
 class ConfigEventBus:

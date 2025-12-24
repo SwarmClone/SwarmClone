@@ -16,9 +16,9 @@
 
 import asyncio
 
-from core.logger import log
-from core.controller import Controller
-from core import __version__
+from logger import log
+from controller import Controller
+__version__ = "0.4.0"
 
 
     # def _add_system_endpoints(self, app: FastAPI) -> None:

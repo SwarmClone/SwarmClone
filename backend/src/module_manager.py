@@ -20,10 +20,10 @@ from configparser import ConfigParser
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from core.logger import log
-from core.config_manager import ConfigManager
-from core.message import MessageBus
-from core.base_module import BaseModule
+from logger import log
+from config_manager import ConfigManager
+from message import MessageBus
+from base_module import BaseModule
 
 
 class ModuleConfigError(Exception):
