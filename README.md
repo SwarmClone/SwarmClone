@@ -1,7 +1,7 @@
 <div align="center">
 <img src="./.docs/assets/heading.png"/>
 <br><br>
-<h1>SwarmClone AI Framework<br><br></h1>
+<h1>Project SwarmClone<br><br></h1>
 
 <strong>简体中文</strong> | <a href="./.docs/README_en.md">English</a>
 <br><br>
