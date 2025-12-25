@@ -15,9 +15,9 @@
 
 from typing import Any
 
-from core.base_module import BaseModule
-from core.config_manager import ConfigManager
-from core.logger import log
+from src.base_module import BaseModule
+from src.config_manager import ConfigManager
+from src.logger import log
 
 
 class SampleModule(BaseModule):

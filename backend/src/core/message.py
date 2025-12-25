@@ -15,10 +15,10 @@
 
 import asyncio
 import re
-from typing import Any, Callable, Dict, List, Set, Optional, Pattern
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import lru_cache
+from typing import Any, Callable, Dict, List, Set, Optional, Pattern
 
 from logger import log
 

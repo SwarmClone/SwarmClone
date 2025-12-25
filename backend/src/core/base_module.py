@@ -17,9 +17,9 @@ import asyncio
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict, List, Optional
 
+from config_manager import ConfigManager
 from logger import log
 from message import MessageBus
-from config_manager import ConfigManager
 
 
 class BaseModule(ABC):

@@ -11,6 +11,7 @@ dependencies = [
     "uvicorn>=0.38.0",
     "pydantic>=2.12.5",
     "ruamel-yaml>=0.18.16",
+    "starlette>=0.50.0",
 ]
 
 [project.optional-dependencies]
@@ -23,6 +24,3 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-
-[project.scripts]
-start = "main:main"

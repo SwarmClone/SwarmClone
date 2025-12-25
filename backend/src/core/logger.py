@@ -13,12 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-import logging
-import threading
 import datetime
-from typing import Optional
+import logging
+import sys
+import threading
 from pathlib import Path
+from typing import Optional
+
 
 class ColoredFormatter(logging.Formatter):
     

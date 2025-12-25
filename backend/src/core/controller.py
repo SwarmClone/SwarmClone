@@ -13,11 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-import signal
 import asyncio
-from pathlib import Path
-from typing import Dict, List, Optional
+import signal
 
 from logger import log
 from module_manager import ModuleManager

@@ -13,17 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
 import asyncio
-from importlib.util import spec_from_file_location, module_from_spec
+import sys
 from configparser import ConfigParser
+from importlib.util import spec_from_file_location, module_from_spec
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from logger import log
-from config_manager import ConfigManager
-from message import MessageBus
 from base_module import BaseModule
+from config_manager import ConfigManager
+from logger import log
+from message import MessageBus
 
 
 class ModuleConfigError(Exception):
@@ -120,6 +120,12 @@ class ModuleManager:
             # Create a unique module name to avoid conflicts
             module_full_name = f"modules.{module_name}.{entry_path.stem}"
 
+            # Add the project root directory to sys.path to handle src imports
+            project_root = Path(__file__).resolve().parent
+            project_root_str = str(project_root)
+            if project_root_str not in sys.path:
+                sys.path.insert(0, project_root_str)
+            
             # Add the module directory to sys.path to handle relative imports
             module_dir_str = str(module_dir.resolve())
             if module_dir_str not in sys.path:
@@ -197,7 +203,7 @@ class ModuleManager:
             ├── module.ini    # class_name="ApiV1", entry="api_v1.py"
             └── api_v1.py     # Contains class ApiV1(BaseModule)
         """
-        modules_path = Path(__file__).resolve().parent.parent / 'modules'
+        modules_path = Path(__file__).resolve().parent / 'modules'
 
         if not modules_path.exists():
             log.warning(f"Modules directory not found: {modules_path}")
