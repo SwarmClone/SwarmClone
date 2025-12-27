@@ -1,14 +1,14 @@
-import sys
-import subprocess
-from pathlib import Path
+import configparser
+import json
+import logging
+import os
 import platform
 import shutil
-import os
-import configparser
+import subprocess
+import sys
 import tempfile
-import logging
-import json
 from contextlib import contextmanager
+from pathlib import Path
 
 # Constants
 MODULE_EXTENSION_MAP = {
@@ -33,7 +33,7 @@ CLEAN_PATTERNS = [
     '**/.tox'
 ]
 HIDDEN_IMPORTS = [
-    'core', 'modules', 'ruamel.yaml', 'fastapi', 'uvicorn', 
+    'framework', 'modules', 'ruamel.yaml', 'fastapi', 'uvicorn',
     'pydantic', 'asyncio', 'multiprocessing', 'typing_extensions'
 ]
 SKIP_FILES = ['__init__.py', 'setup.py']

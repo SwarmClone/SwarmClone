@@ -16,8 +16,8 @@
 
 import asyncio
 
-from backend.src.core.controller import Controller
-from backend.src.core.logger import log
+from backend.src.framework.controller import Controller
+from backend.src.framework.logger import log
 
 __version__ = "0.4.0"
 
