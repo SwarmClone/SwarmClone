@@ -16,7 +16,7 @@
 import asyncio
 import signal
 
-from logger import log
+from logger import *
 from module_manager import ModuleManager
 
 

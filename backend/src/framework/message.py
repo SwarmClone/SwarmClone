@@ -18,9 +18,9 @@ import re
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Any, Callable, Dict, List, Set, Optional, Pattern
+from typing import Any, Callable, Dict, List, Set, Pattern
 
-from logger import log
+from logger import *
 
 
 @dataclass

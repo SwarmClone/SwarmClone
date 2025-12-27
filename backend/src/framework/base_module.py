@@ -15,10 +15,10 @@
 
 import asyncio
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List
 
 from config_manager import ConfigManager
-from logger import log
+from logger import *
 from message import MessageBus
 
 

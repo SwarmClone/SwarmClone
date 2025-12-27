@@ -14,8 +14,7 @@
 # limitations under the License.
 
 import asyncio
-import threading
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List
 
 import uvicorn
 from starlette.applications import Starlette
@@ -27,7 +26,7 @@ from starlette.routing import Route
 
 from base_module import BaseModule
 from config_manager import ConfigManager
-from logger import log
+from logger import *
 
 
 class APIServerModule(BaseModule):

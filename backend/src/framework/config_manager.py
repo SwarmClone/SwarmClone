@@ -13,14 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pathlib import Path
 from typing import Any, Callable, Dict
 
 from fastapi import APIRouter, HTTPException
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
 
-from logger import log
+from logger import *
 
 
 class ConfigEventBus:

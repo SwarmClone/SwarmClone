@@ -14,15 +14,13 @@
 # limitations under the License.
 
 import asyncio
-import sys
 from configparser import ConfigParser
 from importlib.util import spec_from_file_location, module_from_spec
-from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from base_module import BaseModule
 from config_manager import ConfigManager
-from logger import log
+from logger import *
 from message import MessageBus
 
 
