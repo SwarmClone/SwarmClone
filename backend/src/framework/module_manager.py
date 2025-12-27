@@ -26,11 +26,6 @@ from logger import log
 from message import MessageBus
 
 
-class ModuleConfigError(Exception):
-    """Exception raised when module configuration is invalid"""
-    pass
-
-
 class ModuleManager:
     def __init__(self, config_file: str = "config.yml"):
         self.modules: Dict[str, BaseModule] = {}
@@ -284,3 +279,7 @@ class ModuleManager:
                 log.error(f"Error stopping module {module_name}: {e}")
 
         await self.message_bus.cleanup()
+
+class ModuleConfigError(Exception):
+    """Exception raised when module configuration is invalid"""
+    pass

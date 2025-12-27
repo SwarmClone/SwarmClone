@@ -101,8 +101,3 @@ class Controller:
 
     async def start(self) -> None:
         await self.run()
-        
-    @property
-    def modules(self):
-        """Get all modules from module manager"""
-        return self.module_manager.modules
