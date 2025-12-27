@@ -12,14 +12,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+from pathlib import Path
 from typing import Any, Callable, Dict
 
 from fastapi import APIRouter, HTTPException
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
 
-from logger import *
+from logger import log
 
 
 class ConfigEventBus:
@@ -30,21 +30,21 @@ class ConfigEventBus:
 
     # Only the module subscribed to the same event_type can receive the specific config changes
     # This takes into account that one change in config may require 
-    # more then one module to deal with it
+    # more than one module to deal with it
     def subscribe(self, module_name: str, event_type: str, callback: Callable[[Any], None]) -> None:
         if event_type not in self._subscribers:
             self._subscribers[event_type] = {}
         self._subscribers[event_type][module_name] = callback
-        debug(f"Module {module_name} subscribed to event {event_type}")
+        log.debug(f"Module {module_name} subscribed to event {event_type}")
 
     def publish(self, event_type: str, config_data: Any) -> None:
         if event_type in self._subscribers:
-            debug(f"Publishing event {event_type} to {len(self._subscribers[event_type])} modules")
+            log.debug(f"Publishing event {event_type} to {len(self._subscribers[event_type])} modules")
             for module_name, callback in self._subscribers[event_type].items():
                 try:
                     callback(config_data)
                 except Exception as e:
-                    error(f"Error notifying module {module_name} for event {event_type}: {e}")
+                    log.error(f"Error notifying module {module_name} for event {event_type}: {e}")
 
 
 class ConfigManager:
@@ -68,27 +68,27 @@ class ConfigManager:
                         self.config_data = loaded_data
                     elif loaded_data is None:
                         self.config_data = CommentedMap()
-                        warning(f"Empty YAML file {self.config_file}, using empty config")
+                        log.warning(f"Empty YAML file {self.config_file}, using empty config")
                     else:
                         # 如果不是CommentedMap，转换一下
                         self.config_data = CommentedMap(loaded_data)
-                info(f"Configuration loaded from {self.config_file}")
+                        log.info(f"Configuration loaded from {self.config_file}")
             except Exception as e:
-                error(f"Error loading configuration: {e}")
+                log.error(f"Error loading configuration: {e}")
                 self.config_data = CommentedMap()
         else:
             self.config_data = CommentedMap()
             self._save_config()
-            info(f"Created new configuration file at {self.config_file}")
+            log.info(f"Created new configuration file at {self.config_file}")
 
     def _save_config(self) -> None:
         try:
             self.config_file.parent.mkdir(parents=True, exist_ok=True)
             with open(self.config_file, 'w', encoding='utf-8') as f:
                 self.yaml.dump(self.config_data, f)
-            debug(f"Configuration saved to {self.config_file}")
+            log.debug(f"Configuration saved to {self.config_file}")
         except Exception as e:
-            error(f"Error saving configuration: {e}")
+            log.error(f"Error saving configuration: {e}")
 
     def _ensure_module_exists(self, module_name: str) -> None:
         if module_name not in self.config_data:
@@ -114,7 +114,7 @@ class ConfigManager:
         if old_value != value:
             event_type = f"{module_name}.{config_key}"
             self.event_bus.publish(event_type, value)
-            debug(f"Config changed: {event_type} = {value}")
+            log.debug(f"Config changed: {event_type} = {value}")
 
     def register(self, module_name: str, config_key: str,
                  default_value: Any, callback: Callable[[Any], None]) -> Any:

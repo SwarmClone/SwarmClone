@@ -15,10 +15,10 @@
 
 import asyncio
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 
 from config_manager import ConfigManager
-from logger import *
+from logger import log
 from message import MessageBus
 
 
@@ -68,7 +68,7 @@ class BaseModule(ABC):
     @abstractmethod
     async def pause(self) -> None:
         """Pause module operations - override in derived classes"""
-        info(f"{self.prefix} Module paused")
+        log.info(f"{self.prefix} Module paused")
 
     @abstractmethod
     async def cleanup(self) -> None:
@@ -85,22 +85,22 @@ class BaseModule(ABC):
     async def start(self) -> None:
         """Start the module's main loop"""
         if not self.enabled:
-            warning(f"{self.prefix} Module disabled, not starting")
+            log.warning(f"{self.prefix} Module disabled, not starting")
             return
         
         self.is_running = True
         self._stop_event.clear()
         self._task = asyncio.create_task(self._run_wrapper(), name=f"module_{self.name}")
-        info(f"{self.prefix} Module started")
+        log.info(f"{self.prefix} Module started")
     
     async def _run_wrapper(self) -> None:
         """Wrapper around run() that handles cancellation and errors"""
         try:
             await self.run()
         except asyncio.CancelledError:
-            info(f"{self.prefix} Module run task cancelled")
+            log.info(f"{self.prefix} Module run task cancelled")
         except Exception as e:
-            error(f"{self.prefix} Error in module run loop: {e}", exc_info=True)
+            log.error(f"{self.prefix} Error in module run loop: {e}", exc_info=True)
         finally:
             self.is_running = False
             self._stop_event.set()
@@ -110,7 +110,7 @@ class BaseModule(ABC):
         if not self.is_running:
             return
         
-        info(f"{self.prefix} Stopping module...")
+        log.info(f"{self.prefix} Stopping module...")
         self.is_running = False
         
         self._stop_event.set()
@@ -124,11 +124,11 @@ class BaseModule(ABC):
                 pass
         
         await self.cleanup()
-        info(f"{self.prefix} Module stopped")
+        log.info(f"{self.prefix} Module stopped")
     
     def _handle_config_change(self, config_data: Any) -> None:
         """Handle configuration changes - override in derived classes"""
-        info(f"{self.prefix} Configuration changed: {config_data}")
+        log.info(f"{self.prefix} Configuration changed: {config_data}")
     
     async def wait_for_stop(self) -> None:
         """Wait until stop is requested"""
