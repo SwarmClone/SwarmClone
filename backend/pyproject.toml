@@ -1,17 +1,13 @@
 [project]
 name = "swarmclone"
 version = "0.4.0"
-description = "SwarmClone AI Framework - An AI framework for building AI Streamers and more"
-license = "GPL-3.0-or-later"
+description = "Project SwarmClone - An AI system for building AI Streamers and more"
+license = "Apache-2.0 license"
 readme = "README.md"
 requires-python = ">=3.13"
 
 dependencies = [
-    "fastapi>=0.122.0",
-    "uvicorn>=0.38.0",
-    "pydantic>=2.12.5",
     "ruamel-yaml>=0.18.16",
-    "starlette>=0.50.0",
 ]
 
 [project.optional-dependencies]

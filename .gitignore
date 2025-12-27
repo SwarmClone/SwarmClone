@@ -176,7 +176,7 @@ cython_debug/
 #.idea/
 
 # Abstra
-# Abstra is an AI-powered process automation framework.
+# Abstra is an AI-powered process automation base.
 # Ignore directories containing user credentials, local state, and settings.
 # Learn more at https://abstra.io/docs
 .abstra/
