@@ -85,7 +85,7 @@ class ModuleManager:
                 raise ModuleConfigError(f"Entry file not found: {entry_path}")
             if not entry_file.endswith('.py') \
                     and not entry_file.endswith('.pyd'):  # In unpackaged environment
-                log.warning(f"Entry file {entry_file} doesn't have .py extension")
+                warning(f"Entry file {entry_file} doesn't have .py extension")
 
             return {
                 'class_name': class_name,
@@ -107,7 +107,7 @@ class ModuleManager:
             class_name = config['class_name']
             entry_file = config['entry_file']
 
-            log.info(f"Loading module '{module_name}': class={class_name}, entry={entry_file}")
+            info(f"Loading module '{module_name}': class={class_name}, entry={entry_file}")
 
             entry_path = config['entry_path']
             abs_entry_path = entry_path.resolve()
@@ -129,11 +129,11 @@ class ModuleManager:
             spec = spec_from_file_location(module_full_name, abs_entry_path)
 
             if spec is None:
-                log.error(f"Could not create module spec for {abs_entry_path}")
+                error(f"Could not create module spec for {abs_entry_path}")
                 return None
 
             if spec.loader is None:
-                log.error(f"Module loader is None for {abs_entry_path}")
+                error(f"Module loader is None for {abs_entry_path}")
                 return None
 
             module = module_from_spec(spec)
@@ -146,14 +146,14 @@ class ModuleManager:
             try:
                 spec.loader.exec_module(module)
             except Exception as e:
-                log.error(f"Error executing module {abs_entry_path}: {e}")
+                error(f"Error executing module {abs_entry_path}: {e}")
                 sys.modules.pop(spec.name, None)
                 return None
 
             if not hasattr(module, class_name):
                 available_classes = [attr for attr in dir(module)
                                      if attr[0].isupper() and not attr.startswith('_')]
-                log.error(
+                error(
                     f"Class '{class_name}' not found in {entry_file}. "
                     f"Available classes: {available_classes}"
                 )
@@ -162,20 +162,20 @@ class ModuleManager:
             module_class = getattr(module, class_name)
 
             if not issubclass(module_class, BaseModule):
-                log.error(f"Class {class_name} is not a subclass of BaseModule")
+                error(f"Class {class_name} is not a subclass of BaseModule")
                 return None
 
             module_instance = module_class(module_name)
             module_instance.message_bus = self.message_bus
 
-            log.info(f"Successfully loaded module: {module_name}")
+            info(f"Successfully loaded module: {module_name}")
             return module_instance
 
         except ModuleConfigError as e:
-            log.warning(f"Skipping module {module_name}: {e}")
+            warning(f"Skipping module {module_name}: {e}")
             return None
         except Exception as e:
-            log.error(f"Unexpected error loading module {module_name}: {e}", exc_info=True)
+            error(f"Unexpected error loading module {module_name}: {e}", exc_info=True)
             return None
 
     def load_modules(self) -> None:
@@ -201,12 +201,12 @@ class ModuleManager:
         modules_path = Path(__file__).resolve().parent / 'modules'
 
         if not modules_path.exists():
-            log.warning(f"Modules directory not found: {modules_path}")
+            warning(f"Modules directory not found: {modules_path}")
             modules_path.mkdir(parents=True, exist_ok=True)
-            log.info(f"Created modules directory: {modules_path}")
+            info(f"Created modules directory: {modules_path}")
             return
 
-        log.info(f"Scanning for modules in: {modules_path}")
+        info(f"Scanning for modules in: {modules_path}")
 
         loaded_count = 0
         for module_dir in modules_path.iterdir():
@@ -225,11 +225,11 @@ class ModuleManager:
                 self.modules[dir_name] = module_instance
                 loaded_count += 1
 
-        log.info(f"Loaded {loaded_count} out of {len(list(modules_path.iterdir()))} module directories")
+        info(f"Loaded {loaded_count} out of {len(list(modules_path.iterdir()))} module directories")
 
     async def initialize_modules(self) -> None:
 
-        log.info(f"Initializing {len(self.modules)} modules...")
+        info(f"Initializing {len(self.modules)} modules...")
 
         for module_name, module in self.modules.items():
             try:
@@ -242,9 +242,9 @@ class ModuleManager:
                 # Initialize module-specific resources
                 await module.init()
 
-                log.info(f"Initialized module: {module_name}")
+                info(f"Initialized module: {module_name}")
             except Exception as e:
-                log.error(
+                error(
                     f"Failed to initialize module {module_name}: {e}\n"
                     f"Module will be disabled.",
                     exc_info=True
@@ -252,7 +252,7 @@ class ModuleManager:
                 module.enabled = False
 
     async def start_modules(self) -> None:
-        log.info(f"Starting enabled modules...")
+        info(f"Starting enabled modules...")
 
         enabled_count = 0
         for module_name, module in self.modules.items():
@@ -260,23 +260,23 @@ class ModuleManager:
                 try:
                     await module.start()
                     enabled_count += 1
-                    log.info(f"Started module: {module_name}")
+                    info(f"Started module: {module_name}")
                 except Exception as e:
-                    log.error(f"Failed to start module {module_name}: {e}", exc_info=True)
+                    error(f"Failed to start module {module_name}: {e}", exc_info=True)
             else:
-                log.info(f"Module {module_name} is disabled, skipping")
+                info(f"Module {module_name} is disabled, skipping")
 
-        log.info(f"Started {enabled_count} modules")
+        info(f"Started {enabled_count} modules")
 
     async def stop_modules(self) -> None:
-        log.info("Stopping all modules...")
+        info("Stopping all modules...")
 
         for module_name, module in reversed(list(self.modules.items())):
             try:
                 await module.stop()
-                log.info(f"Stopped module: {module_name}")
+                info(f"Stopped module: {module_name}")
             except Exception as e:
-                log.error(f"Error stopping module {module_name}: {e}")
+                error(f"Error stopping module {module_name}: {e}")
 
         await self.message_bus.cleanup()
 

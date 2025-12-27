@@ -36,16 +36,16 @@ class ConfigEventBus:
         if event_type not in self._subscribers:
             self._subscribers[event_type] = {}
         self._subscribers[event_type][module_name] = callback
-        log.debug(f"Module {module_name} subscribed to event {event_type}")
+        debug(f"Module {module_name} subscribed to event {event_type}")
 
     def publish(self, event_type: str, config_data: Any) -> None:
         if event_type in self._subscribers:
-            log.debug(f"Publishing event {event_type} to {len(self._subscribers[event_type])} modules")
+            debug(f"Publishing event {event_type} to {len(self._subscribers[event_type])} modules")
             for module_name, callback in self._subscribers[event_type].items():
                 try:
                     callback(config_data)
                 except Exception as e:
-                    log.error(f"Error notifying module {module_name} for event {event_type}: {e}")
+                    error(f"Error notifying module {module_name} for event {event_type}: {e}")
 
 
 class ConfigManager:
@@ -69,27 +69,27 @@ class ConfigManager:
                         self.config_data = loaded_data
                     elif loaded_data is None:
                         self.config_data = CommentedMap()
-                        log.warning(f"Empty YAML file {self.config_file}, using empty config")
+                        warning(f"Empty YAML file {self.config_file}, using empty config")
                     else:
                         # 如果不是CommentedMap，转换一下
                         self.config_data = CommentedMap(loaded_data)
-                log.info(f"Configuration loaded from {self.config_file}")
+                info(f"Configuration loaded from {self.config_file}")
             except Exception as e:
-                log.error(f"Error loading configuration: {e}")
+                error(f"Error loading configuration: {e}")
                 self.config_data = CommentedMap()
         else:
             self.config_data = CommentedMap()
             self._save_config()
-            log.info(f"Created new configuration file at {self.config_file}")
+            info(f"Created new configuration file at {self.config_file}")
 
     def _save_config(self) -> None:
         try:
             self.config_file.parent.mkdir(parents=True, exist_ok=True)
             with open(self.config_file, 'w', encoding='utf-8') as f:
                 self.yaml.dump(self.config_data, f)
-            log.debug(f"Configuration saved to {self.config_file}")
+            debug(f"Configuration saved to {self.config_file}")
         except Exception as e:
-            log.error(f"Error saving configuration: {e}")
+            error(f"Error saving configuration: {e}")
 
     def _ensure_module_exists(self, module_name: str) -> None:
         if module_name not in self.config_data:
@@ -115,7 +115,7 @@ class ConfigManager:
         if old_value != value:
             event_type = f"{module_name}.{config_key}"
             self.event_bus.publish(event_type, value)
-            log.debug(f"Config changed: {event_type} = {value}")
+            debug(f"Config changed: {event_type} = {value}")
 
     def register(self, module_name: str, config_key: str,
                  default_value: Any, callback: Callable[[Any], None]) -> Any:

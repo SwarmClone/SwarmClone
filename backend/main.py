@@ -88,7 +88,7 @@ __version__ = "0.4.0"
 
 async def run() -> None:
     controller = Controller()
-    log.info(f"Starting SwarmClone Backend v{__version__}...")
+    info(f"Starting SwarmClone Backend v{__version__}...")
     await controller.start()
 
 def main():

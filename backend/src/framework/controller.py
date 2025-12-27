@@ -58,22 +58,22 @@ class Controller:
             try:
                 # Preferred method: thread-safe signal handler
                 loop.add_signal_handler(sig, self._signal_handler)
-                log.debug(f"Registered asyncio signal handler for {sig}")
+                debug(f"Registered asyncio signal handler for {sig}")
             except (NotImplementedError, RuntimeError):
                 # Fallback for Windows or if add_signal_handler fails
                 # Use lambda to ignore signal number and frame
                 signal.signal(sig, lambda s, f: self._signal_handler())
-                log.debug(f"Registered fallback signal handler for {sig}")
+                debug(f"Registered fallback signal handler for {sig}")
 
     def _signal_handler(self) -> None:
-        log.info("Shutdown signal received. Initiating graceful shutdown...")
+        info("Shutdown signal received. Initiating graceful shutdown...")
         self._shutdown_event.set()
 
     async def run(self) -> None:
         self.is_running = True
         self._setup_signal_handlers()
 
-        log.info("Controller starting...")
+        info("Controller starting...")
 
         try:
             self.module_manager.load_modules()
@@ -81,23 +81,23 @@ class Controller:
             await self.module_manager.start_modules()
 
             enabled_count = len([m for m in self.module_manager.modules.values() if m.enabled])
-            log.info(f"Controller running with {enabled_count} enabled modules")
-            log.info("Press Ctrl+C to shutdown")
+            info(f"Controller running with {enabled_count} enabled modules")
+            info("Press Ctrl+C to shutdown")
 
             await self._shutdown_event.wait()
 
-            log.info("Shutdown initiated. Stopping modules...")
+            info("Shutdown initiated. Stopping modules...")
 
         except asyncio.CancelledError:
-            log.info("Controller task was cancelled")
+            info("Controller task was cancelled")
         except Exception as e:
-            log.error(f"Controller encountered unexpected error: {e}", exc_info=True)
+            error(f"Controller encountered unexpected error: {e}", exc_info=True)
             await self.module_manager.stop_modules()
             raise
         finally:
             await self.module_manager.stop_modules()
             self.is_running = False
-            log.info("Controller stopped")
+            info("Controller stopped")
 
     async def start(self) -> None:
         await self.run()

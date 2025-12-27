@@ -68,7 +68,7 @@ class MessageBus:
             else:
                 self._exact_subscriptions[topic].append(subscription)
         
-        log.debug(f"Module '{module_name}' subscribed to topic '{topic}'")
+        debug(f"Module '{module_name}' subscribed to topic '{topic}'")
     
     async def unsubscribe(self, module_name: str, topic: str = None) -> int: # type: ignore
         removed_count = 0
@@ -104,7 +104,7 @@ class MessageBus:
                         if not topics_dict[topic_key]:
                             del topics_dict[topic_key]
         
-        log.debug(f"Removed {removed_count} subscriptions for module '{module_name}'")
+        debug(f"Removed {removed_count} subscriptions for module '{module_name}'")
         return removed_count
     
     async def publish(self, topic: str, message: Any, max_concurrent: int = 10) -> List[Any]:
@@ -138,7 +138,7 @@ class MessageBus:
                         result = await loop.run_in_executor(None, sub.callback, message)
                     return result
                 except Exception as e:
-                    log.error(
+                    error(
                         f"Error in callback from module '{sub.module_name}' "
                         f"for topic '{topic}': {e}",
                         exc_info=True

@@ -56,7 +56,7 @@ class APIServerModule(BaseModule):
         # Initialize Starlette app
         self._init_app()
 
-        log.info(f"{self.prefix} Module Pre-initialized")
+        info(f"{self.prefix} Module Pre-initialized")
     
     async def init(self) -> None:
         await super().init()
@@ -133,9 +133,9 @@ class APIServerModule(BaseModule):
     
     async def _lifespan(self, app: Starlette) -> Any:
         """Starlette lifespan events"""
-        log.info(f"{self.prefix} API Server lifespan starting")
+        info(f"{self.prefix} API Server lifespan starting")
         yield
-        log.info(f"{self.prefix} API Server lifespan ending")
+        info(f"{self.prefix} API Server lifespan ending")
     
     def add_route(self, path: str, endpoint: Callable, methods: List[str] = ["GET"]) -> None:
         """Add a new route to the API server"""
@@ -143,7 +143,7 @@ class APIServerModule(BaseModule):
             # Check if route already exists
             for route in self.routes:
                 if hasattr(route, "path") and route.path == path:
-                    log.warning(f"{self.prefix} Route {path} already exists")
+                    warning(f"{self.prefix} Route {path} already exists")
                     return
             
             # Create new route
@@ -154,7 +154,7 @@ class APIServerModule(BaseModule):
             if self.app:
                 self.app.routes = self.routes
             
-            log.info(f"{self.prefix} Added route: {path} {methods}")
+            info(f"{self.prefix} Added route: {path} {methods}")
     
     def remove_route(self, path: str) -> bool:
         """Remove a route from the API server"""
@@ -167,10 +167,10 @@ class APIServerModule(BaseModule):
                     if self.app:
                         self.app.routes = self.routes
                     
-                    log.info(f"{self.prefix} Removed route: {path}")
+                    info(f"{self.prefix} Removed route: {path}")
                     return True
             
-            log.warning(f"{self.prefix} Route {path} not found")
+            warning(f"{self.prefix} Route {path} not found")
             return False
     
     def list_routes(self) -> List[Dict[str, Any]]:
@@ -226,7 +226,7 @@ class APIServerModule(BaseModule):
                     else:
                         return JSONResponse({"result": result})
                 except Exception as e:
-                    log.error(f"{self.prefix} Error in route callback: {e}")
+                    error(f"{self.prefix} Error in route callback: {e}")
                     return JSONResponse({"error": str(e)}, status_code=500)
             
             # Add the route
@@ -234,7 +234,7 @@ class APIServerModule(BaseModule):
             return {"status": "success", "message": f"Route {path} registered"}
             
         except Exception as e:
-            log.error(f"{self.prefix} Error registering route: {e}")
+            error(f"{self.prefix} Error registering route: {e}")
             return {"status": "error", "message": str(e)}
     
     async def _handle_remove_route(self, message: Dict[str, Any]) -> Dict[str, str]:
@@ -251,7 +251,7 @@ class APIServerModule(BaseModule):
                 return {"status": "error", "message": f"Route {path} not found"}
                 
         except Exception as e:
-            log.error(f"{self.prefix} Error removing route: {e}")
+            error(f"{self.prefix} Error removing route: {e}")
             return {"status": "error", "message": str(e)}
     
     async def _handle_list_routes(self, message: Any) -> List[Dict[str, Any]]:
@@ -260,7 +260,7 @@ class APIServerModule(BaseModule):
     
     def _on_port_change(self, config_data: Any) -> None:
         """Handle port configuration changes"""
-        log.info(f"{self.prefix} Port changed to: {config_data}")
+        info(f"{self.prefix} Port changed to: {config_data}")
         self.port = config_data
         # Restart server if running
         if self.server_running:
@@ -269,7 +269,7 @@ class APIServerModule(BaseModule):
     
     def _on_host_change(self, config_data: Any) -> None:
         """Handle host configuration changes"""
-        log.info(f"{self.prefix} Host changed to: {config_data}")
+        info(f"{self.prefix} Host changed to: {config_data}")
         self.host = config_data
         # Restart server if running
         if self.server_running:
@@ -279,11 +279,11 @@ class APIServerModule(BaseModule):
     def start_server(self) -> None:
         """Start the HTTP server in a separate thread"""
         if self.server_running:
-            log.warning(f"{self.prefix} Server already running")
+            warning(f"{self.prefix} Server already running")
             return
         
         if not self.app:
-            log.error(f"{self.prefix} App not initialized")
+            error(f"{self.prefix} App not initialized")
             return
         
         def server_runner() -> None:
@@ -292,7 +292,7 @@ class APIServerModule(BaseModule):
                 self.server_loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(self.server_loop)
                 
-                log.info(f"{self.prefix} Starting API server on {self.host}:{self.port}")
+                info(f"{self.prefix} Starting API server on {self.host}:{self.port}")
                 
                 # Run server with uvicorn
                 uvicorn.run(
@@ -303,21 +303,21 @@ class APIServerModule(BaseModule):
                     log_level="error"  # Disable uvicorn logs
                 )
             except Exception as e:
-                log.error(f"{self.prefix} Server error: {e}")
+                error(f"{self.prefix} Server error: {e}")
             finally:
                 self.server_running = False
-                log.info(f"{self.prefix} Server stopped")
+                info(f"{self.prefix} Server stopped")
         
         # Start server in a new thread
         self.server_thread = threading.Thread(target=server_runner, daemon=True)
         self.server_thread.start()
         self.server_running = True
-        log.info(f"{self.prefix} API server started on {self.host}:{self.port}")
+        info(f"{self.prefix} API server started on {self.host}:{self.port}")
     
     def stop_server(self) -> None:
         """Stop the HTTP server"""
         if not self.server_running:
-            log.warning(f"{self.prefix} Server not running")
+            warning(f"{self.prefix} Server not running")
             return
         
         self.server_running = False
@@ -330,11 +330,11 @@ class APIServerModule(BaseModule):
         if self.server_thread:
             self.server_thread.join(timeout=5)
         
-        log.info(f"{self.prefix} API server stopped")
+        info(f"{self.prefix} API server stopped")
     
     async def run(self) -> None:
         """Main module loop"""
-        log.info(f"{self.prefix} API Server running")
+        info(f"{self.prefix} API Server running")
         
         # Start the HTTP server
         self.start_server()
@@ -342,14 +342,14 @@ class APIServerModule(BaseModule):
         while self.is_running:
             # Check server status
             if not self.server_running:
-                log.warning(f"{self.prefix} Server unexpectedly stopped, restarting...")
+                warning(f"{self.prefix} Server unexpectedly stopped, restarting...")
                 self.start_server()
             
             await self.sleep_or_stop(1)
 
     async def cleanup(self) -> None:
         """Clean up API server resources"""
-        log.info(f"{self.prefix} Cleaning up API server")
+        info(f"{self.prefix} Cleaning up API server")
         
         # Stop the server
         self.stop_server()

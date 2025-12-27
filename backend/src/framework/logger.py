@@ -126,43 +126,44 @@ class LoggerManager:
 # The global logger manager instance
 _logger_manager = LoggerManager()
 
-class GlobalLogger:
-    
-    def debug(self, msg, *args, **kwargs):
-        caller_frame = sys._getframe(1)
-        module_name = caller_frame.f_globals.get('__name__', 'unknown')
-        logger = _logger_manager.get_logger(module_name)
-        logger.debug(msg, *args, **kwargs)
-    
-    def info(self, msg, *args, **kwargs):
-        caller_frame = sys._getframe(1)
-        module_name = caller_frame.f_globals.get('__name__', 'unknown')
-        logger = _logger_manager.get_logger(module_name)
-        logger.info(msg, *args, **kwargs)
-    
-    def warning(self, msg, *args, **kwargs):
-        caller_frame = sys._getframe(1)
-        module_name = caller_frame.f_globals.get('__name__', 'unknown')
-        logger = _logger_manager.get_logger(module_name)
-        logger.warning(msg, *args, **kwargs)
-    
-    def error(self, msg, *args, **kwargs):
-        caller_frame = sys._getframe(1)
-        module_name = caller_frame.f_globals.get('__name__', 'unknown')
-        logger = _logger_manager.get_logger(module_name)
-        logger.error(msg, *args, **kwargs)
-    
-    def critical(self, msg, *args, **kwargs):
-        caller_frame = sys._getframe(1)
-        module_name = caller_frame.f_globals.get('__name__', 'unknown')
-        logger = _logger_manager.get_logger(module_name)
-        logger.critical(msg, *args, **kwargs)
-    
-    def exception(self, msg, *args, **kwargs):
-        caller_frame = sys._getframe(1)
-        module_name = caller_frame.f_globals.get('__name__', 'unknown')
-        logger = _logger_manager.get_logger(module_name)
-        logger.exception(msg, *args, **kwargs)
+
+def info(msg, *args, **kwargs):
+    caller_frame = sys._getframe(1)
+    module_name = caller_frame.f_globals.get('__name__', 'unknown')
+    logger = _logger_manager.get_logger(module_name)
+    logger.info(msg, *args, **kwargs)
 
 
-log = GlobalLogger()
+def debug(msg, *args, **kwargs):
+    caller_frame = sys._getframe(1)
+    module_name = caller_frame.f_globals.get('__name__', 'unknown')
+    logger = _logger_manager.get_logger(module_name)
+    logger.debug(msg, *args, **kwargs)
+
+
+def warning(msg, *args, **kwargs):
+    caller_frame = sys._getframe(1)
+    module_name = caller_frame.f_globals.get('__name__', 'unknown')
+    logger = _logger_manager.get_logger(module_name)
+    logger.warning(msg, *args, **kwargs)
+
+
+def error(msg, *args, **kwargs):
+    caller_frame = sys._getframe(1)
+    module_name = caller_frame.f_globals.get('__name__', 'unknown')
+    logger = _logger_manager.get_logger(module_name)
+    logger.error(msg, *args, **kwargs)
+
+
+def critical(msg, *args, **kwargs):
+    caller_frame = sys._getframe(1)
+    module_name = caller_frame.f_globals.get('__name__', 'unknown')
+    logger = _logger_manager.get_logger(module_name)
+    logger.critical(msg, *args, **kwargs)
+
+
+def exception(msg, *args, **kwargs):
+    caller_frame = sys._getframe(1)
+    module_name = caller_frame.f_globals.get('__name__', 'unknown')
+    logger = _logger_manager.get_logger(module_name)
+    logger.exception(msg, *args, **kwargs)
