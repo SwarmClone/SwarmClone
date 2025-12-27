@@ -118,12 +118,14 @@ class ConfigManager:
             log.debug(f"Config changed: {event_type} = {value}")
 
     def register(self, module_name: str, config_key: str,
-                 default_value: Any, callback: Callable[[Any], None]) -> None:
+                 default_value: Any, callback: Callable[[Any], None]) -> Any:
         event_type = f"{module_name}.{config_key}"
         self.event_bus.subscribe(module_name, event_type, callback)
 
         if not self.has_config(module_name, config_key):
             self.set(module_name, config_key, default_value)
+
+        return default_value
 
     def has_config(self, module_name: str, config_key: str) -> bool:
         # Check if the module has the config key

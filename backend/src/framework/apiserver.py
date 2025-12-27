@@ -346,10 +346,7 @@ class APIServerModule(BaseModule):
                 self.start_server()
             
             await self.sleep_or_stop(1)
-    
-    async def pause(self) -> None:
-        pass
-    
+
     async def cleanup(self) -> None:
         """Clean up API server resources"""
         log.info(f"{self.prefix} Cleaning up API server")
