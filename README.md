@@ -67,5 +67,5 @@ uv run start
 [![Star History Chart](https://api.star-history.com/svg?repos=SwarmClone/SwarmClone&type=Date)](https://www.star-history.com/#SwarmClone/SwarmClone&Date)
 
 ## 贡献者
-[![](https://contrib.rocks/image?repo=SwarmClone/SwarmClone)](https://github.com/SwarmClone/SwarmClone/graphs/contributors)
+[![](https://contrib.rocks/image?repo=SwarmClone/SwarmClone&size=10)](https://github.com/SwarmClone/SwarmClone/graphs/contributors)
 
