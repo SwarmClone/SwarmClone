@@ -210,5 +210,3 @@ config.json
 /.VSCodeCounter
 config.yml
 /docs/node_modules
-config.yml
-logs/
