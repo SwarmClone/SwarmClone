@@ -1,0 +1,206 @@
+name: Build Tauri Application
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type'
+        required: true
+        default: 'release'
+        type: choice
+        options:
+          - release
+          - debug
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  TAURI_FRONTEND_PATH: ./frontend
+
+jobs:
+  check-commit-message:
+    runs-on: ubuntu-latest
+    outputs:
+      should-build: ${{ steps.check.outputs.should-build }}
+    steps:
+      - name: Check commit message
+        id: check
+        run: |
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          if [[ "$COMMIT_MSG" == ci_required* ]]; then
+            echo "should-build=true" >> $GITHUB_OUTPUT
+            echo "✅ Commit message starts with 'ci_required', will proceed with build"
+          else
+            echo "should-build=false" >> $GITHUB_OUTPUT
+            echo "⏩ Commit message does not start with 'ci_required', skipping build"
+          fi
+
+  build:
+    permissions:
+      contents: write
+    needs: check-commit-message
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.check-commit-message.outputs.should-build == 'true' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux - Ubuntu 20.04 in Docker container for better compatibility
+          - platform: 'ubuntu-latest'
+            container: 'ubuntu:20.04'
+            args: ''
+            target: ''
+            arch: 'x86_64'
+            distro: 'ubuntu-20.04'
+            
+          # Windows - Windows Server 2022
+          - platform: 'windows-2022'
+            args: ''
+            target: ''
+            arch: 'x86_64'
+            distro: 'windows'
+            
+          # macOS - macOS 14 (Intel)
+          - platform: 'macos-14'
+            args: ''
+            target: ''
+            arch: 'x86_64'
+            distro: 'macos-intel'
+            
+          # macOS ARM64 (Apple Silicon)
+          - platform: 'macos-14'
+            args: '--target aarch64-apple-darwin'
+            target: 'aarch64-apple-darwin'
+            arch: 'arm64'
+            distro: 'macos-arm64'
+
+    runs-on: ${{ matrix.platform }}
+    container: ${{ matrix.container }}
+
+    steps:
+      - name: Setup container environment (Ubuntu 20.04)
+        if: matrix.container == 'ubuntu:20.04'
+        run: |
+          apt-get update
+          apt-get install -y \
+            sudo \
+            curl \
+            wget \
+            git \
+            build-essential \
+            software-properties-common \
+            apt-transport-https \
+            ca-certificates \
+            gnupg \
+            lsb-release
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Linux dependencies (Ubuntu 20.04)
+        if: matrix.container == 'ubuntu:20.04'
+        run: |
+          apt-get update
+          apt-get install -y \
+            libwebkit2gtk-4.0-dev \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libgtk-3-dev \
+            libssl-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            pkg-config \
+            libjavascriptcoregtk-4.0-dev \
+            libsoup2.4-dev \
+            libglib2.0-dev \
+            libcairo2-dev \
+            libpango1.0-dev \
+            libgdk-pixbuf2.0-dev \
+            libatk1.0-dev \
+            libdbus-1-dev \
+            libxcb1-dev \
+            libxrandr2-dev \
+            libxss1-dev \
+            libasound2-dev \
+            libpulse-dev \
+            libxtst6 \
+            libxtst-dev
+
+      - name: Install Linux dependencies (Ubuntu latest)
+        if: matrix.platform == 'ubuntu-latest' && matrix.container != 'ubuntu:20.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.0-dev \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            build-essential \
+            curl \
+            wget \
+            file \
+            libgtk-3-dev \
+            libssl-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+          cache-dependency-path: ${{ env.TAURI_FRONTEND_PATH }}/package-lock.json
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: ${{ env.TAURI_FRONTEND_PATH }}/src-tauri -> target
+
+      - name: Install frontend dependencies
+        working-directory: ${{ env.TAURI_FRONTEND_PATH }}
+        run: |
+          npm ci
+          npm run build
+
+      - name: Build Tauri application
+        uses: tauri-apps/tauri-action@v0
+        with:
+          projectPath: ${{ env.TAURI_FRONTEND_PATH }}
+          args: ${{ matrix.args }}
+          includeDebug: ${{ github.event.inputs.build_type == 'debug' }}
+          includeRelease: ${{ github.event.inputs.build_type == 'release' || github.event.inputs.build_type == '' }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: tauri-app-${{ matrix.distro }}-${{ matrix.arch }}
+          path: |
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/*.exe
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/*.app
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/*.dmg
+          retention-days: 30
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/v') && github.event.inputs.build_type == 'release'
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: ${{ env.TAURI_FRONTEND_PATH }}
+          tagName: ${{ github.ref_name }}
+          releaseName: 'Tauri App ${{ github.ref_name }}'
+          releaseBody: 'Tauri application release ${{ github.ref_name }}'
+          releaseDraft: false
+          prerelease: false
+          args: ${{ matrix.args }}
