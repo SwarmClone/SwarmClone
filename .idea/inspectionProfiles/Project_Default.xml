@@ -1,0 +1,27 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <list>
+          <option value="fastapi" />
+          <option value="uvicorn" />
+          <option value="python-multipart" />
+          <option value="numpy" />
+          <option value="funasr" />
+          <option value="websockets" />
+          <option value="modelscope" />
+          <option value="onnxruntime" />
+          <option value="datasets" />
+          <option value="peft" />
+          <option value="py7zr" />
+          <option value="openai" />
+          <option value="pillow" />
+          <option value="pyautogui" />
+          <option value="sentence-transformers" />
+          <option value="watchdog" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>
