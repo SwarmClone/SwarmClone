@@ -1,4 +1,4 @@
-name: Build Tauri Application
+name: Build Tauri App
 
 on:
   workflow_dispatch:
@@ -81,7 +81,19 @@ jobs:
     steps:
       - name: Setup container environment (Ubuntu 20.04)
         if: matrix.container == 'ubuntu:20.04'
+        env:
+          DEBIAN_FRONTEND: noninteractive
+          TZ: Etc/UTC
         run: |
+          # 设置非交互式环境，避免tzdata等包的交互式配置
+          export DEBIAN_FRONTEND=noninteractive
+          export TZ=Etc/UTC
+          
+          # 预配置debconf以避免交互式提示
+          echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+          echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections
+          echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections
+          
           apt-get update
           apt-get install -y \
             sudo \
@@ -93,14 +105,28 @@ jobs:
             apt-transport-https \
             ca-certificates \
             gnupg \
-            lsb-release
+            lsb-release \
+            tzdata
 
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Install Linux dependencies (Ubuntu 20.04)
         if: matrix.container == 'ubuntu:20.04'
+        env:
+          DEBIAN_FRONTEND: noninteractive
+          TZ: Etc/UTC
         run: |
+          export DEBIAN_FRONTEND=noninteractive
+          export TZ=Etc/UTC
+          
+          # 预配置所有可能产生交互式提示的包
+          echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+          echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections
+          echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections
+          echo 'keyboard-configuration keyboard-configuration/layoutcode string us' | debconf-set-selections
+          echo 'keyboard-configuration keyboard-configuration/modelcode string pc105' | debconf-set-selections
+          
           apt-get update
           apt-get install -y \
             libwebkit2gtk-4.0-dev \
@@ -127,7 +153,8 @@ jobs:
             libasound2-dev \
             libpulse-dev \
             libxtst6 \
-            libxtst-dev
+            libxtst-dev \
+            keyboard-configuration
 
       - name: Install Linux dependencies (Ubuntu latest)
         if: matrix.platform == 'ubuntu-latest' && matrix.container != 'ubuntu:20.04'
@@ -187,7 +214,7 @@ jobs:
           path: |
             ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/
             ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/*.exe
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/*.app
+            ${{ env.TAURI_PATH }}/src-tauri/target/release/*.app
             ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/*.dmg
           retention-days: 30
 
