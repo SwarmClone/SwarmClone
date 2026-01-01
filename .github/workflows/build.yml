@@ -105,8 +105,7 @@ jobs:
             apt-transport-https \
             ca-certificates \
             gnupg \
-            lsb-release \
-            tzdata
+            lsb-release
 
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -206,16 +205,73 @@ jobs:
           includeDebug: ${{ github.event.inputs.build_type == 'debug' }}
           includeRelease: ${{ github.event.inputs.build_type == 'release' || github.event.inputs.build_type == '' }}
 
-      - name: Upload build artifacts
+      - name: List build outputs (Debug)
+        if: always()
+        run: |
+          echo "=== Listing build outputs ==="
+          echo "Platform: ${{ matrix.platform }}"
+          echo "Target: ${{ matrix.target }}"
+          echo "Args: ${{ matrix.args }}"
+          echo "Distro: ${{ matrix.distro }}"
+          echo "--- Frontend path contents ---"
+          ls -la ${{ env.TAURI_FRONTEND_PATH }}/ || true
+          echo "--- src-tauri path contents ---"
+          ls -la ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/ || true
+          echo "--- Target directory contents ---"
+          ls -la ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/ || true
+          echo "--- Release directory contents ---"
+          ls -la ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/ || true
+          echo "--- Bundle directory contents ---"
+          ls -la ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/ || true
+          echo "--- Looking for specific files ---"
+          find ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/ -name "*.dmg" -o -name "*.app" -o -name "*.exe" -o -name "*.msi" -o -name "*.deb" -o -name "*.AppImage" 2>/dev/null || true
+
+      - name: Upload build artifacts - Linux
+        if: success() && matrix.platform == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
-        if: success()
         with:
           name: tauri-app-${{ matrix.distro }}-${{ matrix.arch }}
           path: |
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/*.exe
-            ${{ env.TAURI_PATH }}/src-tauri/target/release/*.app
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/*.dmg
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/deb/*.deb
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/rpm/*.rpm
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/appimage/*.AppImage
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/deb/
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/rpm/
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/appimage/
+          retention-days: 30
+
+      - name: Upload build artifacts - Windows
+        if: success() && matrix.platform == 'windows-2022'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri-app-${{ matrix.distro }}-${{ matrix.arch }}
+          path: |
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/msi/*.msi
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/nsis/*.exe
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/msi/
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/nsis/
+          retention-days: 30
+
+      - name: Upload build artifacts - macOS Intel
+        if: success() && matrix.platform == 'macos-14' && matrix.target == ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri-app-${{ matrix.distro }}-${{ matrix.arch }}
+          path: |
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/dmg/*.dmg
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/macos/*.app
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/*.dmg
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/x86_64-apple-darwin/release/bundle/macos/*.app
+          retention-days: 30
+
+      - name: Upload build artifacts - macOS ARM64
+        if: success() && matrix.platform == 'macos-14' && matrix.target == 'aarch64-apple-darwin'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri-app-${{ matrix.distro }}-${{ matrix.arch }}
+          path: |
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app
           retention-days: 30
 
       - name: Create Release
