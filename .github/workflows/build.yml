@@ -42,29 +42,19 @@ jobs:
             fi
           fi
 
-  setup:
-    runs-on: ubuntu-latest
-    outputs:
-      runs-on-linux: ${{ steps.setup.outputs.runs-on-linux }}
-    steps:
-      - name: Setup platform detection
-        id: setup
-        run: |
-          echo "runs-on-linux=ubuntu-latest" >> $GITHUB_OUTPUT
-
   build:
     permissions:
       contents: write
-    needs: [check-commit-message, setup]
+    needs: check-commit-message
     if: ${{ github.event_name == 'workflow_dispatch' || needs.check-commit-message.outputs.should-build == 'true' }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          # Linux - x86_64
+          # Linux - x86_64 (Ubuntu 24.04)
           - platform: 'ubuntu-latest'
             args: ''
-            target: ''
+            target: 'x86_64-unknown-linux-gnu'
             arch: 'x86_64'
             distro: 'ubuntu'
             os: 'linux'
@@ -72,7 +62,7 @@ jobs:
           # Windows - x86_64
           - platform: 'windows-2022'
             args: ''
-            target: ''
+            target: 'x86_64-pc-windows-msvc'
             arch: 'x86_64'
             distro: 'windows'
             os: 'windows'
@@ -102,65 +92,86 @@ jobs:
       - name: Install Linux dependencies
         if: matrix.os == 'linux'
         run: |
+          # 获取 Ubuntu 版本信息
+          UBUNTU_VERSION=$(lsb_release -rs)
+          echo "Ubuntu version: $UBUNTU_VERSION"
+          
+          # 更新包列表
           sudo apt-get update
+          
+          # 安装基础构建工具
           sudo apt-get install -y \
-            libwebkit2gtk-4.0-dev \
-            libwebkit2gtk-4.1-dev \
             build-essential \
             curl \
             wget \
             file \
             libssl-dev \
-            libgtk-3-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev \
+            pkg-config \
             patchelf \
-            libcairo2-dev \
-            libpango1.0-dev \
-            libgdk-pixbuf2.0-dev \
-            libatk1.0-dev \
-            libdbus-1-dev \
-            libxcb1-dev \
-            libasound2-dev
-
-      - name: Install Windows dependencies
-        if: matrix.os == 'windows'
-        run: |
-          # Windows already has most dependencies installed
-          # We just need to ensure WebView2 is available
-          echo "WebView2 should be pre-installed on Windows Server 2022"
-
-      - name: Install macOS dependencies
-        if: matrix.os == 'macos'
-        run: |
-          # macOS usually has required dependencies pre-installed
-          echo "macOS dependencies should be available"
+            lsb-release
+          
+          # 根据 Ubuntu 版本安装不同的 WebKitGTK 包
+          if [[ "$UBUNTU_VERSION" == "24.04" ]]; then
+            echo "Installing dependencies for Ubuntu 24.04 (Noble)"
+            sudo apt-get install -y \
+              libwebkit2gtk-4.1-dev \
+              libgtk-3-dev \
+              libappindicator3-dev \
+              librsvg2-dev \
+              libcairo2-dev \
+              libpango1.0-dev \
+              libgdk-pixbuf-2.0-dev \
+              libatk1.0-dev \
+              libdbus-1-dev \
+              libxcb1-dev \
+              libasound2-dev
+          else
+            echo "Installing dependencies for older Ubuntu versions"
+            sudo apt-get install -y \
+              libwebkit2gtk-4.0-dev \
+              libgtk-3-dev \
+              libayatana-appindicator3-dev \
+              librsvg2-dev \
+              libcairo2-dev \
+              libpango1.0-dev \
+              libgdk-pixbuf-2.0-dev \
+              libatk1.0-dev \
+              libdbus-1-dev \
+              libxcb1-dev \
+              libasound2-dev
+          fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 'lts/*'
+          node-version: '20'
           cache: 'npm'
           cache-dependency-path: ${{ env.TAURI_FRONTEND_PATH }}/package-lock.json
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.target || 'x86_64-pc-windows-msvc,x86_64-unknown-linux-gnu,x86_64-apple-darwin,aarch64-apple-darwin' }}
+          targets: ${{ matrix.target }}
+          toolchain: stable
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
         with:
           workspaces: ${{ env.TAURI_FRONTEND_PATH }}/src-tauri -> target
+          key: ${{ matrix.platform }}-${{ matrix.target }}
 
       - name: Install frontend dependencies
         working-directory: ${{ env.TAURI_FRONTEND_PATH }}
         run: |
-          npm ci
+          # 清理可能的 node_modules 缓存问题
+          if [ -d "node_modules" ]; then
+            rm -rf node_modules
+          fi
+          
+          npm ci --no-audit --prefer-offline
           npm run build
 
-      - name: Build Tauri application (Debug)
-        if: github.event.inputs.build_type == 'debug' || github.event.inputs.build_type == ''
+      - name: Build Tauri application
         uses: tauri-apps/tauri-action@v0
         env:
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
@@ -168,71 +179,94 @@ jobs:
         with:
           projectPath: ${{ env.TAURI_FRONTEND_PATH }}
           args: ${{ matrix.args }}
-          includeDebug: true
-          includeRelease: false
-
-      - name: Build Tauri application (Release)
-        if: github.event.inputs.build_type == 'release' || github.event.inputs.build_type == ''
-        uses: tauri-apps/tauri-action@v0
-        env:
-          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
-          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
-        with:
-          projectPath: ${{ env.TAURI_FRONTEND_PATH }}
-          args: ${{ matrix.args }}
-          includeDebug: false
-          includeRelease: true
+          includeDebug: ${{ github.event.inputs.build_type == 'debug' }}
+          includeRelease: ${{ github.event.inputs.build_type == 'release' || github.event.inputs.build_type == '' }}
 
       - name: List build outputs
         if: always()
+        # 根据不同平台使用不同的shell
         shell: bash
         run: |
-          echo "=== Build Information ==="
+          echo "=== Listing build outputs ==="
           echo "Platform: ${{ matrix.platform }}"
-          echo "Target: ${{ matrix.target || 'default' }}"
+          echo "Target: ${{ matrix.target }}"
+          echo "Args: ${{ matrix.args }}"
+          echo "Distro: ${{ matrix.distro }}"
           echo "OS: ${{ matrix.os }}"
-          echo "Architecture: ${{ matrix.arch }}"
-          echo "Build type: ${{ github.event.inputs.build_type || 'release' }}"
+          echo "--- Frontend path contents ---"
+          # 使用跨平台的命令
+          if command -v ls &> /dev/null; then
+            ls -la "${{ env.TAURI_FRONTEND_PATH }}/" || echo "Failed to list frontend directory"
+          else
+            echo "ls command not available, using alternative"
+            find "${{ env.TAURI_FRONTEND_PATH }}/" -maxdepth 1 -type f -o -type d || true
+          fi
           
-          # Common paths
-          frontend_path="${{ env.TAURI_FRONTEND_PATH }}"
-          src_tauri_path="$frontend_path/src-tauri"
-          
-          echo "=== Directory Structure ==="
-          
-          if [[ "${{ matrix.os }}" == "windows" ]]; then
-            # Windows-specific listing
-            echo "--- Frontend directory ---"
-            if [ -d "$frontend_path" ]; then
-              powershell "Get-ChildItem -Path '$frontend_path' -Recurse -Depth 2 | Select-Object Name, FullName"
-            fi
-            
-            echo "--- Target directory ---"
-            if [ -d "$src_tauri_path/target" ]; then
-              powershell "Get-ChildItem -Path '$src_tauri_path/target' -Recurse -Depth 3 | Where-Object { \$_.Name -match '\.(exe|msi|dmg|app|deb|rpm|AppImage)$' } | Select-Object Name, FullName"
+          echo "--- src-tauri path contents ---"
+          if [ -d "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/" ]; then
+            if command -v ls &> /dev/null; then
+              ls -la "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/" || echo "Failed to list src-tauri directory"
+            else
+              find "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/" -maxdepth 1 -type f -o -type d || true
             fi
           else
-            # Linux/macOS listing
-            echo "--- Frontend directory ---"
-            if [ -d "$frontend_path" ]; then
-              find "$frontend_path" -maxdepth 3 -type f -name "*.json" -o -name "*.js" -o -name "*.ts" | head -20
+            echo "src-tauri directory not found"
+          fi
+          
+          echo "--- Target directory contents ---"
+          if [ -d "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/" ]; then
+            if command -v ls &> /dev/null; then
+              ls -la "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/" || echo "Failed to list target directory"
+            else
+              find "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/" -maxdepth 1 -type f -o -type d || true
             fi
-            
-            echo "--- Target directory ---"
-            if [ -d "$src_tauri_path/target" ]; then
-              find "$src_tauri_path/target" -type f \( -name "*.exe" -o -name "*.msi" -o -name "*.dmg" -o -name "*.app" -o -name "*.deb" -o -name "*.rpm" -o -name "*.AppImage" \) 2>/dev/null | head -20
+          else
+            echo "target directory not found"
+          fi
+          
+          echo "--- Release directory contents ---"
+          if [ -d "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/" ]; then
+            if command -v ls &> /dev/null; then
+              ls -la "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/" || echo "Failed to list release directory"
+            else
+              find "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/" -maxdepth 1 -type f -o -type d || true
             fi
+          else
+            echo "release directory not found"
+          fi
+          
+          echo "--- Bundle directory contents ---"
+          if [ -d "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/" ]; then
+            if command -v ls &> /dev/null; then
+              ls -la "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/" || echo "Failed to list bundle directory"
+            else
+              find "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/" -maxdepth 1 -type f -o -type d || true
+            fi
+          else
+            echo "bundle directory not found"
+          fi
+          
+          echo "--- Looking for specific files ---"
+          # 查找构建产物
+          SEARCH_PATH="${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target"
+          if [ -d "$SEARCH_PATH" ]; then
+            find "$SEARCH_PATH" \( -name "*.dmg" -o -name "*.app" -o -name "*.exe" -o -name "*.msi" -o -name "*.deb" -o -name "*.rpm" -o -name "*.AppImage" \) 2>/dev/null | head -20 || true
+          else
+            echo "Search path $SEARCH_PATH not found"
           fi
 
       - name: Upload Linux artifacts
         if: success() && matrix.os == 'linux'
         uses: actions/upload-artifact@v4
         with:
-          name: tauri-linux-${{ matrix.distro }}-${{ matrix.arch }}
+          name: tauri-app-linux-${{ matrix.arch }}
           path: |
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/deb/*.deb
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/appimage/*.AppImage
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/rpm/*.rpm
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.deb
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.AppImage
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.rpm
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/deb/
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/appimage/
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/rpm/
           if-no-files-found: warn
           retention-days: 30
 
@@ -240,10 +274,12 @@ jobs:
         if: success() && matrix.os == 'windows'
         uses: actions/upload-artifact@v4
         with:
-          name: tauri-windows-${{ matrix.distro }}-${{ matrix.arch }}
+          name: tauri-app-windows-${{ matrix.arch }}
           path: |
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/msi/*.msi
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/nsis/*.exe
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.msi
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.exe
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/msi/
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/nsis/
           if-no-files-found: warn
           retention-days: 30
 
@@ -251,22 +287,38 @@ jobs:
         if: success() && matrix.os == 'macos'
         uses: actions/upload-artifact@v4
         with:
-          name: tauri-macos-${{ matrix.distro }}-${{ matrix.arch }}
+          name: tauri-app-macos-${{ matrix.arch }}
           path: |
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/dmg/*.dmg
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/macos/*.app
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/macos/*.app/**/*
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.dmg
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.app
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/dmg/
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/macos/
           if-no-files-found: warn
           retention-days: 30
 
-      - name: Create Release
+      - name: Create GitHub Release
         if: success() && startsWith(github.ref, 'refs/tags/v') && (github.event.inputs.build_type == 'release' || github.event.inputs.build_type == '')
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: |
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/**/*
+          name: Release ${{ github.ref_name }}
+          body: |
+            Tauri Application Release ${{ github.ref_name }}
+            
+            **Build Information:**
+            - Platform: ${{ matrix.platform }}
+            - Architecture: ${{ matrix.arch }}
+            - Target: ${{ matrix.target }}
+            
+            Built on: ${{ github.event.head_commit.timestamp }}
           draft: false
           prerelease: false
           generate_release_notes: true
+          files: |
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.deb
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.AppImage
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.rpm
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.msi
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.exe
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.dmg
