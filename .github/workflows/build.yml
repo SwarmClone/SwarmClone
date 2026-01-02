@@ -54,7 +54,8 @@ jobs:
           - platform: ubuntu-latest
             rust_target: x86_64-unknown-linux-gnu
           - platform: macos-latest
-            rust_target: universal-apple-darwin
+            rust_target: aarch64-apple-darwin
+            additional_target: x86_64-apple-darwin
           - platform: windows-latest
             rust_target: x86_64-pc-windows-msvc
     
@@ -79,24 +80,46 @@ jobs:
         run: npm ci
         working-directory: ${{ env.TAURI_FRONTEND_PATH }}
 
-      - name: Setup Rust
+      - name: Setup Rust (macOS - dual architecture)
+        if: matrix.platform == 'macos-latest'
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust_target }},${{ matrix.additional_target }}
+
+      - name: Setup Rust (other platforms)
+        if: matrix.platform != 'macos-latest'
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.rust_target }}
 
-      - name: Install Rust dependencies
+      - name: Install Rust dependencies (macOS)
+        if: matrix.platform == 'macos-latest'
+        run: |
+          rustup target add ${{ matrix.rust_target }}
+          rustup target add ${{ matrix.additional_target }}
+
+      - name: Install Rust dependencies (other platforms)
+        if: matrix.platform != 'macos-latest'
         run: rustup target add ${{ matrix.rust_target }}
 
-      - name: Build Tauri app
-        run: npm run tauri build ${{ inputs.build_type == 'debug' && '--debug' || '' }}
+      - name: Build Tauri app (macOS - universal)
+        if: matrix.platform == 'macos-latest'
+        run: |
+          npm run tauri build -- --target universal-apple-darwin
+        working-directory: ${{ env.TAURI_FRONTEND_PATH }}
+
+      - name: Build Tauri app (other platforms)
+        if: matrix.platform != 'macos-latest'
+        run: |
+          npm run tauri build ${{ inputs.build_type == 'debug' && '--debug' || '' }}
         working-directory: ${{ env.TAURI_FRONTEND_PATH }}
         env:
-          TAURI_PLATFORM: ${{ matrix.platform == 'ubuntu-latest' && 'linux' || matrix.platform == 'macos-latest' && 'macos' || 'windows' }}
+          TAURI_PLATFORM: ${{ matrix.platform == 'ubuntu-latest' && 'linux' || 'windows' }}
 
       - name: List build artifacts (for debugging)
         run: |
           echo "Listing build artifacts in target directory:"
-          find ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target -type f -name "*.AppImage" -o -name "*.dmg" -o -name "*.exe" 2>/dev/null || true
+          find ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target -type f \( -name "*.AppImage" -o -name "*.dmg" -o -name "*.exe" \) 2>/dev/null | head -20 || true
 
       - name: Upload Artifacts (Linux)
         if: matrix.platform == 'ubuntu-latest'
@@ -118,7 +141,6 @@ jobs:
         with:
           name: windows-release-exe
           path: ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.exe
-          exclude: ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/nsis/*.exe
 
       - name: Upload Artifacts (Windows - NSIS Installer)
         if: matrix.platform == 'windows-latest'
