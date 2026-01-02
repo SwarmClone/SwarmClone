@@ -54,9 +54,7 @@ jobs:
           - platform: ubuntu-latest
             rust_target: x86_64-unknown-linux-gnu
           - platform: macos-latest
-            rust_target: x86_64-apple-darwin
-          - platform: macos-latest
-            rust_target: aarch64-apple-darwin
+            rust_target: universal-apple-darwin
           - platform: windows-latest
             rust_target: x86_64-pc-windows-msvc
     
@@ -95,37 +93,36 @@ jobs:
         env:
           TAURI_PLATFORM: ${{ matrix.platform == 'ubuntu-latest' && 'linux' || matrix.platform == 'macos-latest' && 'macos' || 'windows' }}
 
+      - name: List build artifacts (for debugging)
+        run: |
+          echo "Listing build artifacts in target directory:"
+          find ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target -type f -name "*.AppImage" -o -name "*.dmg" -o -name "*.exe" 2>/dev/null || true
+
       - name: Upload Artifacts (Linux)
-        if: matrix.platform == 'ubuntu-latest' && matrix.rust_target == 'x86_64-unknown-linux-gnu'
+        if: matrix.platform == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
           name: linux-appimage
-          path: ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/*.AppImage
+          path: ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.AppImage
 
-      - name: Upload Artifacts (macOS - Intel)
-        if: matrix.platform == 'macos-latest' && matrix.rust_target == 'x86_64-apple-darwin'
+      - name: Upload Artifacts (macOS)
+        if: matrix.platform == 'macos-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: macos-intel-dmg
-          path: ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/x86_64-apple-darwin/release/*.dmg
-
-      - name: Upload Artifacts (macOS - ARM)
-        if: matrix.platform == 'macos-latest' && matrix.rust_target == 'aarch64-apple-darwin'
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-arm-dmg
-          path: ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/aarch64-apple-darwin/release/*.dmg
+          name: macos-dmg
+          path: ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.dmg
 
       - name: Upload Artifacts (Windows - Release EXE)
         if: matrix.platform == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
           name: windows-release-exe
-          path: ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/*.exe
+          path: ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.exe
+          exclude: ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/nsis/*.exe
 
       - name: Upload Artifacts (Windows - NSIS Installer)
         if: matrix.platform == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
           name: windows-nsis-installer
-          path: ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/nsis/*.exe
+          path: ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/nsis/*.exe
