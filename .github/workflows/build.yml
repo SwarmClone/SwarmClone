@@ -28,153 +28,113 @@ jobs:
       - name: Check commit message
         id: check
         run: |
-          COMMIT_MSG="${{ github.event.head_commit.message }}"
-          if [[ "$COMMIT_MSG" == ci_required* ]]; then
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "✅ Workflow dispatch event, will proceed with build"
             echo "should-build=true" >> $GITHUB_OUTPUT
-            echo "✅ Commit message starts with 'ci_required', will proceed with build"
           else
-            echo "should-build=false" >> $GITHUB_OUTPUT
-            echo "⏩ Commit message does not start with 'ci_required', skipping build"
+            COMMIT_MSG="${{ github.event.head_commit.message }}"
+            if [[ "$COMMIT_MSG" == ci_required* ]]; then
+              echo "should-build=true" >> $GITHUB_OUTPUT
+              echo "✅ Commit message starts with 'ci_required', will proceed with build"
+            else
+              echo "should-build=false" >> $GITHUB_OUTPUT
+              echo "⏩ Commit message does not start with 'ci_required', skipping build"
+            fi
           fi
+
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      runs-on-linux: ${{ steps.setup.outputs.runs-on-linux }}
+    steps:
+      - name: Setup platform detection
+        id: setup
+        run: |
+          echo "runs-on-linux=ubuntu-latest" >> $GITHUB_OUTPUT
 
   build:
     permissions:
       contents: write
-    needs: check-commit-message
+    needs: [check-commit-message, setup]
     if: ${{ github.event_name == 'workflow_dispatch' || needs.check-commit-message.outputs.should-build == 'true' }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          # Linux
+          # Linux - x86_64
           - platform: 'ubuntu-latest'
-            container: 'ubuntu:20.04'
             args: ''
             target: ''
             arch: 'x86_64'
-            distro: 'ubuntu-20.04'
+            distro: 'ubuntu'
+            os: 'linux'
             
-          # Windows - Windows Server 2022
+          # Windows - x86_64
           - platform: 'windows-2022'
             args: ''
             target: ''
             arch: 'x86_64'
             distro: 'windows'
+            os: 'windows'
             
-          # macOS - macOS 14 (Intel)
+          # macOS - Intel
           - platform: 'macos-14'
             args: ''
-            target: ''
+            target: 'x86_64-apple-darwin'
             arch: 'x86_64'
             distro: 'macos-intel'
+            os: 'macos'
             
-          # macOS ARM64 (Apple Silicon)
+          # macOS - ARM64 (Apple Silicon)
           - platform: 'macos-14'
             args: '--target aarch64-apple-darwin'
             target: 'aarch64-apple-darwin'
             arch: 'arm64'
             distro: 'macos-arm64'
+            os: 'macos'
 
     runs-on: ${{ matrix.platform }}
-    container: ${{ matrix.container }}
 
     steps:
-      - name: Setup container environment (Ubuntu 20.04)
-        if: matrix.container == 'ubuntu:20.04'
-        env:
-          DEBIAN_FRONTEND: noninteractive
-          TZ: Etc/UTC
-        run: |
-          # 设置非交互式环境，避免tzdata等包的交互式配置
-          export DEBIAN_FRONTEND=noninteractive
-          export TZ=Etc/UTC
-          
-          # 预配置debconf以避免交互式提示
-          echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
-          echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections
-          echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections
-          
-          apt-get update
-          apt-get install -y \
-            sudo \
-            curl \
-            wget \
-            git \
-            build-essential \
-            software-properties-common \
-            apt-transport-https \
-            ca-certificates \
-            gnupg \
-            lsb-release \
-            tzdata
-
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Linux dependencies (Ubuntu 20.04)
-        if: matrix.container == 'ubuntu:20.04'
-        env:
-          DEBIAN_FRONTEND: noninteractive
-          TZ: Etc/UTC
+      - name: Install Linux dependencies
+        if: matrix.os == 'linux'
         run: |
-          export DEBIAN_FRONTEND=noninteractive
-          export TZ=Etc/UTC
-          
-          echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
-          echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections
-          echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections
-          echo 'keyboard-configuration keyboard-configuration/layoutcode string us' | debconf-set-selections
-          echo 'keyboard-configuration keyboard-configuration/modelcode string pc105' | debconf-set-selections
-          
-          apt-get update
-          
-          apt-get install -y \
+          sudo apt-get update
+          sudo apt-get install -y \
             libwebkit2gtk-4.0-dev \
+            libwebkit2gtk-4.1-dev \
+            build-essential \
+            curl \
+            wget \
+            file \
+            libssl-dev \
             libgtk-3-dev \
             libayatana-appindicator3-dev \
             librsvg2-dev \
             patchelf \
-            libssl-dev \
-            pkg-config \
             libcairo2-dev \
             libpango1.0-dev \
             libgdk-pixbuf2.0-dev \
             libatk1.0-dev \
             libdbus-1-dev \
             libxcb1-dev \
-            libasound2-dev \
-            libpulse-dev \
-            libxtst6 \
-            libxtst-dev \
-            libxrandr-dev \
-            libxss-dev \
-            libglib2.0-dev \
-            libsoup2.4-dev \
-            libjavascriptcoregtk-4.0-dev \
-            build-essential \
-            curl \
-            wget \
-            file \
-            keyboard-configuration
+            libasound2-dev
 
-      - name: Install Linux dependencies (Ubuntu latest)
-        if: matrix.platform == 'ubuntu-latest' && matrix.container != 'ubuntu:20.04'
+      - name: Install Windows dependencies
+        if: matrix.os == 'windows'
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libwebkit2gtk-4.0-dev \
-            libwebkit2gtk-4.1-dev \
-            libappindicator3-dev \
-            librsvg2-dev \
-            patchelf \
-            build-essential \
-            curl \
-            wget \
-            file \
-            libgtk-3-dev \
-            libssl-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev
+          # Windows already has most dependencies installed
+          # We just need to ensure WebView2 is available
+          echo "WebView2 should be pre-installed on Windows Server 2022"
+
+      - name: Install macOS dependencies
+        if: matrix.os == 'macos'
+        run: |
+          # macOS usually has required dependencies pre-installed
+          echo "macOS dependencies should be available"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -186,7 +146,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.target }}
+          targets: ${{ matrix.target || 'x86_64-pc-windows-msvc,x86_64-unknown-linux-gnu,x86_64-apple-darwin,aarch64-apple-darwin' }}
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
@@ -199,93 +159,114 @@ jobs:
           npm ci
           npm run build
 
-      - name: Build Tauri application
+      - name: Build Tauri application (Debug)
+        if: github.event.inputs.build_type == 'debug' || github.event.inputs.build_type == ''
         uses: tauri-apps/tauri-action@v0
+        env:
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
         with:
           projectPath: ${{ env.TAURI_FRONTEND_PATH }}
           args: ${{ matrix.args }}
-          includeDebug: ${{ github.event.inputs.build_type == 'debug' }}
-          includeRelease: ${{ github.event.inputs.build_type == 'release' || github.event.inputs.build_type == '' }}
+          includeDebug: true
+          includeRelease: false
 
-      - name: List build outputs (Debug)
+      - name: Build Tauri application (Release)
+        if: github.event.inputs.build_type == 'release' || github.event.inputs.build_type == ''
+        uses: tauri-apps/tauri-action@v0
+        env:
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+        with:
+          projectPath: ${{ env.TAURI_FRONTEND_PATH }}
+          args: ${{ matrix.args }}
+          includeDebug: false
+          includeRelease: true
+
+      - name: List build outputs
         if: always()
+        shell: bash
         run: |
-          echo "=== Listing build outputs ==="
+          echo "=== Build Information ==="
           echo "Platform: ${{ matrix.platform }}"
-          echo "Target: ${{ matrix.target }}"
-          echo "Args: ${{ matrix.args }}"
-          echo "Distro: ${{ matrix.distro }}"
-          echo "--- Frontend path contents ---"
-          ls -la ${{ env.TAURI_FRONTEND_PATH }}/ || true
-          echo "--- src-tauri path contents ---"
-          ls -la ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/ || true
-          echo "--- Target directory contents ---"
-          ls -la ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/ || true
-          echo "--- Release directory contents ---"
-          ls -la ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/ || true
-          echo "--- Bundle directory contents ---"
-          ls -la ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/ || true
-          echo "--- Looking for specific files ---"
-          find ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/ -name "*.dmg" -o -name "*.app" -o -name "*.exe" -o -name "*.msi" -o -name "*.deb" -o -name "*.AppImage" 2>/dev/null || true
+          echo "Target: ${{ matrix.target || 'default' }}"
+          echo "OS: ${{ matrix.os }}"
+          echo "Architecture: ${{ matrix.arch }}"
+          echo "Build type: ${{ github.event.inputs.build_type || 'release' }}"
+          
+          # Common paths
+          frontend_path="${{ env.TAURI_FRONTEND_PATH }}"
+          src_tauri_path="$frontend_path/src-tauri"
+          
+          echo "=== Directory Structure ==="
+          
+          if [[ "${{ matrix.os }}" == "windows" ]]; then
+            # Windows-specific listing
+            echo "--- Frontend directory ---"
+            if [ -d "$frontend_path" ]; then
+              powershell "Get-ChildItem -Path '$frontend_path' -Recurse -Depth 2 | Select-Object Name, FullName"
+            fi
+            
+            echo "--- Target directory ---"
+            if [ -d "$src_tauri_path/target" ]; then
+              powershell "Get-ChildItem -Path '$src_tauri_path/target' -Recurse -Depth 3 | Where-Object { \$_.Name -match '\.(exe|msi|dmg|app|deb|rpm|AppImage)$' } | Select-Object Name, FullName"
+            fi
+          else
+            # Linux/macOS listing
+            echo "--- Frontend directory ---"
+            if [ -d "$frontend_path" ]; then
+              find "$frontend_path" -maxdepth 3 -type f -name "*.json" -o -name "*.js" -o -name "*.ts" | head -20
+            fi
+            
+            echo "--- Target directory ---"
+            if [ -d "$src_tauri_path/target" ]; then
+              find "$src_tauri_path/target" -type f \( -name "*.exe" -o -name "*.msi" -o -name "*.dmg" -o -name "*.app" -o -name "*.deb" -o -name "*.rpm" -o -name "*.AppImage" \) 2>/dev/null | head -20
+            fi
+          fi
 
-      - name: Upload build artifacts - Linux
-        if: success() && matrix.platform == 'ubuntu-latest'
+      - name: Upload Linux artifacts
+        if: success() && matrix.os == 'linux'
         uses: actions/upload-artifact@v4
         with:
-          name: tauri-app-${{ matrix.distro }}-${{ matrix.arch }}
+          name: tauri-linux-${{ matrix.distro }}-${{ matrix.arch }}
           path: |
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/deb/*.deb
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/rpm/*.rpm
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/appimage/*.AppImage
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/deb/
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/rpm/
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/appimage/
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/deb/*.deb
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/appimage/*.AppImage
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/rpm/*.rpm
+          if-no-files-found: warn
           retention-days: 30
 
-      - name: Upload build artifacts - Windows
-        if: success() && matrix.platform == 'windows-2022'
+      - name: Upload Windows artifacts
+        if: success() && matrix.os == 'windows'
         uses: actions/upload-artifact@v4
         with:
-          name: tauri-app-${{ matrix.distro }}-${{ matrix.arch }}
+          name: tauri-windows-${{ matrix.distro }}-${{ matrix.arch }}
           path: |
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/msi/*.msi
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/nsis/*.exe
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/msi/
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/nsis/
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/msi/*.msi
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/nsis/*.exe
+          if-no-files-found: warn
           retention-days: 30
 
-      - name: Upload build artifacts - macOS Intel
-        if: success() && matrix.platform == 'macos-14' && matrix.target == ''
+      - name: Upload macOS artifacts
+        if: success() && matrix.os == 'macos'
         uses: actions/upload-artifact@v4
         with:
-          name: tauri-app-${{ matrix.distro }}-${{ matrix.arch }}
+          name: tauri-macos-${{ matrix.distro }}-${{ matrix.arch }}
           path: |
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/dmg/*.dmg
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/macos/*.app
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/*.dmg
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/x86_64-apple-darwin/release/bundle/macos/*.app
-          retention-days: 30
-
-      - name: Upload build artifacts - macOS ARM64
-        if: success() && matrix.platform == 'macos-14' && matrix.target == 'aarch64-apple-darwin'
-        uses: actions/upload-artifact@v4
-        with:
-          name: tauri-app-${{ matrix.distro }}-${{ matrix.arch }}
-          path: |
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/dmg/*.dmg
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/macos/*.app
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/macos/*.app/**/*
+          if-no-files-found: warn
           retention-days: 30
 
       - name: Create Release
-        if: startsWith(github.ref, 'refs/tags/v') && github.event.inputs.build_type == 'release'
-        uses: tauri-apps/tauri-action@v0
+        if: success() && startsWith(github.ref, 'refs/tags/v') && (github.event.inputs.build_type == 'release' || github.event.inputs.build_type == '')
+        uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          projectPath: ${{ env.TAURI_FRONTEND_PATH }}
-          tagName: ${{ github.ref_name }}
-          releaseName: 'Tauri App ${{ github.ref_name }}'
-          releaseBody: 'Tauri application release ${{ github.ref_name }}'
-          releaseDraft: false
+          files: |
+            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/**/*
+          draft: false
           prerelease: false
-          args: ${{ matrix.args }}
+          generate_release_notes: true
