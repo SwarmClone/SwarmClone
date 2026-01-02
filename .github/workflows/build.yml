@@ -34,280 +34,95 @@ jobs:
           else
             COMMIT_MSG="${{ github.event.head_commit.message }}"
             if [[ "$COMMIT_MSG" == ci_required* ]]; then
+              echo "✅ Commit message starts with 'ci_required', will build"
               echo "should-build=true" >> $GITHUB_OUTPUT
-              echo "✅ Commit message starts with 'ci_required', will proceed with build"
             else
+              echo "🚫 Commit message does not start with 'ci_required', skipping build"
               echo "should-build=false" >> $GITHUB_OUTPUT
-              echo "⏩ Commit message does not start with 'ci_required', skipping build"
             fi
           fi
 
   build:
-    permissions:
-      contents: write
     needs: check-commit-message
-    if: ${{ github.event_name == 'workflow_dispatch' || needs.check-commit-message.outputs.should-build == 'true' }}
+    if: needs.check-commit-message.outputs.should-build == 'true'
     strategy:
       fail-fast: false
       matrix:
         include:
-          # Linux - x86_64 (Ubuntu 24.04)
-          - platform: 'ubuntu-latest'
-            args: ''
-            target: 'x86_64-unknown-linux-gnu'
-            arch: 'x86_64'
-            distro: 'ubuntu'
-            os: 'linux'
-            
-          # Windows - x86_64
-          - platform: 'windows-2022'
-            args: ''
-            target: 'x86_64-pc-windows-msvc'
-            arch: 'x86_64'
-            distro: 'windows'
-            os: 'windows'
-            
-          # macOS - Intel
-          - platform: 'macos-14'
-            args: ''
-            target: 'x86_64-apple-darwin'
-            arch: 'x86_64'
-            distro: 'macos-intel'
-            os: 'macos'
-            
-          # macOS - ARM64 (Apple Silicon)
-          - platform: 'macos-14'
-            args: '--target aarch64-apple-darwin'
-            target: 'aarch64-apple-darwin'
-            arch: 'arm64'
-            distro: 'macos-arm64'
-            os: 'macos'
+          - os: windows-latest
+            rust_target: x86_64-pc-windows-msvc
+          - os: ubuntu-latest
+            rust_target: x86_64-unknown-linux-gnu
+          - os: macos-latest
+            rust_target: x86_64-apple-darwin
 
-    runs-on: ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Linux dependencies
-        if: matrix.os == 'linux'
-        run: |
-          # 获取 Ubuntu 版本信息
-          UBUNTU_VERSION=$(lsb_release -rs)
-          echo "Ubuntu version: $UBUNTU_VERSION"
-          
-          # 更新包列表
-          sudo apt-get update
-          
-          # 安装基础构建工具
-          sudo apt-get install -y \
-            build-essential \
-            curl \
-            wget \
-            file \
-            libssl-dev \
-            pkg-config \
-            patchelf \
-            lsb-release
-          
-          # 根据 Ubuntu 版本安装不同的 WebKitGTK 包
-          if [[ "$UBUNTU_VERSION" == "24.04" ]]; then
-            echo "Installing dependencies for Ubuntu 24.04 (Noble)"
-            sudo apt-get install -y \
-              libwebkit2gtk-4.1-dev \
-              libgtk-3-dev \
-              libappindicator3-dev \
-              librsvg2-dev \
-              libcairo2-dev \
-              libpango1.0-dev \
-              libgdk-pixbuf-2.0-dev \
-              libatk1.0-dev \
-              libdbus-1-dev \
-              libxcb1-dev \
-              libasound2-dev
-          else
-            echo "Installing dependencies for older Ubuntu versions"
-            sudo apt-get install -y \
-              libwebkit2gtk-4.0-dev \
-              libgtk-3-dev \
-              libayatana-appindicator3-dev \
-              librsvg2-dev \
-              libcairo2-dev \
-              libpango1.0-dev \
-              libgdk-pixbuf-2.0-dev \
-              libatk1.0-dev \
-              libdbus-1-dev \
-              libxcb1-dev \
-              libasound2-dev
-          fi
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: ${{ env.TAURI_FRONTEND_PATH }}/package-lock.json
-
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.target }}
-          toolchain: stable
+          targets: ${{ matrix.rust_target }}
 
-      - name: Rust cache
-        uses: swatinem/rust-cache@v2
+      - name: Install Node
+        uses: actions/setup-node@v4
         with:
-          workspaces: ${{ env.TAURI_FRONTEND_PATH }}/src-tauri -> target
-          key: ${{ matrix.platform }}-${{ matrix.target }}
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: ${{ env.TAURI_FRONTEND_PATH }}/package-lock.json
 
-      - name: Install frontend dependencies
+      - name: Install frontend deps
         working-directory: ${{ env.TAURI_FRONTEND_PATH }}
-        # 为所有平台指定使用bash
-        shell: bash
+        run: npm ci
+
+      - name: Build Tauri (debug)
+        if: github.event.inputs.build_type == 'debug'
+        working-directory: ${{ env.TAURI_FRONTEND_PATH }}
+        run: npm run tauri build -- --debug
+
+      - name: Build Tauri (release)
+        if: github.event.inputs.build_type != 'debug'
+        working-directory: ${{ env.TAURI_FRONTEND_PATH }}
+        run: npm run tauri build
+
+      # ---------- 上传制品 ----------
+      - name: Upload artifacts – Windows (exe only)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
         run: |
-          # 清理可能的 node_modules 缓存问题
-          if [ -d "node_modules" ]; then
-            rm -rf node_modules
-          fi
-          
-          npm ci --no-audit --prefer-offline
-          npm run build
-
-      - name: Build Tauri application
-        uses: tauri-apps/tauri-action@v0
-        env:
-          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
-          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+          $exeOnly = Get-ChildItem -Path "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/*.exe" -Exclude "*nsis*"
+          Compress-Archive -Path $exeOnly -DestinationPath "win-executable.zip"
+      - uses: actions/upload-artifact@v4
+        if: matrix.os == 'windows-latest'
         with:
-          projectPath: ${{ env.TAURI_FRONTEND_PATH }}
-          args: ${{ matrix.args }}
-          includeDebug: ${{ github.event.inputs.build_type == 'debug' }}
-          includeRelease: ${{ github.event.inputs.build_type == 'release' || github.event.inputs.build_type == '' }}
+          name: tauri-win-executable
+          path: win-executable.zip
 
-      - name: List build outputs
-        if: always()
-        # 使用bash shell以跨平台
-        shell: bash
+      - name: Upload artifacts – Windows (NSIS only)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
         run: |
-          echo "=== Listing build outputs ==="
-          echo "Platform: ${{ matrix.platform }}"
-          echo "Target: ${{ matrix.target }}"
-          echo "Args: ${{ matrix.args }}"
-          echo "Distro: ${{ matrix.distro }}"
-          echo "OS: ${{ matrix.os }}"
-          
-          # 定义基础路径
-          FRONTEND_PATH="${{ env.TAURI_FRONTEND_PATH }}"
-          SRC_TAURI_PATH="$FRONTEND_PATH/src-tauri"
-          
-          echo "--- Frontend path contents ---"
-          if [ -d "$FRONTEND_PATH" ]; then
-            ls -la "$FRONTEND_PATH/" 2>/dev/null || echo "Cannot list directory contents"
-          else
-            echo "Frontend path not found: $FRONTEND_PATH"
-          fi
-          
-          echo "--- src-tauri path contents ---"
-          if [ -d "$SRC_TAURI_PATH" ]; then
-            ls -la "$SRC_TAURI_PATH/" 2>/dev/null || echo "Cannot list directory contents"
-          else
-            echo "src-tauri path not found: $SRC_TAURI_PATH"
-          fi
-          
-          echo "--- Target directory contents ---"
-          if [ -d "$SRC_TAURI_PATH/target" ]; then
-            ls -la "$SRC_TAURI_PATH/target/" 2>/dev/null || echo "Cannot list directory contents"
-          else
-            echo "Target directory not found"
-          fi
-          
-          echo "--- Release directory contents ---"
-          if [ -d "$SRC_TAURI_PATH/target/release" ]; then
-            ls -la "$SRC_TAURI_PATH/target/release/" 2>/dev/null || echo "Cannot list directory contents"
-          else
-            echo "Release directory not found"
-          fi
-          
-          echo "--- Bundle directory contents ---"
-          if [ -d "$SRC_TAURI_PATH/target/release/bundle" ]; then
-            ls -la "$SRC_TAURI_PATH/target/release/bundle/" 2>/dev/null || echo "Cannot list directory contents"
-          else
-            echo "Bundle directory not found"
-          fi
-          
-          echo "--- Looking for specific files ---"
-          # 查找构建产物
-          SEARCH_PATH="$SRC_TAURI_PATH/target"
-          if [ -d "$SEARCH_PATH" ]; then
-            find "$SEARCH_PATH" \( -name "*.dmg" -o -name "*.app" -o -name "*.exe" -o -name "*.msi" -o -name "*.deb" -o -name "*.rpm" -o -name "*.AppImage" \) 2>/dev/null | head -20 || true
-          else
-            echo "Search path $SEARCH_PATH not found"
-          fi
+          $nsis = Get-ChildItem -Path "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/nsis/*.exe"
+          Compress-Archive -Path $nsis -DestinationPath "win-nsis.zip"
+      - uses: actions/upload-artifact@v4
+        if: matrix.os == 'windows-latest'
+        with:
+          name: tauri-win-nsis
+          path: win-nsis.zip
 
-      - name: Upload Linux artifacts
-        if: success() && matrix.os == 'linux'
+      - name: Upload artifacts – Linux (AppImage only)
+        if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: tauri-app-linux-${{ matrix.arch }}
-          path: |
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.deb
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.AppImage
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.rpm
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/deb/
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/appimage/
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/rpm/
-          if-no-files-found: warn
-          retention-days: 30
+          name: tauri-linux-appimage
+          path: ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/appimage/*.AppImage
 
-      - name: Upload Windows artifacts
-        if: success() && matrix.os == 'windows'
+      - name: Upload artifacts – macOS (dmg only)
+        if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: tauri-app-windows-${{ matrix.arch }}
-          path: |
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.msi
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.exe
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/msi/
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/nsis/
-          if-no-files-found: warn
-          retention-days: 30
-
-      - name: Upload macOS artifacts
-        if: success() && matrix.os == 'macos'
-        uses: actions/upload-artifact@v4
-        with:
-          name: tauri-app-macos-${{ matrix.arch }}
-          path: |
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.dmg
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.app
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/dmg/
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/bundle/macos/
-          if-no-files-found: warn
-          retention-days: 30
-
-      - name: Create GitHub Release
-        if: success() && startsWith(github.ref, 'refs/tags/v') && (github.event.inputs.build_type == 'release' || github.event.inputs.build_type == '')
-        uses: softprops/action-gh-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          name: Release ${{ github.ref_name }}
-          body: |
-            Tauri Application Release ${{ github.ref_name }}
-            
-            **Build Information:**
-            - Platform: ${{ matrix.platform }}
-            - Architecture: ${{ matrix.arch }}
-            - Target: ${{ matrix.target }}
-            
-            Built on: ${{ github.event.head_commit.timestamp }}
-          draft: false
-          prerelease: false
-          generate_release_notes: true
-          files: |
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.deb
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.AppImage
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.rpm
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.msi
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.exe
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/**/*.dmg
+          name: tauri-macos-dmg
+          path: ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/dmg/*.dmg
