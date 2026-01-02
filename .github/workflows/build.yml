@@ -162,6 +162,8 @@ jobs:
 
       - name: Install frontend dependencies
         working-directory: ${{ env.TAURI_FRONTEND_PATH }}
+        # 为所有平台指定使用bash
+        shell: bash
         run: |
           # 清理可能的 node_modules 缓存问题
           if [ -d "node_modules" ]; then
@@ -184,7 +186,7 @@ jobs:
 
       - name: List build outputs
         if: always()
-        # 根据不同平台使用不同的shell
+        # 使用bash shell以跨平台
         shell: bash
         run: |
           echo "=== Listing build outputs ==="
@@ -193,62 +195,49 @@ jobs:
           echo "Args: ${{ matrix.args }}"
           echo "Distro: ${{ matrix.distro }}"
           echo "OS: ${{ matrix.os }}"
+          
+          # 定义基础路径
+          FRONTEND_PATH="${{ env.TAURI_FRONTEND_PATH }}"
+          SRC_TAURI_PATH="$FRONTEND_PATH/src-tauri"
+          
           echo "--- Frontend path contents ---"
-          # 使用跨平台的命令
-          if command -v ls &> /dev/null; then
-            ls -la "${{ env.TAURI_FRONTEND_PATH }}/" || echo "Failed to list frontend directory"
+          if [ -d "$FRONTEND_PATH" ]; then
+            ls -la "$FRONTEND_PATH/" 2>/dev/null || echo "Cannot list directory contents"
           else
-            echo "ls command not available, using alternative"
-            find "${{ env.TAURI_FRONTEND_PATH }}/" -maxdepth 1 -type f -o -type d || true
+            echo "Frontend path not found: $FRONTEND_PATH"
           fi
           
           echo "--- src-tauri path contents ---"
-          if [ -d "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/" ]; then
-            if command -v ls &> /dev/null; then
-              ls -la "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/" || echo "Failed to list src-tauri directory"
-            else
-              find "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/" -maxdepth 1 -type f -o -type d || true
-            fi
+          if [ -d "$SRC_TAURI_PATH" ]; then
+            ls -la "$SRC_TAURI_PATH/" 2>/dev/null || echo "Cannot list directory contents"
           else
-            echo "src-tauri directory not found"
+            echo "src-tauri path not found: $SRC_TAURI_PATH"
           fi
           
           echo "--- Target directory contents ---"
-          if [ -d "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/" ]; then
-            if command -v ls &> /dev/null; then
-              ls -la "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/" || echo "Failed to list target directory"
-            else
-              find "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/" -maxdepth 1 -type f -o -type d || true
-            fi
+          if [ -d "$SRC_TAURI_PATH/target" ]; then
+            ls -la "$SRC_TAURI_PATH/target/" 2>/dev/null || echo "Cannot list directory contents"
           else
-            echo "target directory not found"
+            echo "Target directory not found"
           fi
           
           echo "--- Release directory contents ---"
-          if [ -d "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/" ]; then
-            if command -v ls &> /dev/null; then
-              ls -la "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/" || echo "Failed to list release directory"
-            else
-              find "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/" -maxdepth 1 -type f -o -type d || true
-            fi
+          if [ -d "$SRC_TAURI_PATH/target/release" ]; then
+            ls -la "$SRC_TAURI_PATH/target/release/" 2>/dev/null || echo "Cannot list directory contents"
           else
-            echo "release directory not found"
+            echo "Release directory not found"
           fi
           
           echo "--- Bundle directory contents ---"
-          if [ -d "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/" ]; then
-            if command -v ls &> /dev/null; then
-              ls -la "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/" || echo "Failed to list bundle directory"
-            else
-              find "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/" -maxdepth 1 -type f -o -type d || true
-            fi
+          if [ -d "$SRC_TAURI_PATH/target/release/bundle" ]; then
+            ls -la "$SRC_TAURI_PATH/target/release/bundle/" 2>/dev/null || echo "Cannot list directory contents"
           else
-            echo "bundle directory not found"
+            echo "Bundle directory not found"
           fi
           
           echo "--- Looking for specific files ---"
           # 查找构建产物
-          SEARCH_PATH="${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target"
+          SEARCH_PATH="$SRC_TAURI_PATH/target"
           if [ -d "$SEARCH_PATH" ]; then
             find "$SEARCH_PATH" \( -name "*.dmg" -o -name "*.app" -o -name "*.exe" -o -name "*.msi" -o -name "*.deb" -o -name "*.rpm" -o -name "*.AppImage" \) 2>/dev/null | head -20 || true
           else
