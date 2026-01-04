@@ -44,6 +44,10 @@ uv sync
 uv run start
 ```
 
+## 后端项目目录结构说明
+> 注意此部分内容可能已经过时，且我们正计划将此部分内容迁移到贡献者指南中
+
+<img src="./.docs/assets/backend_structure.png"/>
 
 ## 如何参与开发？
 - 您可以加入我们的开发QQ群：1017493942
