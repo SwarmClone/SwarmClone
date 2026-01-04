@@ -28,179 +28,147 @@ jobs:
       - name: Check commit message
         id: check
         run: |
-          COMMIT_MSG="${{ github.event.head_commit.message }}"
-          if [[ "$COMMIT_MSG" == ci_required* ]]; then
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "✅ Workflow dispatch event, will proceed with build"
             echo "should-build=true" >> $GITHUB_OUTPUT
-            echo "✅ Commit message starts with 'ci_required', will proceed with build"
           else
-            echo "should-build=false" >> $GITHUB_OUTPUT
-            echo "⏩ Commit message does not start with 'ci_required', skipping build"
+            COMMIT_MSG="${{ github.event.head_commit.message }}"
+            if [[ "$COMMIT_MSG" == ci_required* ]]; then
+              echo "✅ Commit message starts with ci_required, will proceed with build"
+              echo "should-build=true" >> $GITHUB_OUTPUT
+            else
+              echo "ℹ️  Commit message does not start with ci_required, skipping build"
+              echo "should-build=false" >> $GITHUB_OUTPUT
+            fi
           fi
 
-  build:
-    permissions:
-      contents: write
+  build-tauri:
     needs: check-commit-message
-    if: ${{ github.event_name == 'workflow_dispatch' || needs.check-commit-message.outputs.should-build == 'true' }}
+    if: needs.check-commit-message.outputs.should-build == 'true'
+    runs-on: ${{ matrix.platform }}
     strategy:
       fail-fast: false
       matrix:
+        platform: [ubuntu-latest, macos-latest, windows-latest]
         include:
-          # Linux - Ubuntu 20.04 in Docker container for better compatibility
-          - platform: 'ubuntu-latest'
-            container: 'ubuntu:20.04'
-            args: ''
-            target: ''
-            arch: 'x86_64'
-            distro: 'ubuntu-20.04'
-            
-          # Windows - Windows Server 2022
-          - platform: 'windows-2022'
-            args: ''
-            target: ''
-            arch: 'x86_64'
-            distro: 'windows'
-            
-          # macOS - macOS 14 (Intel)
-          - platform: 'macos-14'
-            args: ''
-            target: ''
-            arch: 'x86_64'
-            distro: 'macos-intel'
-            
-          # macOS ARM64 (Apple Silicon)
-          - platform: 'macos-14'
-            args: '--target aarch64-apple-darwin'
-            target: 'aarch64-apple-darwin'
-            arch: 'arm64'
-            distro: 'macos-arm64'
-
-    runs-on: ${{ matrix.platform }}
-    container: ${{ matrix.container }}
-
+          - platform: ubuntu-latest
+            rust_target: x86_64-unknown-linux-gnu
+          - platform: macos-latest
+            rust_target: aarch64-apple-darwin
+          - platform: windows-latest
+            rust_target: x86_64-pc-windows-msvc
+    
     steps:
-      - name: Setup container environment (Ubuntu 20.04)
-        if: matrix.container == 'ubuntu:20.04'
-        run: |
-          apt-get update
-          apt-get install -y \
-            sudo \
-            curl \
-            wget \
-            git \
-            build-essential \
-            software-properties-common \
-            apt-transport-https \
-            ca-certificates \
-            gnupg \
-            lsb-release
-
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Linux dependencies (Ubuntu 20.04)
-        if: matrix.container == 'ubuntu:20.04'
-        run: |
-          apt-get update
-          apt-get install -y \
-            libwebkit2gtk-4.0-dev \
-            libwebkit2gtk-4.1-dev \
-            libappindicator3-dev \
-            librsvg2-dev \
-            patchelf \
-            libgtk-3-dev \
-            libssl-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev \
-            pkg-config \
-            libjavascriptcoregtk-4.0-dev \
-            libsoup2.4-dev \
-            libglib2.0-dev \
-            libcairo2-dev \
-            libpango1.0-dev \
-            libgdk-pixbuf2.0-dev \
-            libatk1.0-dev \
-            libdbus-1-dev \
-            libxcb1-dev \
-            libxrandr2-dev \
-            libxss1-dev \
-            libasound2-dev \
-            libpulse-dev \
-            libxtst6 \
-            libxtst-dev
-
-      - name: Install Linux dependencies (Ubuntu latest)
-        if: matrix.platform == 'ubuntu-latest' && matrix.container != 'ubuntu:20.04'
+      - name: Install dependencies (ubuntu)
+        if: matrix.platform == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            libwebkit2gtk-4.0-dev \
-            libwebkit2gtk-4.1-dev \
-            libappindicator3-dev \
-            librsvg2-dev \
-            patchelf \
-            build-essential \
-            curl \
-            wget \
-            file \
-            libgtk-3-dev \
-            libssl-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 'lts/*'
+          node-version: '18'
           cache: 'npm'
           cache-dependency-path: ${{ env.TAURI_FRONTEND_PATH }}/package-lock.json
 
-      - name: Install Rust
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: ${{ env.TAURI_FRONTEND_PATH }}
+
+      - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.target }}
+          targets: ${{ matrix.rust_target }}
 
-      - name: Rust cache
-        uses: swatinem/rust-cache@v2
-        with:
-          workspaces: ${{ env.TAURI_FRONTEND_PATH }}/src-tauri -> target
+      - name: Install Rust dependencies
+        run: rustup target add ${{ matrix.rust_target }}
 
-      - name: Install frontend dependencies
+      - name: Build Tauri app
+        run: npm run tauri build ${{ inputs.build_type == 'debug' && '--debug' || '' }}
         working-directory: ${{ env.TAURI_FRONTEND_PATH }}
-        run: |
-          npm ci
-          npm run build
-
-      - name: Build Tauri application
-        uses: tauri-apps/tauri-action@v0
-        with:
-          projectPath: ${{ env.TAURI_FRONTEND_PATH }}
-          args: ${{ matrix.args }}
-          includeDebug: ${{ github.event.inputs.build_type == 'debug' }}
-          includeRelease: ${{ github.event.inputs.build_type == 'release' || github.event.inputs.build_type == '' }}
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        if: success()
-        with:
-          name: tauri-app-${{ matrix.distro }}-${{ matrix.arch }}
-          path: |
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/bundle/
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/*.exe
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/*.app
-            ${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target/release/*.dmg
-          retention-days: 30
-
-      - name: Create Release
-        if: startsWith(github.ref, 'refs/tags/v') && github.event.inputs.build_type == 'release'
-        uses: tauri-apps/tauri-action@v0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_PLATFORM: ${{ matrix.platform == 'ubuntu-latest' && 'linux' || matrix.platform == 'macos-latest' && 'macos' || 'windows' }}
+
+      - name: List build artifacts (for debugging)
+        shell: bash
+        run: |
+          echo "Listing build artifacts in target directory:"
+          if [ "${{ matrix.platform }}" = "windows-latest" ]; then
+            # Windows使用PowerShell命令
+            pwsh -Command "Get-ChildItem -Path '${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target' -Recurse -Include *.AppImage, *.dmg, *.exe | Select-Object -First 20"
+          else
+            # Linux/macOS使用find命令
+            find "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target" -type f \( -name "*.AppImage" -o -name "*.dmg" -o -name "*.exe" \) 2>/dev/null | head -20
+          fi
+
+      - name: Prepare Linux AppImage for upload
+        if: matrix.platform == 'ubuntu-latest'
+        shell: bash
+        run: |
+          # 查找AppImage文件并复制到工作目录根目录
+          APPIMAGE_FILE=$(find "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target" -name "*.AppImage" -type f | head -1)
+          if [ -f "$APPIMAGE_FILE" ]; then
+            cp "$APPIMAGE_FILE" .
+          fi
+
+      - name: Upload Artifacts (Linux)
+        if: matrix.platform == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
         with:
-          projectPath: ${{ env.TAURI_FRONTEND_PATH }}
-          tagName: ${{ github.ref_name }}
-          releaseName: 'Tauri App ${{ github.ref_name }}'
-          releaseBody: 'Tauri application release ${{ github.ref_name }}'
-          releaseDraft: false
-          prerelease: false
-          args: ${{ matrix.args }}
+          name: linux-appimage
+          path: ./*.AppImage
+
+      - name: Prepare macOS DMG for upload
+        if: matrix.platform == 'macos-latest'
+        shell: bash
+        run: |
+          # 查找DMG文件并复制到工作目录根目录
+          DMG_FILE=$(find "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target" -name "*.dmg" -type f | head -1)
+          if [ -f "$DMG_FILE" ]; then
+            cp "$DMG_FILE" .
+          fi
+
+      - name: Upload Artifacts (macOS)
+        if: matrix.platform == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-dmg
+          path: ./*.dmg
+
+      - name: Prepare Windows Release EXE for upload
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        run: |
+          # 查找release目录下的exe文件（排除nsis目录）
+          $exeFiles = Get-ChildItem -Path "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target" -Recurse -Filter *.exe | Where-Object { $_.DirectoryName -notmatch 'nsis' }
+          if ($exeFiles.Count -gt 0) {
+            Copy-Item -Path $exeFiles[0].FullName -Destination ".\app-release.exe"
+          }
+
+      - name: Upload Artifacts (Windows - Release EXE)
+        if: matrix.platform == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-release-exe
+          path: ./app-release.exe
+
+      - name: Prepare Windows NSIS Installer for upload
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        run: |
+          # 查找nsis目录下的exe文件
+          $nsisFiles = Get-ChildItem -Path "${{ env.TAURI_FRONTEND_PATH }}/src-tauri/target" -Recurse -Filter *.exe | Where-Object { $_.DirectoryName -match 'nsis' }
+          if ($nsisFiles.Count -gt 0) {
+            Copy-Item -Path $nsisFiles[0].FullName -Destination ".\app-nsis-installer.exe"
+          }
+
+      - name: Upload Artifacts (Windows - NSIS Installer)
+        if: matrix.platform == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-nsis-installer
+          path: ./app-nsis-installer.exe
