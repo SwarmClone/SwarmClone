@@ -1,15 +1,30 @@
+import glob
 import json
 from pathlib import Path
+from resource import RUSAGE_CHILDREN
 from typing import Any, Callable, Dict
 
-from shared.logger import log
+
+from ..shared.logger import log
 
 class ConfigEventBus:
     """
     配置事件总线类
     用于处理配置更改事件的发布和订阅机制，允许模块在配置发生变更时收到通知
     """
+    #配置总线应该不能有好几个吧。。
+    _instance = None
+    _initialized = False
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+    
     def __init__(self):
+        if hasattr(self, '_initialized_attr'):
+            log.error(f"Event bus has already been initialized !")
+            return
         # str: 配置名称, Dict[str, Callable]: 模块名对应回调函数
         self._subscribers: Dict[str, Dict[str, Callable]] = {}  # type: ignore
 
@@ -45,7 +60,9 @@ class ConfigEventBus:
                     callback(config_data)
                 except Exception as e:
                     log.error(f"Error notifying module {module_name} for event {event_type}: {e}")
-
+                    raise RuntimeError()  #否则api不能正确得知更改配置是否成功
+                    
+global_config_event_bus = ConfigEventBus()
 
 class ConfigManager:
     """
