@@ -10,8 +10,8 @@ class ChatMessage(BaseModel):
     source: str
     message: str
 
-from ...core import controller
-from ...core.event_bus import Event
+from backend.src.core import controller
+from backend.src.core.event_bus import Event
 
 router = APIRouter(prefix="/io", tags=["io"])
 

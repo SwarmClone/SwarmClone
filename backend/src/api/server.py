@@ -5,13 +5,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 import asyncio
 
-from .routers.io import router as io_router
-from .routers.config import router as config_router
-from .routers.lifespan import router as lifespan_router
-from .routers.health import router as health_router
+from backend.src.api.routers.io import router as io_router
+from backend.src.api.routers.config import router as config_router
+from backend.src.api.routers.lifespan import router as lifespan_router
+from backend.src.api.routers.health import router as health_router
 
-from ..core import controller
-from ..core.event_bus import Event
+from backend.src.core import controller
+from backend.src.core.event_bus import Event
 
 class Server:
     """

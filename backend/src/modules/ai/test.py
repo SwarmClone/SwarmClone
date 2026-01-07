@@ -1,6 +1,6 @@
-from ...core import controller
-from ...core.event_bus import Event
-from ...shared.logger import log
+from backend.src.core import controller
+from backend.src.core.event_bus import Event
+from backend.src.shared.logger import log
 from typing import Any
 #测试各种功能的运行情况用的AI模块
 class TestAI:

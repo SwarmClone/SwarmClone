@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
-from ...core import controller
+from backend.src.core import controller
 
 router = APIRouter(prefix="/config", tags=["config"])
 

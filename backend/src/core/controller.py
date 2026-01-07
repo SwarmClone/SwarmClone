@@ -1,9 +1,8 @@
-from calendar import c
-from ..core.config_manager import ConfigManager
 from typing import Any, Callable
 
-from ..shared.logger import log
-from ..core.event_bus import global_event_bus, Event
+from backend.src.core.config_manager import ConfigManager
+from backend.src.shared.logger import log
+from backend.src.core.event_bus import global_event_bus, Event
 #测试用
 #目前的构想是
 # Controller把两个总线进一步包装，整个core部分只对外暴露Controller（否则很多模块可能要把3个部分都导入一遍）
@@ -50,7 +49,7 @@ class Controller:
                 errors[event_type] = str(e)
         if errors:
             raise RuntimeError(f"Failed to apply some config changes: {errors}")
-            
+
     async def event_message_publish(self, data:Event):
         #测试用的消息推送接口
         #后续可能会改成别的形式

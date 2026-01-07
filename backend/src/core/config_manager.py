@@ -5,7 +5,7 @@ from resource import RUSAGE_CHILDREN
 from typing import Any, Callable, Dict
 
 
-from ..shared.logger import log
+from backend.src.shared.logger import log
 
 class ConfigEventBus:
     """
