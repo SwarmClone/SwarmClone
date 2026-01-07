@@ -22,11 +22,12 @@ class ConfigEventBus:
         return cls._instance
     
     def __init__(self):
-        if hasattr(self, '_initialized_attr'):
-            log.error(f"Event bus has already been initialized !")
+        if ConfigEventBus._initialized:
+            log.debug(f"ConfigEventBus has already been initialized !")
             return
         # str: 配置名称, Dict[str, Callable]: 模块名对应回调函数
         self._subscribers: Dict[str, Dict[str, Callable]] = {}  # type: ignore
+        ConfigEventBus._initialized = True
 
     # 只有当模块订阅了相同的配置名称时，才会收到该配置的变更通知
     # 这样的设计考虑到一个配置变更可能需要多个模块来处理
@@ -60,8 +61,7 @@ class ConfigEventBus:
                     callback(config_data)
                 except Exception as e:
                     log.error(f"Error notifying module {module_name} for event {event_type}: {e}")
-                    raise RuntimeError()  #否则api不能正确得知更改配置是否成功
-                    
+                    raise RuntimeError(f"failed to notify module {module_name} for event {event_type}") from e
 global_config_event_bus = ConfigEventBus()
 
 class ConfigManager:

@@ -1,3 +1,4 @@
+from calendar import c
 from ..core.config_manager import ConfigManager
 from typing import Any, Callable
 
@@ -9,7 +10,8 @@ from ..core.event_bus import global_event_bus, Event
 # eventbus的执行混乱问题，可以在Controller里尝试解决
 class Controller:
     _instance = None
-
+    _initialized = False
+    
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
@@ -17,10 +19,14 @@ class Controller:
 
 
     def __init__(self):
+        if Controller._initialized:
+            log.debug(f"Controller has already been initialized !")
+            return
         self.config_manager: ConfigManager = ConfigManager()
         self.event_bus = global_event_bus
+        Controller._initialized = True
 
-    def subscribe(self, modulename:str, config_events: dict[str, Callable[[Event], None]], message_events: dict[str, Callable[[Event], None]]) -> None:
+    def subscribe(self, modulename:str, config_events: dict[str, Callable[[Any], None]], message_events: dict[str, Callable[[Event], None]]) -> None:
         """
         订阅事件,支持配置变更事件和消息事件
 
@@ -36,12 +42,15 @@ class Controller:
     def configure_change(self,data:dict[str,Any]):
         #测试用的设置更改推送接口
         #后续可能会改成别的形式
+        errors:dict[str,str] = {}
         for event_type, config_data in data.items():
             try:
                 self.config_manager.event_bus.publish(event_type, config_data)
-            except Exception as e: 
-                raise RuntimeError(f"Failed to apply config: {event_type}:{config_data}")
-
+            except RuntimeError as e:
+                errors[event_type] = str(e)
+        if errors:
+            raise RuntimeError(f"Failed to apply some config changes: {errors}")
+            
     async def event_message_publish(self, data:Event):
         #测试用的消息推送接口
         #后续可能会改成别的形式
