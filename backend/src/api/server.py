@@ -25,14 +25,15 @@ class Server:
         self.register_routes()
         controller.subscribe(
             modulename="server",
-            config_events={"server": None},
+            config_events={},
             message_events={"rep": self.handle_rep_message}
         )
-        self.app.state._messages_buffer = []#用于存储消息的缓冲区，同时要暴露在app.state里,以便路由能访问到
+        self.app.state._messages_queue = asyncio.Queue(maxsize=5000)
+        #用于存储消息的缓冲区，同时要暴露在app.state里,以便路由能访问到
 
-    def handle_rep_message(self, data: Event):
+    async def handle_rep_message(self, data: Event):
         #处理来自消息总线的消息
-        self.app.state._messages_buffer.append(data.data)
+        await self.app.state._messages_queue.put(data.data)
 
     def register_routes(self):
         """
