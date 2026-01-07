@@ -4,6 +4,11 @@
 import re
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+
+class ChatMessage(BaseModel):
+    source: str
+    message: str
 
 from ...core import controller
 from ...core.event_bus import Event
@@ -11,9 +16,8 @@ from ...core.event_bus import Event
 router = APIRouter(prefix="/io", tags=["io"])
 
 @router.post("/", response_class=JSONResponse)
-async def chat(request: Request):
-    data = await request.json()
-    await controller.event_message_publish(Event(name="chat", source=data.get("source"), data=data.get("message")))
+async def chat(message: ChatMessage):
+    await controller.event_message_publish(Event(name="chat", source=message.source, data=message.message))
     return {"status": "message published"}
 
 @router.get("/", response_class=JSONResponse)
