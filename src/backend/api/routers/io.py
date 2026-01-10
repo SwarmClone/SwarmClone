@@ -10,14 +10,14 @@ class ChatMessage(BaseModel):
     source: str
     message: str
 
-from backend.src.core import controller
-from backend.src.core.event_bus import Event
+from backend.core import controller
+from backend.core.event_bus import Event
 
 router = APIRouter(prefix="/io", tags=["io"])
 
 @router.post("/", response_class=JSONResponse)
 async def chat(message: ChatMessage):
-    await controller.event_message_publish(Event(name="chat", source=message.source, data=message.message))
+    await controller.event_message_publish(Event(name="chat", source=message.source, data=message.message)) # type: ignore
     return {"status": "message published"}
 
 @router.get("/", response_class=JSONResponse)

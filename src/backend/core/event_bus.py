@@ -14,7 +14,7 @@ class Event:
     name: str
     data: Any
     source: str
-    timestamp: datetime = None
+    timestamp: datetime = None # type: ignore
     need_response: bool = False
     response_channel: Optional[str] = None
 

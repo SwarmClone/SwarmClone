@@ -1,0 +1,25 @@
+[2026-01-11 07:29:19.786] [DEBUG] asyncio — Using proactor: IocpProactor
+[2026-01-11 07:33:48.778] [DEBUG] asyncio — Using proactor: IocpProactor
+[2026-01-11 07:34:06.760] [DEBUG] asyncio — Using proactor: IocpProactor
+[2026-01-11 07:39:43.060] [DEBUG] asyncio — Using proactor: IocpProactor
+[2026-01-11 07:39:43.107] [DEBUG] backend.core.config_manager — ConfigEventBus has already been initialized !
+[2026-01-11 07:39:43.108] [DEBUG] backend.core.config_manager — Configuration saved to config.json
+[2026-01-11 07:39:43.109] [INFO] backend.core.config_manager — Created new configuration file at config.json
+[2026-01-11 07:39:43.202] [INFO] uvicorn.error — Started server process [32200]
+[2026-01-11 07:39:43.202] [INFO] uvicorn.error — Waiting for application startup.
+[2026-01-11 07:39:43.203] [INFO] uvicorn.error — Application startup complete.
+[2026-01-11 07:39:43.203] [INFO] uvicorn.error — Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+[2026-01-11 07:40:38.156] [DEBUG] asyncio — Using proactor: IocpProactor
+[2026-01-11 07:40:38.194] [DEBUG] backend.core.config_manager — ConfigEventBus has already been initialized !
+[2026-01-11 07:40:38.194] [INFO] backend.core.config_manager — Configuration loaded from config.json
+[2026-01-11 07:40:38.224] [INFO] uvicorn.error — Started server process [34424]
+[2026-01-11 07:40:38.225] [INFO] uvicorn.error — Waiting for application startup.
+[2026-01-11 07:40:38.225] [INFO] uvicorn.error — Application startup complete.
+[2026-01-11 07:40:38.225] [INFO] uvicorn.error — Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+[2026-01-11 07:47:23.063] [INFO] uvicorn.error — Shutting down
+[2026-01-11 07:47:23.172] [INFO] uvicorn.error — Waiting for application shutdown.
+[2026-01-11 07:47:23.173] [INFO] uvicorn.error — Application shutdown complete.
+[2026-01-11 07:47:23.173] [INFO] uvicorn.error — Finished server process [34424]
+[2026-01-11 07:47:23.174] [INFO] uvicorn.error — Shutting down
+[2026-01-11 07:47:23.281] [INFO] uvicorn.error — Waiting for application shutdown.
+[2026-01-11 07:47:23.281] [INFO] uvicorn.error — Application shutdown complete.

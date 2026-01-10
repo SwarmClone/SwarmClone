@@ -1,11 +1,9 @@
-import glob
 import json
 from pathlib import Path
-from resource import RUSAGE_CHILDREN
 from typing import Any, Callable, Dict
 
 
-from backend.src.shared.logger import log
+from backend.shared.logger import log
 
 class ConfigEventBus:
     """

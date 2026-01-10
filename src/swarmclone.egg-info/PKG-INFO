@@ -1,0 +1,13 @@
+Metadata-Version: 2.4
+Name: swarmclone
+Version: 0.4.0
+Summary: Project SwarmClone - An AI system for building AI Streamers and more
+License-Expression: Apache-2.0
+Requires-Python: >=3.13
+License-File: LICENSE
+Requires-Dist: fastapi>=0.128.0
+Requires-Dist: pydantic>=2.12.5
+Requires-Dist: ruamel-yaml>=0.18.16
+Requires-Dist: uvicorn>=0.40.0
+Provides-Extra: dev
+Dynamic: license-file
