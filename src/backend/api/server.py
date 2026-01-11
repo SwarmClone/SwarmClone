@@ -11,6 +11,7 @@ from backend.api.routers.health import router as health_router
 
 from backend.core.controller import Controller
 from backend.core.event_bus import Event
+from backend.shared.logger import log
 
 class Server:
     """
@@ -20,7 +21,7 @@ class Server:
     def __init__(self, host: str = "127.0.0.1", port: int = 8000):
         self.host = host
         self.port = port
-        self.app = FastAPI(title= "test server")
+        self.app = FastAPI(title= "SwarmClone Backend Server")
         self.register_routes()
 
         controller = Controller()
@@ -33,9 +34,12 @@ class Server:
         #用于存储消息的缓冲区，同时要暴露在app.state里,以便路由能访问到
         self.app.state._messages_queue = asyncio.Queue(maxsize=5000)
 
+        log.info(f"后端服务已初始化，监听地址：{self.host}:{self.port}")
+
     async def handle_rep_message(self, data: Event):
         #处理来自消息总线的消息
         await self.app.state._messages_queue.put(data.data)
+        log.debug(f"收到并处理了REP消息: {data.data}")
 
     def register_routes(self):
         """
@@ -50,12 +54,12 @@ class Server:
 
         self.app.include_router(config_router)
         self.app.include_router(lifespan_router)
-        self.app.include_router(health_router)  
+        self.app.include_router(health_router)
         self.app.include_router(io_router)
 
         @self.app.get("/", response_class=HTMLResponse)
         async def read_root():
-            return "<h1>Welcome to the FastAPI Server</h1>"
+            return "<h1>Welcome to SwarmClone Backend Server</h1>"
 
 
     def run(self):
@@ -63,19 +67,22 @@ class Server:
         运行FastAPI服务器
         """
         uvicorn_config=uvicorn.Config(
-            self.app, 
-            host=self.host, 
-            port=self.port, 
-            log_config=None)  # 不采用uvicorn默认日志配置，防止重复输出
+            self.app,
+            host=self.host,
+            port=self.port,
+            log_level="info"
+        )
 
         server = uvicorn.Server(uvicorn_config)
         self.app.state._uvicorn_server = server
         loop = asyncio.get_event_loop()
 
+        log.info("正在启动后端服务...")
         server_task = loop.create_task(server.serve(), name="ROOT SERVER")
         try:
             loop.run_until_complete(server_task)
         except KeyboardInterrupt:
-            pass
+            log.info("接收到键盘中断信号，正在关闭后端服务...")
         finally:
             loop.run_until_complete(server.shutdown())
+            log.info("后端服务已关闭")

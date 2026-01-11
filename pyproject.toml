@@ -28,4 +28,4 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [project.scripts]
-start = "backend.main:main"
+start = "backend.__main__:main"
