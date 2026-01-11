@@ -1,4 +1,4 @@
-from typing import Any, Callable
+from typing import Any, Callable, Self
 
 from backend.core.config_manager import ConfigManager
 from backend.shared.logger import log
@@ -25,6 +25,7 @@ class Controller:
         self.config_manager: ConfigManager = ConfigManager()
         self.event_bus = global_event_bus
         Controller._initialized = True
+        self._module_status: dict[str, str] = {}
 
     def subscribe(self, module_name:str,
                   config_events: dict[str, Callable[[Any], None]],
@@ -59,3 +60,13 @@ class Controller:
         #测试用的消息推送接口
         #后续可能会改成别的形式
         await self.event_bus.publish(data)
+
+    async def start_all(self, factory: dict[str, Callable[[Self], None]]) -> None:
+        for module_name, factory_func in factory.items():
+            try:
+                factory_func(self)
+                self._module_status[module_name] = "started"
+                log.info(f"Module {module_name} started successfully.")
+            except Exception as e:
+                log.error(f"Failed to start module {module_name}: {e}")
+                raise RuntimeError(f"Failed to start module {module_name}") from e

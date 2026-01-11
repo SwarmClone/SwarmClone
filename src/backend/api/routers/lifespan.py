@@ -3,12 +3,13 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
+from backend.modules.ai.test import factory as TestAIFactory
+
 router = APIRouter(prefix="/lifespan", tags=["lifespan"])
 
 @router.post("/start", response_class=JSONResponse)
 async def start_lifespan(request: Request):
-    #启动生命周期相关的操作
-    #反正现在还没啥用
+    await request.app.state.controller.start_all({"ai": TestAIFactory})  # type: ignore
     return JSONResponse(content={"status": "started"})
 
 @router.post("/stop", response_class=JSONResponse)
