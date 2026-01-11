@@ -31,6 +31,7 @@ class Server:
             message_events={"rep": self.handle_rep_message} # type: ignore
         )
 
+        self.app.state.controller = controller
         #用于存储消息的缓冲区，同时要暴露在app.state里,以便路由能访问到
         self.app.state._messages_queue = asyncio.Queue(maxsize=5000)
 

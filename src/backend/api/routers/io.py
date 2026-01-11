@@ -10,14 +10,13 @@ class ChatMessage(BaseModel):
     source: str
     message: str
 
-from backend.core import controller
 from backend.core.event_bus import Event
 
 router = APIRouter(prefix="/io", tags=["io"])
 
 @router.post("/", response_class=JSONResponse)
-async def chat(message: ChatMessage):
-    await controller.event_message_publish(Event(name="chat", source=message.source, data=message.message)) # type: ignore
+async def chat(msg: ChatMessage, request: Request):
+    await request.app.state.controller.event_message_publish(Event(name="chat", source=msg.source, data=msg.message))  # type: ignore
     return {"status": "message published"}
 
 @router.get("/", response_class=JSONResponse)
@@ -31,5 +30,5 @@ async def get_messages(request: Request):
         msg = q.get_nowait()
     except asyncio.QueueEmpty:
         # 没有消息，返回 204 或空列表，根据需要调整
-        return JSONResponse(status_code=204, content={})
+        return JSONResponse(content={"message": None})
     return JSONResponse(content={"message": msg})

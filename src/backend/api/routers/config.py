@@ -1,15 +1,18 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
 from backend.core import controller
 
 router = APIRouter(prefix="/config", tags=["config"])
 
+class ConfigUpdateRequest(BaseModel):
+    data: dict[str, str]
+
 @router.post("/", response_class=JSONResponse)
-async def update_config(request: Request):
-    data = await request.json()
+async def update_config(request: Request, config_update: ConfigUpdateRequest):
     try:
-        result = controller.configure_change(data) # type: ignore
+        result = request.app.state.controller.configure_change(config_update.data) # type: ignore
         return JSONResponse(status_code=200, content={"status": "ok", "result": result})
     except Exception as e:
         return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
