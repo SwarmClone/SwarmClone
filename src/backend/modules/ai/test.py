@@ -11,7 +11,7 @@ class TestAI:
         controller.subscribe(
             module_name="ai",
             config_events={"ai": self.config_update},
-            message_events={"chat": self.handle_chat_message}
+            message_events={"chat": self.handle_chat_message} # type: ignore
         )
         self.controller: Controller = controller
         log.info(f"{self.name} initialized")

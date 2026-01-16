@@ -13,6 +13,47 @@ from backend.core.controller import Controller
 from backend.core.event_bus import Event
 from backend.shared.logger import log
 
+log_config = {
+        "version": 1,
+        "disable_existing_loggers": False,  # 不禁用现有的日志器
+        "handlers": {
+            "default": {
+                "class": "logging.StreamHandler",
+                "formatter": "default",
+                "stream": "ext://sys.stdout",
+            },
+        },
+        "formatters": {
+            "default": {
+                "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            },
+        },
+        "loggers": {
+            "": {  # 根日志器
+                "handlers": ["default"],
+                "level": "INFO",
+            },
+            "backend": {
+                "handlers": ["default"],
+                "level": "INFO",
+                "propagate": False,
+            },
+            "uvicorn": {
+                "handlers": ["default"],
+                "level": "INFO",
+                "propagate": False,
+            },
+            "uvicorn.error": {
+                "level": "INFO",
+            },
+            "uvicorn.access": {
+                "handlers": ["default"],
+                "level": "INFO",
+                "propagate": False,
+            },
+        },
+    }
+
 class Server:
     """
     服务器类
@@ -71,7 +112,9 @@ class Server:
             self.app,
             host=self.host,
             port=self.port,
-            log_level="info"
+            log_level="info",
+            log_config=log_config,
+            access_log=True,
         )
 
         server = uvicorn.Server(uvicorn_config)

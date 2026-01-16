@@ -70,3 +70,4 @@ class Controller:
             except Exception as e:
                 log.error(f"Failed to start module {module_name}: {e}")
                 raise RuntimeError(f"Failed to start module {module_name}") from e
+
