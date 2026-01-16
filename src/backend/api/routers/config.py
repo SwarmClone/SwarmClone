@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
+from typing import Any
 from pydantic import BaseModel
 
 from backend.core import controller
@@ -7,7 +8,7 @@ from backend.core import controller
 router = APIRouter(prefix="/config", tags=["config"])
 
 class ConfigUpdateRequest(BaseModel):
-    data: dict[str, str]
+    data: dict[str, Any]
 
 @router.post("/", response_class=JSONResponse)
 async def update_config(request: Request, config_update: ConfigUpdateRequest):
