@@ -1,8 +1,7 @@
-from src.backend.core.controller import Controller
-
-
-from backend.core.event_bus import Event
 from backend.shared.logger import log
+from backend.core.event_bus import Event
+from backend.core.controller import Controller
+
 from typing import Any
 
 #测试各种功能的运行情况用的AI模块
@@ -15,6 +14,7 @@ class TestAI:
             message_events={"chat": self.handle_chat_message}
         )
         self.controller: Controller = controller
+        log.info(f"{self.name} initialized")
 
     def config_update(self, new_config: Any) -> None:
         if new_config == "1":
