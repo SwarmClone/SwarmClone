@@ -1,12 +1,9 @@
-from flask import Flask
+import uvicorn
+from fastapi import FastAPI
+from api.routers.root import roots
 
-app = Flask("SwarmCloneBackend")
-
-
-@app.route('/')
-def hello():
-    return 'Hello from SwarmCloneBackend!'
-
+app = FastAPI()
+app.include_router(roots)
 
 if __name__ == '__main__':
-    app.run(host="127.0.0.1", port=8192)
+    uvicorn.run(app, host='127.0.0.1', port=4927)
