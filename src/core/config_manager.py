@@ -11,36 +11,36 @@ class ConfigEventBus:
         # str: 配置名称, Dict[str, Callable]: 需要订阅这个配置的模块和其对应的回调函数
         self._subscribers: Dict[str, Dict[str, Callable]] = {}  # type: ignore
 
-    def subscribe(self, module_name: str, event_type: str, callback: Callable[[Any], None]) -> None:
+    def subscribe(self, module_name: str, event_name: str, callback: Callable[[Any], None]) -> None:
         """
-        订阅特定类型的配置变更事件。只有订阅了相同event_type的模块才能接收特定的配置更改。
+        订阅特定类型的配置变更事件。只有订阅了相同 event_name 的模块才能接收特定的配置更改。
         这考虑到配置中的一个更改可能需要多个模块来处理它。
 
         :param module_name: 订阅模块的名称，用于标识订阅者
-        :param event_type: 事件类型字符串，用于区分不同类型的配置变更事件
+        :param event_name: 事件名称字符串，用于区分不同类型的配置变更事件
         :param callback: 回调函数，当事件发生时被调用，回调函数收到的就是新的配置的值
         :return: 无返回值
         """
-        if event_type not in self._subscribers:
-            self._subscribers[event_type] = {}
-        self._subscribers[event_type][module_name] = callback
-        log.debug(f"Module {module_name} subscribed to event {event_type}")
+        if event_name not in self._subscribers:
+            self._subscribers[event_name] = {}
+        self._subscribers[event_name][module_name] = callback
+        log.debug(f"Module {module_name} subscribed to event {event_name}")
 
-    def publish(self, event_type: str, config_data: Any) -> None:
+    def publish(self, event_name: str, config_data: Any) -> None:
         """
         发布配置更变事件给所有订阅该事件的模块
-        :param event_type: 事件类型
+        :param event_name: 事件类型
         :param config_data: 配置数据，将传递给所有订阅该事件的模块
         :return:  无返回值
         """
-        if event_type in self._subscribers:
-            log.debug(f"Publishing event {event_type} to {len(self._subscribers[event_type])} modules")
+        if event_name in self._subscribers:
+            log.debug(f"Publishing event {event_name} to {len(self._subscribers[event_name])} modules")
             # 遍历所有订阅了该事件的模块
-            for module_name, callback in self._subscribers[event_type].items():
+            for module_name, callback in self._subscribers[event_name].items():
                 try:
                     callback(config_data)
                 except Exception as e:
-                    log.error(f"Error notifying module {module_name} for event {event_type}: {e}")
+                    log.error(f"Error notifying module {module_name} for event {event_name}: {e}")
 
 
 class ConfigManager:
@@ -124,9 +124,9 @@ class ConfigManager:
 
         # 只有当传入的配置值发生改变时才发布通知
         if old_value != value:
-            event_type = f"{module_name}.{config_key}"
-            self.event_bus.publish(event_type, value)
-            log.debug(f"Config changed: {event_type} = {value}")
+            event_name = f"{module_name}.{config_key}"
+            self.event_bus.publish(event_name, value)
+            log.debug(f"Config changed: {event_name} = {value}")
 
     def register(self, module_name: str, config_key: str,
                  default_value: Any, callback: Callable[[Any], None]) -> None:
@@ -138,8 +138,8 @@ class ConfigManager:
         :param callback: 回调函数，当配置值改变时会被调用，接收新的配置值作为参数
         :return:  无返回值
         """
-        event_type = f"{module_name}.{config_key}"
-        self.event_bus.subscribe(module_name, event_type, callback)
+        event_name = f"{module_name}.{config_key}"
+        self.event_bus.subscribe(module_name, event_name, callback)
 
         if not self.has_config(module_name, config_key):
             self.set(module_name, config_key, default_value)

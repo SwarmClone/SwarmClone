@@ -185,7 +185,3 @@ class EventBus:
     def shutdown(self):
         """关闭事件总线，清理所有资源"""
         self._executor.shutdown(wait=True)
-
-
-# 全局事件总线实例
-event_bus = EventBus()
