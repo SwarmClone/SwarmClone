@@ -7,6 +7,7 @@ requires-python = ">=3.13"
 
 dependencies = [
     "flask>=3.1.2",
+    "ruamel-yaml>=0.19.1",
 ]
 
 [build-system]

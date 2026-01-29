@@ -2,6 +2,9 @@ import time
 from core.api_server import APIServer
 from flask import Request
 
+from utils.logger import log
+
+
 def root_page_handler(request: Request):
 
     host = request.host
@@ -77,17 +80,17 @@ def main():
         api_server.start()
         api_server.add_route("/", methods=["GET"], handler=root_page_handler)
 
-        print(f"Server running at http://127.0.0.1:{port}/")
-        print("Press Ctrl+C to stop...")
+        log.info(f"Server running at http://127.0.0.1:{port}/")
+        log.info("Press Ctrl+C to stop...")
 
         while True:
             time.sleep(1)
 
     except KeyboardInterrupt:
-        print("\nReceived stop signal...")
+        log.info("Received stop signal...")
         api_server.stop()
     except Exception as e:
-        print(f"Error: {e}")
+        log.error(f"Error: {e}")
         api_server.stop()
         raise
 

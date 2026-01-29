@@ -5,6 +5,9 @@ from typing import List, Callable, Dict, Any
 from flask import Flask, request, jsonify, Response
 from werkzeug.serving import make_server
 
+from utils.logger import log
+
+
 def _command_listener(conn, routes_dict: Dict, routes_lock: threading.Lock, stop_event: threading.Event):
     while not stop_event.is_set():
         try:
@@ -91,7 +94,7 @@ def _flask_app_worker(conn: mp.Pipe, port: int):
         try:
             server.handle_request()
         except KeyboardInterrupt:
-            print("KeyboardInterrupt received, shutting down server...")
+            log.info("KeyboardInterrupt received, shutting down server...")
             break
         except Exception:
             break  # 出错时直接退出循环
@@ -127,7 +130,14 @@ class APIServer:
         self.process.terminate()
         raise RuntimeError("Server failed to start within 5 seconds")
 
-    def add_route(self, path: str, methods: List[str], handler: Callable):
+    def add_route(self, path: str, methods: List[str], handler: Callable) -> Dict[str, Any]:
+        """
+        添加一个动态路由
+        :param path:  路由路径，用于指定URL的路径部分
+        :param methods:  支持的HTTP方法列表，如GET、POST等
+        :param handler:  处理请求的回调函数，当请求匹配该路由时被调用
+        :return:  如果成功添加路由，返回服务器处理结果；如果超时则抛出异常
+        """
         if not self.process or not self.process.is_alive():
             raise RuntimeError("Server not started")
 
@@ -135,14 +145,19 @@ class APIServer:
             'cmd': 'add',
             'path': path,
             'handler': handler,
-            'methods': methods if methods else ['GET']
+            'methods': methods if methods else ['GET']  # 如果未指定HTTP方法，默认使用GET
         })
 
         if self.parent_conn.poll(5):
             return self.parent_conn.recv()
         raise TimeoutError("Add route timeout")
 
-    def remove_route(self, path: str):
+    def remove_route(self, path: str) -> Dict[str, Any]:
+        """
+        移除一个动态路由，一并解绑该动态路由路径下绑定的回调函数
+        :param path: 要移除的路由路径
+        :return:  返回操作结果，包含状态和消息
+        """
         if not self.process or not self.process.is_alive():
             return {'status': 'error', 'msg': 'server not running'}
 
@@ -182,4 +197,4 @@ class APIServer:
             self.parent_conn.close()
             self.child_conn.close()
             self.process = None
-            print("Flask server stopped")
+            log.info("Flask server stopped")
