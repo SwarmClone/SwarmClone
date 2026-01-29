@@ -179,13 +179,6 @@ class APIServer:
                     self.parent_conn.recv()
                 except EOFError:
                     pass
-            try:
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.settimeout(1)
-                s.connect((self.host, self.port))
-                s.close()
-            except:
-                pass  # 服务器可能已关闭，忽略错误
 
             self.process.join(timeout=2)
 
@@ -197,4 +190,4 @@ class APIServer:
             self.parent_conn.close()
             self.child_conn.close()
             self.process = None
-            log.info("Flask server stopped")
+            log.info("API server stopped.")

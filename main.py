@@ -72,6 +72,7 @@ def root_page_handler(request: Request):
     """
     return html_content
 
+
 def main():
     port = 4927
     api_server = APIServer(port=port)
