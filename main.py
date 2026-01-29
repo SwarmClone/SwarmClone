@@ -16,6 +16,7 @@ def root_page_handler(request: Request):
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>SwarmClone Backend</title>
+        <link rel="icon" href="#" type="image/x-icon">
         <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
             body {
