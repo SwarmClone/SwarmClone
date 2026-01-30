@@ -1,7 +1,15 @@
+import asyncio
+import signal
+import sys
 import time
+from sys import exc_info
+
 from core.api_server import APIServer
 from flask import Request
 
+from core.config_manager import ConfigManager
+from core.event_bus import EventBus
+from core.module_manager import ModuleManager
 from utils.logger import log
 
 
@@ -74,28 +82,64 @@ def root_page_handler(request: Request):
     return html_content
 
 
-def main():
+async def main():
     port = 4927
+
     api_server = APIServer(port=port)
+    config_manager = ConfigManager()
+    event_bus = EventBus()
+
+    api_server.start()
+    api_server.add_route("/", methods=["GET"], handler=root_page_handler)
+
+    module_manager = ModuleManager(config_manager, api_server, event_bus)
+    module_manager.discover_modules()
+
+    shutdown_event = asyncio.Event()
+    def signal_handler(signum, frame):
+        log.info(f"收到信号 {signum}，开始停止服务...")
+        api_server.stop()
+        shutdown_event.set()
+
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
 
     try:
-        api_server.start()
-        api_server.add_route("/", methods=["GET"], handler=root_page_handler)
+        init_success = await module_manager.initialize_all_enabled()
+        if not init_success:
+            log.error("初始化模块过程中出现问题，无法将继续执行代码，请检查配置文件或联系开发者")
+            return
+
+        initialized = module_manager.get_initialized_modules()
+        log.info(f"已初始化 {len(initialized)} 个模块: {', '.join(initialized)}")
+
+        # 等待事件总线准备
+        await asyncio.sleep(1)
+
+        await module_manager.start_all_enabled()
+
+        # 等待模块完全启动
+        await asyncio.sleep(2)
+
+        started = module_manager.get_started_modules()
+        log.info(f"已启动 {len(started)} 个模块: {started}")
 
         log.info(f"Server running at http://127.0.0.1:{port}/")
         log.info("Press Ctrl+C to stop...")
 
-        while True:
-            time.sleep(1)
+        # 主循环
+        while not shutdown_event.is_set():
+            await asyncio.sleep(1)
 
-    except KeyboardInterrupt:
-        log.info("Received stop signal...")
-        api_server.stop()
     except Exception as e:
-        log.error(f"Error: {e}")
+        log.error(f"Error: {e}", exc_info=True)
+    finally:
+        await module_manager.stop_all()
         api_server.stop()
-        raise
+        log.info("All server stopped")
 
 
 if __name__ == '__main__':
-    main()
+    if sys.platform == 'win32':
+        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+    asyncio.run(main())

@@ -1,6 +1,4 @@
-import socket
 import threading
-import multiprocessing as mp
 from typing import List, Callable, Dict, Any
 from flask import Flask, request, jsonify, Response
 from werkzeug.serving import make_server
@@ -8,186 +6,105 @@ from werkzeug.serving import make_server
 from utils.logger import log
 
 
-def _command_listener(conn, routes_dict: Dict, routes_lock: threading.Lock, stop_event: threading.Event):
-    while not stop_event.is_set():
-        try:
-            if conn.poll(0.5):
-                cmd = conn.recv()
-                action = cmd.get('cmd')
-
-                if action == 'add':
-                    with routes_lock:
-                        routes_dict[cmd['path']] = {
-                            'handler': cmd['handler'],
-                            'methods': cmd.get('methods', ['GET'])
-                        }
-                    conn.send({'status': 'ok', 'action': 'added', 'path': cmd['path']})
-
-                elif action == 'remove':
-                    with routes_lock:
-                        removed = routes_dict.pop(cmd['path'], None) is not None
-                    conn.send({
-                        'status': 'ok',
-                        'action': 'removed',
-                        'path': cmd['path'],
-                        'existed': removed
-                    })
-
-                elif action == 'stop':
-                    conn.send({'status': 'ok', 'action': 'stopping'})
-                    stop_event.set()
-                    break
-
-        except (EOFError, ConnectionError):
-            break
-        except Exception as e:
-            try:
-                conn.send({'status': 'error', 'msg': str(e)})
-            except:
-                pass
-
-
-def _flask_app_worker(conn: mp.Pipe, port: int):
-    app = Flask(__name__)
-    routes_lock = threading.Lock()
-    stop_event = threading.Event()
-    dynamic_routes: Dict[str, Dict[str, Any]] = {}
-
-    @app.route('/', defaults={'path': ''}, methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
-    @app.route('/<path:path>', methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
-    def dispatcher(path):
-        full_path = '/' + path if path else '/'
-
-        with routes_lock:
-            route_info = dynamic_routes.get(full_path)
-
-        if route_info:
-            handler = route_info['handler']
-            try:
-                result = handler(request)
-                if isinstance(result, str):
-                    return Response(result, mimetype='text/html')
-                elif isinstance(result, tuple):
-                    return jsonify(result[0]), result[1]
-                else:
-                    return jsonify(result)
-            except Exception as e:
-                return jsonify({"error": str(e)}), 500
-
-        return jsonify({"error": "not found", "path": full_path}), 404
-
-    listener_thread = threading.Thread(
-        target=_command_listener,
-        args=(conn, dynamic_routes, routes_lock, stop_event),
-        daemon=True  # 设为守护线程，避免阻碍主程序退出
-    )
-    listener_thread.start()
-
-    server = make_server('127.0.0.1', port, app, threaded=True)
-
-    server.timeout = 0.5
-
-    conn.send({'status': 'ready', 'port': port})
-
-    # 循环处理请求，直到收到停止信号
-    while not stop_event.is_set():
-        try:
-            server.handle_request()
-        except KeyboardInterrupt:
-            log.info("KeyboardInterrupt received, shutting down server...")
-            break
-        except Exception:
-            break  # 出错时直接退出循环
-
-    server.shutdown()
-    listener_thread.join(timeout=2)
-    conn.close()
-
-
 class APIServer:
     def __init__(self, port: int, host: str = "127.0.0.1"):
         self.port = port
         self.host = host
-        self.parent_conn, self.child_conn = mp.Pipe(duplex=True)
-        self.process: mp.Process = None
+        self.app = Flask(__name__)
+        self.routes: Dict[str, Dict[str, Any]] = {}
+        self.routes_lock = threading.Lock()
+        self.server_thread = None
+        self.server = None
+        self.stop_event = threading.Event()
+
+        # 设置一个通用的dispatcher
+        @self.app.route('/', defaults={'path': ''}, methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+        @self.app.route('/<path:path>', methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+        def dispatcher(path):
+            full_path = '/' + path if path else '/'
+
+            with self.routes_lock:
+                route_info = self.routes.get(full_path)
+
+            if route_info:
+                handler = route_info['handler']
+                try:
+                    # 调用处理器
+                    result = handler(request)
+                    if isinstance(result, str):
+                        return Response(result, mimetype='text/html')
+                    elif isinstance(result, tuple):
+                        return jsonify(result[0]), result[1]
+                    else:
+                        return jsonify(result)
+                except Exception as e:
+                    log.error(f"Error handling request {full_path}: {e}")
+                    return jsonify({"error": str(e)}), 500
+
+            return jsonify({"error": "not found", "path": full_path}), 404
 
     def start(self):
-        if self.process and self.process.is_alive():
+        """启动服务器"""
+        if self.server_thread and self.server_thread.is_alive():
             return True
 
-        self.process = mp.Process(
-            target=_flask_app_worker,
-            args=(self.child_conn, self.port),
-            name=f"APIServer-{self.port}"
+        # 创建服务器
+        self.server = make_server(self.host, self.port, self.app, threaded=True)
+
+        # 在后台线程中运行服务器
+        self.server_thread = threading.Thread(
+            target=self._run_server,
+            daemon=True,
+            name="APIServer-Thread"
         )
-        self.process.start()
+        self.server_thread.start()
 
-        if self.parent_conn.poll(5):
-            msg = self.parent_conn.recv()
-            if isinstance(msg, dict) and msg.get('status') == 'ready':
-                return True
+        log.info(f"API服务器启动在 {self.host}:{self.port}")
+        return True
 
-        self.process.terminate()
-        raise RuntimeError("Server failed to start within 5 seconds")
+    def _run_server(self):
+        """运行服务器的主循环"""
+        log.info(f"API服务器线程启动")
+        try:
+            self.server.serve_forever()
+        except Exception as e:
+            log.error(f"API服务器错误: {e}")
 
     def add_route(self, path: str, methods: List[str], handler: Callable) -> Dict[str, Any]:
         """
         添加一个动态路由
-        :param path:  路由路径，用于指定URL的路径部分
-        :param methods:  支持的HTTP方法列表，如GET、POST等
-        :param handler:  处理请求的回调函数，当请求匹配该路由时被调用
-        :return:  如果成功添加路由，返回服务器处理结果；如果超时则抛出异常
         """
-        if not self.process or not self.process.is_alive():
-            raise RuntimeError("Server not started")
+        if methods is None:
+            methods = ['GET']
 
-        self.parent_conn.send({
-            'cmd': 'add',
-            'path': path,
-            'handler': handler,
-            'methods': methods if methods else ['GET']  # 如果未指定HTTP方法，默认使用GET
-        })
+        with self.routes_lock:
+            self.routes[path] = {
+                'handler': handler,
+                'methods': methods
+            }
 
-        if self.parent_conn.poll(5):
-            return self.parent_conn.recv()
-        raise TimeoutError("Add route timeout")
+        log.debug(f"添加路由: {path}, 方法: {methods}")
+        return {'status': 'ok', 'action': 'added', 'path': path}
 
     def remove_route(self, path: str) -> Dict[str, Any]:
         """
-        移除一个动态路由，一并解绑该动态路由路径下绑定的回调函数
-        :param path: 要移除的路由路径
-        :return:  返回操作结果，包含状态和消息
+        移除一个动态路由
         """
-        if not self.process or not self.process.is_alive():
-            return {'status': 'error', 'msg': 'server not running'}
+        with self.routes_lock:
+            removed = self.routes.pop(path, None) is not None
 
-        self.parent_conn.send({'cmd': 'remove', 'path': path})
-
-        if self.parent_conn.poll(3):
-            return self.parent_conn.recv()
-        raise TimeoutError("Remove route timeout")
+        log.debug(f"移除路由: {path}, 存在: {removed}")
+        return {
+            'status': 'ok',
+            'action': 'removed',
+            'path': path,
+            'existed': removed
+        }
 
     def stop(self):
-        if not self.process or not self.process.is_alive():
-            return
-
-        try:
-            self.parent_conn.send({'cmd': 'stop'})
-
-            if self.parent_conn.poll(timeout=1):
-                try:
-                    self.parent_conn.recv()
-                except EOFError:
-                    pass
-
-            self.process.join(timeout=2)
-
-            if self.process.is_alive():
-                self.process.terminate()
-                self.process.join()
-
-        finally:
-            self.parent_conn.close()
-            self.child_conn.close()
-            self.process = None
-            log.info("API server stopped.")
+        """停止服务器"""
+        if self.server:
+            self.server.shutdown()
+            if self.server_thread:
+                self.server_thread.join(timeout=2)
+            log.info("API服务器已停止")

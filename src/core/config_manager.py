@@ -1,7 +1,6 @@
+import json
 from pathlib import Path
 from typing import Any, Callable, Dict
-from ruamel.yaml import YAML
-from ruamel.yaml.comments import CommentedMap
 
 from utils.logger import log
 
@@ -38,22 +37,20 @@ class ConfigEventBus:
             # 遍历所有订阅了该事件的模块
             for module_name, callback in self._subscribers[event_name].items():
                 try:
-                    callback(config_data)
+                    if config_data is not None:
+                        callback(config_data)
                 except Exception as e:
                     log.error(f"Error notifying module {module_name} for event {event_name}: {e}")
 
 
 class ConfigManager:
     """
-    ConfigManager 可以在 YAML 文件中加载和保存配置数据
+    ConfigManager 可以在 JSON 文件中加载和保存配置数据
     它为模块订阅配置更改提供了一个事件总线
     """
-    def __init__(self, config_file: Path = Path("config.yml")):
+    def __init__(self, config_file: Path = Path("config.json")):
         self.config_file = config_file
-        self.yaml = YAML()
-        self.yaml.indent(mapping=2, sequence=4, offset=2)
-        self.yaml.preserve_quotes = True
-        self.config_data: CommentedMap = CommentedMap()  # Keep comments in config file
+        self.config_data: Dict[str, Any] = {}
         self.event_bus = ConfigEventBus()
         self._load_config()
 
@@ -61,21 +58,22 @@ class ConfigManager:
         if self.config_file.exists():
             try:
                 with open(self.config_file, 'r', encoding='utf-8') as f:
-                    loaded_data = self.yaml.load(f)
-                    if isinstance(loaded_data, CommentedMap):
+                    loaded_data = json.load(f)
+                    if isinstance(loaded_data, dict):
                         self.config_data = loaded_data
-                    elif loaded_data is None:
-                        self.config_data = CommentedMap()
-                        log.warning(f"Empty YAML file {self.config_file}, using empty config")
                     else:
-                        # 如果不是CommentedMap，转换一下
-                        self.config_data = CommentedMap(loaded_data)
+                        # 如果根不是字典，初始化为空字典
+                        self.config_data = {}
+                        log.warning(f"Invalid JSON structure in {self.config_file}, using empty config")
                 log.info(f"Configuration loaded from {self.config_file}")
+            except json.JSONDecodeError as e:
+                log.error(f"JSON decode error in configuration: {e}")
+                self.config_data = {}
             except Exception as e:
                 log.error(f"Error loading configuration: {e}")
-                self.config_data = CommentedMap()
+                self.config_data = {}
         else:
-            self.config_data = CommentedMap()
+            self.config_data = {}
             self._save_config()
             log.info(f"Created new configuration file at {self.config_file}")
 
@@ -83,14 +81,14 @@ class ConfigManager:
         try:
             self.config_file.parent.mkdir(parents=True, exist_ok=True)
             with open(self.config_file, 'w', encoding='utf-8') as f:
-                self.yaml.dump(self.config_data, f)
+                json.dump(self.config_data, f, ensure_ascii=False, indent=2)
             log.debug(f"Configuration saved to {self.config_file}")
         except Exception as e:
             log.error(f"Error saving configuration: {e}")
 
     def _ensure_module_exists(self, module_name: str) -> None:
         if module_name not in self.config_data:
-            self.config_data[module_name] = CommentedMap()
+            self.config_data[module_name] = {}
             self._save_config()
 
     def get(self, module_name: str, config_key: str, default: Any = None) -> Any:
@@ -156,11 +154,11 @@ class ConfigManager:
                 config_key in self.config_data[module_name]
         )
 
-    def get_module_configs(self, module_name: str) -> CommentedMap:
+    def get_module_configs(self, module_name: str) -> Dict[str, Any]:
         """
         获取指定模块的所有配置
         :param module_name: 模块名
-        :return: 一个 CommentedMap ，包含该模块注册的所有的配置键
+        :return: 一个字典，包含该模块注册的所有的配置键
         """
         self._ensure_module_exists(module_name)
         return self.config_data[module_name]

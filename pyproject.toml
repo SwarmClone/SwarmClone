@@ -6,8 +6,9 @@ license = "Apache-2.0"
 requires-python = ">=3.13"
 
 dependencies = [
+    "asyncio>=4.0.0",
+    "dill>=0.4.1",
     "flask>=3.1.2",
-    "ruamel-yaml>=0.19.1",
 ]
 
 [build-system]
