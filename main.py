@@ -1,16 +1,27 @@
-import asyncio
-import signal
+# SwarmCloneBackend
+# Copyright (c) 2026 SwarmClone <github.com/SwarmClone> and contributors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import sys
-import time
-from sys import exc_info
-
-from core.api_server import APIServer
+import signal
+import asyncio
 from flask import Request
 
+from utils.logger import log
+from core.api_server import APIServer
 from core.config_manager import ConfigManager
 from core.event_bus import EventBus
 from core.module_manager import ModuleManager
-from utils.logger import log
 
 
 def root_page_handler(request: Request):

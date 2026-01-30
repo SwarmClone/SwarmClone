@@ -1,12 +1,11 @@
-# modules/core/sample02_main.py
-import asyncio
 import time
+import asyncio
 
+from utils.logger import log
+from core.event_bus import EventBus
 from core.api_server import APIServer
 from core.base_module import BaseModule
 from core.config_manager import ConfigManager
-from core.event_bus import EventBus
-from utils.logger import log
 
 
 class Sample02Module(BaseModule):

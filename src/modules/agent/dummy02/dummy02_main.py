@@ -1,8 +1,7 @@
-import asyncio
 import time
 
-from core.base_module import BaseModule
 from utils.logger import log
+from core.base_module import BaseModule
 
 
 class Dummy02Module(BaseModule):

@@ -2,11 +2,11 @@ import asyncio
 import time
 import threading
 
+from utils.logger import log
+from core.event_bus import EventBus
 from core.api_server import APIServer
 from core.base_module import BaseModule
 from core.config_manager import ConfigManager
-from core.event_bus import EventBus
-from utils.logger import log
 
 
 class Dummy01Module(BaseModule):

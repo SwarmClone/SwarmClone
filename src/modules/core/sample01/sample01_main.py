@@ -1,5 +1,5 @@
-import asyncio
 import time
+import asyncio
 import threading
 
 from core.base_module import BaseModule
