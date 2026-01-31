@@ -7,7 +7,7 @@ requires-python = ">=3.13"
 
 dependencies = [
     "asyncio>=4.0.0",
-    "flask>=3.1.2",
+    "quart>=0.20.0",
 ]
 
 [build-system]
@@ -16,3 +16,8 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[dependency-groups]
+dev = [
+    "pyinstaller>=6.18.0",
+]

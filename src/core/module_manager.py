@@ -210,7 +210,7 @@ class ModuleManager:
             self._apply_module_config(module_info)
 
             # 初始化模块（调用setup方法）
-            module_info.instance.setup()
+            await module_info.instance.setup()
 
             # 现在模块已初始化，但尚未启动
             module_info.state = ModuleState.INITIALIZED
@@ -297,7 +297,7 @@ class ModuleManager:
 
         try:
             # 启动模块
-            module_info.instance.start()
+            await module_info.instance.start()
             module_info.state = ModuleState.STARTED
 
             log.info(f"模块 {module_name} 启动成功")

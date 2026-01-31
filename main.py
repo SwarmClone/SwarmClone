@@ -12,10 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import sys
-import signal
 import asyncio
-from flask import Request
+from quart import Request
 
 from utils.logger import log
 from core.api_server import APIServer
@@ -99,58 +97,49 @@ async def main():
     api_server = APIServer(port=port)
     config_manager = ConfigManager()
     event_bus = EventBus()
-
-    api_server.start()
-    api_server.add_route("/", methods=["GET"], handler=root_page_handler)
-
     module_manager = ModuleManager(config_manager, api_server, event_bus)
+
+    await api_server.start()
+    await api_server.add_route("/", methods=["GET"], handler=root_page_handler)
     module_manager.discover_modules()
 
-    shutdown_event = asyncio.Event()
-    def signal_handler(signum, frame):
-        log.info(f"收到信号 {signum}，开始停止服务...")
-        api_server.stop()
-        shutdown_event.set()
+    init_success = await module_manager.initialize_all_enabled()
+    if not init_success:
+        log.error("模块初始化失败，程序退出")
+        return
 
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
+    await asyncio.sleep(1)
+    await module_manager.start_all_enabled()
+    await asyncio.sleep(2)
+
+    started = module_manager.get_started_modules()
+    log.info(f"服务运行中 - 已启动 {len(started)} 个模块: {', '.join(started)}")
+
+    log.info(f"访问地址: http://127.0.0.1:{port}/")
+    log.info("按 Ctrl+C 停止服务")
 
     try:
-        init_success = await module_manager.initialize_all_enabled()
-        if not init_success:
-            log.error("初始化模块过程中出现问题，无法将继续执行代码，请检查配置文件或联系开发者")
-            return
-
-        initialized = module_manager.get_initialized_modules()
-        log.info(f"已初始化 {len(initialized)} 个模块: {', '.join(initialized)}")
-
-        # 等待事件总线准备
-        await asyncio.sleep(1)
-
-        await module_manager.start_all_enabled()
-
-        # 等待模块完全启动
-        await asyncio.sleep(2)
-
-        started = module_manager.get_started_modules()
-        log.info(f"已启动 {len(started)} 个模块: {started}")
-
-        log.info(f"Server running at http://127.0.0.1:{port}/")
-        log.info("Press Ctrl+C to stop...")
-
-        # 主循环
-        while not shutdown_event.is_set():
-            await asyncio.sleep(1)
-
-    except Exception as e:
-        log.error(f"Error: {e}", exc_info=True)
+        await api_server.server_task
+    except asyncio.CancelledError:
+        pass
     finally:
-        await module_manager.stop_all()
-        api_server.stop()
-        log.info("All server stopped")
+        log.info("正在停止服务...")
+        try:
+            await asyncio.wait_for(module_manager.stop_all(), timeout=10.0)
+        except asyncio.TimeoutError:
+            log.warning("停止模块超时，强制继续")
+        except Exception as e:
+            log.error(f"停止模块出错: {e}")
+
+        try:
+            await asyncio.wait_for(api_server.stop(), timeout=5.0)
+        except Exception:
+            pass
+        log.info("服务已停止")
 
 
 if __name__ == '__main__':
-    if sys.platform == 'win32':
-        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        pass
