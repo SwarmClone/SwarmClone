@@ -1,0 +1,6 @@
+{
+  "module_name": "dummy01",
+  "category": "agent",
+  "entry": "dummy01_main.py",
+  "class_name": "Dummy01Module"
+}
