@@ -1,3 +1,4 @@
+```python
 import time
 import asyncio
 import threading
@@ -26,7 +27,7 @@ class Sample01Module(BaseModule):
 
         # 订阅事件
         await self.subscribe("ping", self.handle_ping)
-        await self.subscribe("sample02.reply", self.handle_sample02_reply)
+        await self.subscribe("sample02.md.reply", self.handle_sample02_reply)
         await self.subscribe("dummy01.message", self.handle_dummy01_message)
         await self.subscribe("dummy02.response", self.handle_dummy02_response)
 
@@ -60,7 +61,7 @@ class Sample01Module(BaseModule):
                 # 向sample02发送请求
                 try:
                     response = loop.run_until_complete(self.request(
-                        "sample02.process",
+                        "sample02.md.process",
                         {"value": self.counter, "from": self.name},
                         timeout=5.0
                     ))
@@ -143,3 +144,4 @@ class Sample01Module(BaseModule):
         """处理dummy02响应"""
         log.info(f"[{self.name}] 收到dummy02响应: {event.data}")
         return {"final": True, "timestamp": time.time()}
+```

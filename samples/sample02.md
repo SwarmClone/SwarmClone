@@ -1,3 +1,4 @@
+```python
 import time
 import asyncio
 
@@ -33,8 +34,8 @@ class Sample02Module(BaseModule):
                        methods=["GET"], handler=self.handle_info)
 
         # 订阅事件 - 修复：订阅正确的事件名称
-        await self.subscribe("sample02.process", self.handle_sample02_process)
-        await self.subscribe("sample01.request", self.handle_sample01_request)
+        await self.subscribe("sample02.md.process", self.handle_sample02_process)
+        await self.subscribe("sample01.md.request", self.handle_sample01_request)
 
         # 状态
         self.request_count = 0
@@ -106,7 +107,7 @@ class Sample02Module(BaseModule):
         }
 
         # 发送回复给sample01
-        await self.publish("sample02.reply", response)
+        await self.publish("sample02.md.reply", response)
 
         return response
 
@@ -129,7 +130,7 @@ class Sample02Module(BaseModule):
         }
 
         # 回复给sample01
-        await self.publish("sample02.reply", response)
+        await self.publish("sample02.md.reply", response)
 
         # 同时发送给dummy01
         await self.publish("dummy01.process", response)
@@ -146,3 +147,4 @@ class Sample02Module(BaseModule):
             "by": self.name
         }
         return result
+```

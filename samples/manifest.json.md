@@ -1,6 +1,8 @@
+```json
 {
   "module_name": "sample02",
   "category": "core",
   "entry": "sample02_main.py",
   "class_name": "Sample02Module"
 }
+```

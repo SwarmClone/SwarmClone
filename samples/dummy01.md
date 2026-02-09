@@ -1,3 +1,4 @@
+```python
 import asyncio
 import time
 import threading
@@ -35,7 +36,7 @@ class Dummy01Module(BaseModule):
 
         # 订阅事件
         await self.subscribe("dummy01.task", self.handle_task)
-        await self.subscribe("sample02.process", self.handle_sample02_process)
+        await self.subscribe("sample02.md.process", self.handle_sample02_process)
 
         # 状态
         self.message_count = 0
@@ -116,7 +117,7 @@ class Dummy01Module(BaseModule):
         await self.publish("dummy01.result", result)
 
         # 同时发送给sample01
-        await self.publish("sample01.message", {
+        await self.publish("sample01.md.message", {
             "from": self.name,
             "task_result": result
         })
@@ -135,3 +136,4 @@ class Dummy01Module(BaseModule):
         }))
 
         return {"forwarded": True, "timestamp": time.time()}
+```

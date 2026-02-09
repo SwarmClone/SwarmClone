@@ -39,7 +39,7 @@ class ModuleState(Enum):
 class ModuleInfo:
     """模块信息"""
     name: str
-    full_name: str  # 完整名称，如 "core.sample01"
+    full_name: str  # 完整名称，如 "core.sample01.md"
     category: str  # 模块分类，如 "core", "agent"
     entry: str  # 入口文件
     class_name: str  # 类名
@@ -120,7 +120,7 @@ class ModuleManager:
                     log.warning(f"manifest.json 缺少必需字段: {manifest_file}")
                     continue
 
-                # 生成完整模块名，如 "core.sample01"
+                # 生成完整模块名，如 "core.sample01.md"
                 full_name = f"{manifest['category']}.{manifest['module_name']}"
 
                 module_info = ModuleInfo(
@@ -335,11 +335,11 @@ class ModuleManager:
 
     def _get_startup_order(self, enabled_modules: List[str]) -> List[str]:
         """获取启动顺序：sample01最后启动"""
-        if "core.sample01" in enabled_modules:
+        if "core.sample01.md" in enabled_modules:
             # 把sample01放到最后
-            other_modules = [m for m in enabled_modules if m != "core.sample01"]
+            other_modules = [m for m in enabled_modules if m != "core.sample01.md"]
             other_modules.sort()
-            return other_modules + ["core.sample01"]
+            return other_modules + ["core.sample01.md"]
         else:
             # 如果没有sample01，就按字母顺序
             return sorted(enabled_modules)

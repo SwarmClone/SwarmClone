@@ -1,25 +1,5 @@
 {
   "enabled_modules": [
-    "core.sample01",
-    "core.sample02",
-    "agent.dummy01",
-    "agent.dummy02"
-  ],
-  "sample01": {
-    "greeting": "你好，我是Sample01",
-    "interval": 0.5,
-    "max_messages": 20
-  },
-  "sample02": {
-    "multiplier": 2,
-    "delay": 0.1
-  },
-  "dummy01": {
-    "prefix": "[D01] ",
-    "auto_reply": true
-  },
-  "dummy02": {
-    "suffix": " [D02处理]",
-    "enable_logging": true
-  }
+
+  ]
 }

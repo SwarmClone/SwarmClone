@@ -1,3 +1,4 @@
+```python
 import time
 
 from utils.logger import log
@@ -102,3 +103,4 @@ class Dummy02Module(BaseModule):
         await self.publish("system.final_result", processed)
 
         return {"finalized": True, "timestamp": time.time()}
+```

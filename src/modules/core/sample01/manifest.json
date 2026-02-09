@@ -1,6 +1,0 @@
-{
-  "module_name": "sample01",
-  "category": "core",
-  "entry": "sample01_main.py",
-  "class_name": "Sample01Module"
-}
