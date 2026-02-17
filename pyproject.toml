@@ -6,9 +6,7 @@ license = "Apache-2.0"
 requires-python = ">=3.13"
 
 dependencies = [
-    "asyncio>=4.0.0",
-    "quart>=0.20.0",
-    "requests>=2.32.5",
+    "quart>=0.20.0"
 ]
 
 [build-system]
