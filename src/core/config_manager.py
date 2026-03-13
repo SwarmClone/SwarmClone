@@ -37,7 +37,7 @@ class ConfigEventBus:
         if event_name not in self._subscribers:
             self._subscribers[event_name] = {}
         self._subscribers[event_name][module_name] = callback
-        log.debug(f"Module {module_name} subscribed to event {event_name}")
+        log.debug(f"模块 {module_name} 订阅配置更变事件： {event_name}")
 
     def publish(self, event_name: str, config_data: Any) -> None:
         """
@@ -47,14 +47,14 @@ class ConfigEventBus:
         :return:  无返回值
         """
         if event_name in self._subscribers:
-            log.debug(f"Publishing event {event_name} to {len(self._subscribers[event_name])} modules")
+            log.debug(f"将配置更变事件 {event_name} 发布到模块： {len(self._subscribers[event_name])}")
             # 遍历所有订阅了该事件的模块
             for module_name, callback in self._subscribers[event_name].items():
                 try:
                     if config_data is not None:
                         callback(config_data)
                 except Exception as e:
-                    log.error(f"Error notifying module {module_name} for event {event_name}: {e}")
+                    log.error(f"为模块 {module_name} 通知配置更变事件 {event_name} 发生错误：{e}")
 
 
 class ConfigManager:
@@ -78,27 +78,27 @@ class ConfigManager:
                     else:
                         # 如果根不是字典，初始化为空字典
                         self.config_data = {}
-                        log.warning(f"Invalid JSON structure in {self.config_file}, using empty config")
-                log.info(f"Configuration loaded from {self.config_file}")
+                        log.warning(f"在 {self.config_file} 不存在配置文件，使用默认配置")
+                log.info(f"已从 {self.config_file.absolute()} 加载配置文件")
             except json.JSONDecodeError as e:
-                log.error(f"JSON decode error in configuration: {e}")
+                log.error(f"解析配置文件时出错：{e}")
                 self.config_data = {}
             except Exception as e:
-                log.error(f"Error loading configuration: {e}")
+                log.error(f"加载配置文件时出现错误：{e}")
                 self.config_data = {}
         else:
             self.config_data = {}
             self._save_config()
-            log.info(f"Created new configuration file at {self.config_file}")
+            log.info(f"于 {self.config_file} 创建新的配置文件")
 
     def _save_config(self) -> None:
         try:
             self.config_file.parent.mkdir(parents=True, exist_ok=True)
             with open(self.config_file, 'w', encoding='utf-8') as f:
                 json.dump(self.config_data, f, ensure_ascii=False, indent=2)
-            log.debug(f"Configuration saved to {self.config_file}")
+            log.debug(f"将配置保存到： {self.config_file}")
         except Exception as e:
-            log.error(f"Error saving configuration: {e}")
+            log.error(f"保存配置时发生错误： {e}")
 
     def _ensure_module_exists(self, module_name: str) -> None:
         if module_name not in self.config_data:
@@ -138,7 +138,7 @@ class ConfigManager:
         if old_value != value:
             event_name = f"{module_name}.{config_key}"
             self.event_bus.publish(event_name, value)
-            log.debug(f"Config changed: {event_name} = {value}")
+            log.debug(f"配置发生更变： {event_name} = {value}")
 
     def register(self, module_name: str, config_key: str,
                  default_value: Any, callback: Callable[[Any], None]) -> None:

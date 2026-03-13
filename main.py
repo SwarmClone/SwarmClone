@@ -105,7 +105,7 @@ async def main():
 
     init_success = await module_manager.initialize_all_enabled()
     if not init_success:
-        log.error("模块初始化失败，程序退出")
+        log.error("模块初始化失败或没有任何可以启用的模块，程序退出！")
         return
 
     await asyncio.sleep(1)

@@ -324,25 +324,11 @@ class ModuleManager:
             log.warning("有模块尚未初始化，正在初始化所有模块...")
             await self.initialize_all_enabled()
 
-        # 按特定顺序启动模块：sample01最后启动
-        sorted_modules = self._get_startup_order(enabled_modules)
-
-        for module_name in sorted_modules:
+        for module_name in enabled_modules:
             if module_name in self.modules:
                 await self.start_module(module_name)
             else:
                 log.warning(f"启用的模块 {module_name} 未发现，跳过")
-
-    def _get_startup_order(self, enabled_modules: List[str]) -> List[str]:
-        """获取启动顺序：sample01最后启动"""
-        if "core.sample01.md" in enabled_modules:
-            # 把sample01放到最后
-            other_modules = [m for m in enabled_modules if m != "core.sample01.md"]
-            other_modules.sort()
-            return other_modules + ["core.sample01.md"]
-        else:
-            # 如果没有sample01，就按字母顺序
-            return sorted(enabled_modules)
 
     async def stop_module(self, module_name: str) -> bool:
         """停止单个模块"""
@@ -368,9 +354,7 @@ class ModuleManager:
         """停止所有模块"""
         enabled_modules = self.module_configs.get("enabled_modules", [])
         if enabled_modules:
-            # 按照启动顺序的逆序停止
-            startup_order = self._get_startup_order(enabled_modules)
-            for module_name in reversed(startup_order):
+            for module_name in reversed(enabled_modules):
                 await self.stop_module(module_name)
         else:
             for module_name in list(self.modules.keys()):
