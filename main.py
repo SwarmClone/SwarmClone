@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import asyncio
+import os
+from dotenv import load_dotenv
 from quart import Request
 
 from utils.logger import log
@@ -92,7 +94,10 @@ def root_page_handler(request: Request):
 
 
 async def main():
-    port = 4927
+    load_dotenv()
+
+    host = os.getenv("HOST", "127.0.0.1")
+    port = int(os.getenv("PORT", "4927"))
 
     api_server = APIServer(port=port)
     config_manager = ConfigManager()
@@ -115,7 +120,7 @@ async def main():
     started = module_manager.get_started_modules()
     log.info(f"服务运行中 - 已启动 {len(started)} 个模块: {', '.join(started)}")
 
-    log.info(f"访问地址: http://127.0.0.1:{port}/")
+    log.info(f"访问地址: https://{host}:{port}/")
     log.info("按 Ctrl+C 停止服务")
 
     try:

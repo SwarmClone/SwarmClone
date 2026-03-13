@@ -146,6 +146,9 @@ ENV/
 env.bak/
 venv.bak/
 
+# Configuration files (local settings)
+config.toml
+
 # Spyder project settings
 .spyderproject
 .spyproject

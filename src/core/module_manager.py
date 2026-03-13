@@ -120,7 +120,7 @@ class ModuleManager:
                     log.warning(f"manifest.json 缺少必需字段: {manifest_file}")
                     continue
 
-                # 生成完整模块名，如 "core.sample01.md"
+                # 生成完整模块名，如 "core.sample01"
                 full_name = f"{manifest['category']}.{manifest['module_name']}"
 
                 module_info = ModuleInfo(

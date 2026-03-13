@@ -12,7 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import json
+import tomli
+import tomli_w
 from pathlib import Path
 from typing import Any, Callable, Dict
 
@@ -59,10 +60,10 @@ class ConfigEventBus:
 
 class ConfigManager:
     """
-    ConfigManager 可以在 JSON 文件中加载和保存配置数据
+    ConfigManager 可以在 TOML 文件中加载和保存配置数据
     它为模块订阅配置更改提供了一个事件总线
     """
-    def __init__(self, config_file: Path = Path("config.json")):
+    def __init__(self, config_file: Path = Path("config.toml")):
         self.config_file = config_file
         self.config_data: Dict[str, Any] = {}
         self.event_bus = ConfigEventBus()
@@ -71,8 +72,8 @@ class ConfigManager:
     def _load_config(self) -> None:
         if self.config_file.exists():
             try:
-                with open(self.config_file, 'r', encoding='utf-8') as f:
-                    loaded_data = json.load(f)
+                with open(self.config_file, 'rb') as f:
+                    loaded_data = tomli.load(f)
                     if isinstance(loaded_data, dict):
                         self.config_data = loaded_data
                     else:
@@ -80,7 +81,7 @@ class ConfigManager:
                         self.config_data = {}
                         log.warning(f"在 {self.config_file} 不存在配置文件，使用默认配置")
                 log.info(f"已从 {self.config_file.absolute()} 加载配置文件")
-            except json.JSONDecodeError as e:
+            except tomli.TOMLDecodeError as e:
                 log.error(f"解析配置文件时出错：{e}")
                 self.config_data = {}
             except Exception as e:
@@ -94,8 +95,8 @@ class ConfigManager:
     def _save_config(self) -> None:
         try:
             self.config_file.parent.mkdir(parents=True, exist_ok=True)
-            with open(self.config_file, 'w', encoding='utf-8') as f:
-                json.dump(self.config_data, f, ensure_ascii=False, indent=2)
+            with open(self.config_file.absolute(), 'wb') as f:
+                tomli_w.dump(self.config_data, f)
             log.debug(f"将配置保存到： {self.config_file}")
         except Exception as e:
             log.error(f"保存配置时发生错误： {e}")
