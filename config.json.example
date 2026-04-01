@@ -1,0 +1,15 @@
+{
+  "_comment": "SwarmClone 模块配置文件",
+  "_description": "复制此文件为 config.json 并根据需要修改配置值",
+  
+  "enabled_modules": [
+    "core.system_monitor"
+  ],
+  
+  "module_settings": {
+    "core.system_monitor": {
+      "check_interval": 60,
+      "log_stats": true
+    }
+  }
+}
