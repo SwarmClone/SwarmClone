@@ -20,10 +20,6 @@
 
 这是一个代码完全开源、可高度定制的AI虚拟主播系统，致力于为开发者和研究者提供构建智能虚拟主播的全套解决方案。我们的目标是打造一个能够在B站、Twitch等主流直播平台实现高质量实时互动的AI主播，同时保持框架的灵活性和可扩展性。
 
-### 特色
-1. **灵活的 AI 模型支持**：适配 OpenAI Chat Completion API，轻松接入 Qwen、DeepSeek 等大模型，也可使用 Ollama 本地部署模型
-2. **完善的直播功能**：支持弹幕实时互动等核心直播场景
-3. **模块化设计理念**：各功能组件可自由替换，方便开发者按需定制
 
 ## 快速开始
 
@@ -38,10 +34,8 @@
 # Clone the project
 git clone https://github.com/SwarmClone/SwarmClone.git
 cd SwarmClone/backend
-# Install project dependencies
-uv sync
 # Run
-uv run start
+uv run main.py
 ```
 
 ## 如何参与开发？
