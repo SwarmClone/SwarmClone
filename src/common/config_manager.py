@@ -17,7 +17,7 @@ import tomli_w
 from pathlib import Path
 from typing import Any, Callable, Dict
 
-from utils.logger import log
+from common.logger import log
 
 
 class ConfigEventBus:
@@ -168,12 +168,3 @@ class ConfigManager:
                 module_name in self.config_data and
                 config_key in self.config_data[module_name]
         )
-
-    def get_module_configs(self, module_name: str) -> Dict[str, Any]:
-        """
-        获取指定模块的所有配置
-        :param module_name: 模块名
-        :return: 一个字典，包含该模块注册的所有的配置键
-        """
-        self._ensure_module_exists(module_name)
-        return self.config_data[module_name]

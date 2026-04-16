@@ -327,6 +327,7 @@ name = "swarmclonebackend"
 version = "0.4.0"
 source = { editable = "." }
 dependencies = [
+    { name = "hypercorn" },
     { name = "python-dotenv" },
     { name = "quart" },
     { name = "tomli" },
@@ -340,6 +341,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "hypercorn", specifier = ">=0.18.0" },
     { name = "python-dotenv", specifier = ">=1.0.0" },
     { name = "quart", specifier = ">=0.20.0" },
     { name = "tomli", specifier = ">=2.0.0" },

@@ -12,17 +12,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
 import asyncio
 from typing import List, Callable, Dict, Any
 
+from dotenv import load_dotenv
 from quart import Quart, request, jsonify, Response
 from hypercorn.config import Config
 from hypercorn.asyncio import serve
 
-from utils.logger import log
+from common.logger import log
 
 
-class APIServer:
+class WebUIServer:
     def __init__(self, port: int, host: str = "127.0.0.1"):
         self.port = port
         self.host = host
@@ -30,6 +32,7 @@ class APIServer:
         self.routes: Dict[str, Dict[str, Any]] = {}
         self.routes_lock = asyncio.Lock()
         self.server_task: asyncio.Task | None = None
+        self._shutdown_event: asyncio.Event | None = None
 
         # 设置一个通用的dispatcher
         @self.app.route('/', defaults={'path': ''}, methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
@@ -67,11 +70,13 @@ class APIServer:
         if self.server_task and not self.server_task.done():
             return True
 
+        self._shutdown_event = asyncio.Event()
+
         config = Config()
         config.bind = [f"{self.host}:{self.port}"]
 
         self.server_task = asyncio.create_task(
-            serve(self.app, config),
+            serve(self.app, config, shutdown_trigger=self._shutdown_event.wait),
             name=f"APIServer-{self.host}:{self.port}"
         )
 
@@ -80,12 +85,16 @@ class APIServer:
 
     async def stop(self) -> None:
         """停止服务"""
-        if self.server_task:
-            self.server_task.cancel()
-            try:
-                await self.server_task
-            except asyncio.CancelledError:
-                pass
+        if not self.server_task or self.server_task.done():
+            return
+
+        self._shutdown_event.set()
+        self.server_task.cancel()
+        try:
+            await self.server_task
+        except asyncio.CancelledError:
+            pass
+        finally:
             self.server_task = None
             log.info("API服务器已停止")
 
@@ -119,3 +128,18 @@ class APIServer:
             'path': path,
             'existed': removed
         }
+
+# 全局 WebUI 服务器实例
+_webui_server = None
+
+
+def get_webui_server() -> WebUIServer:
+    global _webui_server
+    if _webui_server is None:
+        load_dotenv()
+
+        host = os.getenv("HOST", "127.0.0.1")
+        port = int(os.getenv("PORT", "4927"))
+
+        _webui_server = WebUIServer(host=host, port=port)
+    return _webui_server

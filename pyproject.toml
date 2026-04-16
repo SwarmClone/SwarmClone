@@ -10,6 +10,7 @@ dependencies = [
     "tomli>=2.0.0",
     "tomli-w>=1.0.0",
     "python-dotenv>=1.0.0",
+    "hypercorn>=0.18.0",
 ]
 
 [build-system]
