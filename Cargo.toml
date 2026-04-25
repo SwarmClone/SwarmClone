@@ -1,0 +1,8 @@
+[workspace]
+members = [
+    "crates/core",
+    "crates/utils",
+]
+resolver = "2"
+
+[workspace.dependencies]
