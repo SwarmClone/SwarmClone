@@ -9,3 +9,4 @@ path = "src/main.rs"
 
 [dependencies]
 utils = { path = "../utils" }
+toml = "1"

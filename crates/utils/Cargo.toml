@@ -5,4 +5,5 @@ edition = "2024"
 
 [dependencies]
 chrono = "0.4"
-colored = "2"
+colored = "3.1.1"
+toml = "1.0"

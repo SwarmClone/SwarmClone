@@ -129,7 +129,6 @@ pub fn set_log_target<W: Write + Send + 'static>(target: W) {
     }
 }
 
-/// 手动调用日志输出（通常直接使用宏更方便）。
 pub fn log(level: LogLevel, func: &str, msg: &str) {
     if let Ok(mut logger) = global_logger().lock() {
         logger.log(level, func, msg);
@@ -141,7 +140,6 @@ pub fn log(level: LogLevel, func: &str, msg: &str) {
 // =============================================================================
 
 /// 底层日志宏，需手动传入级别与函数名。
-/// module 使用完整的 `module_path!()`（如 `my_app::main`）。
 #[macro_export]
 macro_rules! log {
     ($level:expr, $func:expr, $($arg:tt)*) => {
