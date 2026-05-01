@@ -9,4 +9,6 @@ path = "src/main.rs"
 
 [dependencies]
 utils = { path = "../utils" }
+llm = { path = "../llm" }
 toml = "1"
+serde_json = "1"
