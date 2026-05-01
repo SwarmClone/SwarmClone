@@ -117,9 +117,7 @@ struct UsageMetadata {
 
 impl GeminiProvider {
     pub fn new(config: &ProviderConfig) -> Self {
-        let client = Client::builder()
-            .build()
-            .expect("构建 HTTP 客户端失败");
+        let client = Client::builder().build().expect("构建 HTTP 客户端失败");
 
         Self {
             client,
@@ -170,10 +168,9 @@ impl GeminiProvider {
                 }
                 Role::Tool => {
                     let result_content: serde_json::Value =
-                        serde_json::from_str(&msg.content.clone().unwrap_or_default())
-                            .unwrap_or(serde_json::Value::String(
-                                msg.content.clone().unwrap_or_default(),
-                            ));
+                        serde_json::from_str(&msg.content.clone().unwrap_or_default()).unwrap_or(
+                            serde_json::Value::String(msg.content.clone().unwrap_or_default()),
+                        );
                     contents.push(RequestContent {
                         role: "function".to_string(),
                         parts: vec![RequestPart::FunctionResponse {
@@ -251,9 +248,11 @@ impl Provider for GeminiProvider {
         }
 
         let body: ResponseBody = resp.json().await?;
-        let candidate = body.candidates.into_iter().next().ok_or_else(|| {
-            LLMError::Internal("响应中没有 candidates".to_string())
-        })?;
+        let candidate = body
+            .candidates
+            .into_iter()
+            .next()
+            .ok_or_else(|| LLMError::Internal("响应中没有 candidates".to_string()))?;
 
         let mut text_content = None;
         let mut tool_calls = Vec::new();

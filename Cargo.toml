@@ -3,6 +3,7 @@ members = [
     "crates/core",
     "crates/utils",
     "crates/llm",
+    "crates/speech",
 ]
 resolver = "2"
 

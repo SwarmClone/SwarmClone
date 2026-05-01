@@ -81,9 +81,7 @@ impl IntoConfigValue for bool {
 
 impl<V: IntoConfigValue> IntoConfigValue for HashMap<String, V> {
     fn into_value(self) -> Value {
-        let map = self.into_iter()
-            .map(|(k, v)| (k, v.into_value()))
-            .collect();
+        let map = self.into_iter().map(|(k, v)| (k, v.into_value())).collect();
         Value::Table(map)
     }
 }
@@ -137,10 +135,16 @@ impl Config {
 
     fn flatten(&mut self, table: toml::map::Map<String, Value>, prefix: String) {
         for (k, v) in table {
-            let key = if prefix.is_empty() { k } else { format!("{}.{}", prefix, k) };
+            let key = if prefix.is_empty() {
+                k
+            } else {
+                format!("{}.{}", prefix, k)
+            };
             match v {
                 Value::Table(t) => self.flatten(t, key),
-                other => { self.values.insert(key, other); }
+                other => {
+                    self.values.insert(key, other);
+                }
             }
         }
     }
@@ -149,7 +153,9 @@ impl Config {
     fn set(&mut self, key: &str, val: Value) -> Result<(), String> {
         self.values.insert(key.into(), val.clone());
         if let Some(cbs) = self.callbacks.get(key) {
-            for cb in cbs { cb(&val)?; }
+            for cb in cbs {
+                cb(&val)?;
+            }
         }
         Ok(())
     }
@@ -183,15 +189,16 @@ fn instance() -> &'static Mutex<Config> {
 pub fn get<T: FromConfigValue>(key: &str, default: T) -> Result<T, String> {
     let guard = instance().lock().map_err(|e| e.to_string())?;
     match guard.values.get(key) {
-        Some(val) => T::from_value(val).ok_or_else(|| {
-            format!("配置 '{}' 类型不匹配", key)
-        }),
+        Some(val) => T::from_value(val).ok_or_else(|| format!("配置 '{}' 类型不匹配", key)),
         None => Ok(default),
     }
 }
 
 pub fn set(key: &str, val: impl IntoConfigValue) -> Result<(), String> {
-    instance().lock().map_err(|e| e.to_string())?.set(key, val.into_value())
+    instance()
+        .lock()
+        .map_err(|e| e.to_string())?
+        .set(key, val.into_value())
 }
 
 /// 注册key，可选绑定回调
@@ -213,5 +220,8 @@ where
 
 /// 获取配置文件路径
 pub fn path() -> PathBuf {
-    instance().lock().map(|c| c.path.clone()).unwrap_or_default()
+    instance()
+        .lock()
+        .map(|c| c.path.clone())
+        .unwrap_or_default()
 }

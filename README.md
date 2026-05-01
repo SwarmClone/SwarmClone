@@ -1,64 +1,116 @@
 <div align="center">
 <img src="./.docs/assets/heading.png"/>
 <br><br>
-<h1>Project SwarmClone<br><br></h1>
-
-<strong>简体中文</strong> | <a href="./.docs/README_en.md">English</a>
-<br><br>
-一个完全开源、可高度定制的AI虚拟主播系统
-<br><br>
-
-![STARS](https://img.shields.io/github/stars/SwarmClone/SwarmClone?color=yellow&label=Github%20Stars)
-[![License](https://img.shields.io/badge/License-Apache%202.0-2ea44f)](https://github.com/SwarmClone/SwarmClone/blob/main/LICENSE)
-[![PRs Open](https://img.shields.io/github/issues-pr/SwarmClone/SwarmClone?state=open&style=flat&label=Pull%20requests&labelColor=444444&color=3AA558)](https://github.com/SwarmClone/SwarmClone/pulls?q=is%3Apr+is%3Aopen)
-[![Python](https://img.shields.io/badge/Python-3.13-0078D4.svg)](https://www.python.org)
-[![QQ群](https://custom-icon-badges.demolab.com/badge/QQ群-1048307485-0078D4?style=flat&logo=tencent-qq)](https://qm.qq.com/q/8IUfgmDqda)
-
-
-<br>
+<h1>Project SwarmClone</h1>
+<strong>一个开源、可高度定制的 AI 虚拟主播系统</strong>
 </div>
 
-这是一个代码完全开源、可高度定制的AI虚拟主播系统，致力于为开发者和研究者提供构建智能虚拟主播的全套解决方案。我们的目标是打造一个能够在B站、Twitch等主流直播平台实现高质量实时互动的AI主播，同时保持框架的灵活性和可扩展性。
+## 当前能力
 
+SwarmClone 正在从原 Python 原型迁移到 Rust backend + Electron/Vue dashboard 架构。本仓库当前包含：
 
-## 快速开始
+- Rust LLM 会话层，支持 OpenAI、Anthropic、Gemini，并可通过 `kind = "anthropic"` 接入 DeepSeek Anthropic-compatible API。
+- Rust 语音模块骨架，包含后端能量 VAD、阿里云 Fun-ASR WebSocket 接入、阿里云 CosyVoice WebSocket TTS 接入。
+- Rust HTTP/WebSocket backend，用于编排 `VAD -> ASR -> LLM -> TTS`。
+- Electron/Vue dashboard，用于麦克风采集、实时状态展示、文本烟测和音频播放。
 
-### Python 部分
-> [!note]
-> 
-> **本项目需要依赖 Python 3.13 及以上版本运行**
-> 
-> **不建议在较低版本的系统上运行本项目，如 Windows 7 SP1 等**
+## 配置
+
+复制示例配置到可执行文件目录下的 `config.toml`，再填写真实密钥：
 
 ```bash
-# Clone the project
-git clone https://github.com/SwarmClone/SwarmClone.git
-cd SwarmClone/backend
-# Run
-uv run main.py
+copy config.example.toml target\debug\config.toml
 ```
 
-## 如何参与开发？
-- 您可以加入我们的开发QQ群：1017493942
+重要：真实 `config.toml` 已加入 `.gitignore`，不要提交 API Key。
 
-如果你对 AI 、虚拟主播、开源开发充满热情，无论你是框架开发者、模型训练师、前端/图形工程师、产品设计师，还是热情的测试者，蜂群克隆（SwarmClone）都欢迎你的加入！让我们共同创造下一代开源AI虚拟直播系统！
+最小配置包含：
 
-## 项目开源协议
+```toml
+[llm.providers.deepseek]
+kind = "anthropic"
+base_url = "https://api.deepseek.com/anthropic"
+api_key = "sk-your-deepseek-key"
 
-本项目采用 [**Apache-2.0 license**](https://www.apache.org/licenses/LICENSE-2.0.html)作为开源许可证。  
-完整许可证文本请参阅 [**LICENSE**](/LICENSE) 文件。
+[llm.roles.default]
+provider = "deepseek"
+model = "deepseek-v4-flash"
 
-**在您复制、修改或分发本项目时，即表示您同意并愿意遵守 Apache-2.0 license 的全部条款。**
+[speech.dashscope]
+websocket_url = "wss://dashscope.aliyuncs.com/api-ws/v1/inference"
+api_key = "sk-your-dashscope-key"
+```
 
-**( 注意：此声明并非法律建议，一切请以许可证内容为准 )**
+## 启动后端
 
+```bash
+cargo run --bin backend
+```
 
-## 统计数据
+默认监听：
 
-![Alt](https://repobeats.axiom.co/api/embed/2abb919acc1a0a272bf142fafe6895cc864b5e50.svg "Repobeats analytics image")
+```text
+http://127.0.0.1:17860
+```
 
-[![Star History Chart](https://api.star-history.com/svg?repos=SwarmClone/SwarmClone&type=Date)](https://www.star-history.com/#SwarmClone/SwarmClone&Date)
+主要接口：
 
-## 贡献者
-[![](https://contrib.rocks/image?repo=SwarmClone/SwarmClone)](https://github.com/SwarmClone/SwarmClone/graphs/contributors)
+- `GET /health`
+- `GET /api/config/public`
+- `GET /api/roles`
+- `POST /api/chat`
+- `POST /api/tts`
+- `WS /api/realtime`
 
+## 启动 Dashboard
+
+```bash
+cd dashboard
+npm install
+npm run dev
+```
+
+Dashboard 会连接本地 backend，并提供：
+
+- 麦克风监听
+- VAD 状态
+- ASR 识别文本
+- LLM 回复文本
+- TTS 音频播放
+- 文本链路烟测
+
+## CLI 烟测
+
+在已配置 `target/debug/config.toml` 的情况下运行：
+
+```bash
+cargo run --bin backend -- smoke "你好，请介绍一下 SwarmClone。"
+```
+
+该命令会执行：
+
+```text
+文本输入 -> DeepSeek LLM -> CosyVoice TTS -> smoke-output.mp3
+```
+
+`smoke-output.mp3` 已加入 `.gitignore`。
+
+## 实时链路验收
+
+1. 准备 `target/debug/config.toml` 并填写 DeepSeek 与 DashScope API Key。
+2. 启动 Rust backend。
+3. 启动 Dashboard。
+4. 点击“开始监听”。
+5. 对麦克风说话。
+6. Dashboard 应展示 VAD、ASR、LLM、TTS 事件，并播放合成语音。
+
+## 注意事项
+
+- 浏览器 WebSocket 不能设置自定义鉴权 Header，因此 DashScope ASR/TTS 由 Rust backend 代理。
+- TTS 使用 CosyVoice WebSocket 协议，严格按照 `run-task -> task-started -> continue-task -> finish-task -> task-finished` 流程。
+- Fun-ASR 文档抓取不可用时，当前实现采用 DashScope 实时语音类通用指令模型，关键字段保留在配置中，便于按官方文档调整。
+- 当前 VAD 是能量阈值第一版，后续可替换为 WebRTC VAD 或 Silero VAD。
+
+## 开源协议
+
+本项目采用 [Apache-2.0 license](./LICENSE)。

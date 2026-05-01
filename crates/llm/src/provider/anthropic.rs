@@ -6,7 +6,7 @@ use tokio::sync::mpsc;
 
 use crate::config::ProviderConfig;
 use crate::error::{LLMError, Result};
-use crate::provider::{build_headers, Provider};
+use crate::provider::{Provider, build_headers};
 use crate::types::{
     CompletionResponse, FunctionCall, Message, Role, StreamChunk, ToolCall, ToolDefinition, Usage,
 };
@@ -210,7 +210,7 @@ impl Provider for AnthropicProvider {
             stream: false,
         };
 
-        let url = format!("{}/v1/messages", self.base_url);
+        let url = messages_url(&self.base_url);
         let resp = self.client.post(&url).json(&body).send().await?;
 
         if !resp.status().is_success() {
@@ -286,7 +286,7 @@ impl Provider for AnthropicProvider {
             stream: true,
         };
 
-        let url = format!("{}/v1/messages", self.base_url);
+        let url = messages_url(&self.base_url);
         let resp = self.client.post(&url).json(&body).send().await?;
 
         if !resp.status().is_success() {
@@ -373,5 +373,18 @@ impl Provider for AnthropicProvider {
 
     fn name(&self) -> &str {
         "anthropic"
+    }
+}
+
+fn messages_url(base_url: &str) -> String {
+    let base = base_url.trim_end_matches('/');
+    if base.ends_with("/v1/messages") {
+        base.to_string()
+    } else if base.ends_with("/anthropic") {
+        format!("{}/v1/messages", base)
+    } else if base.ends_with("/v1") {
+        format!("{}/messages", base)
+    } else {
+        format!("{}/v1/messages", base)
     }
 }

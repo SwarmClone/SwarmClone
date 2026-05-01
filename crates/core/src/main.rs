@@ -1,212 +1,418 @@
-use utils::log;
-use utils::config as cfg;
+use std::net::SocketAddr;
 
-fn main() {
+use axum::extract::State;
+use axum::extract::ws::{Message as WsMessage, WebSocket, WebSocketUpgrade};
+use axum::http::StatusCode;
+use axum::response::{IntoResponse, Response};
+use axum::routing::{get, post};
+use axum::{Json, Router};
+use base64::Engine;
+use futures_util::{SinkExt, StreamExt};
+use llm::session::Session;
+use serde::{Deserialize, Serialize};
+use speech::asr::{self, AsrEvent};
+use speech::config::SpeechConfig;
+use speech::tts::{self, TtsEvent};
+use speech::vad::{EnergyVad, VadEvent};
+use tower_http::cors::CorsLayer;
+use utils::log;
+
+#[derive(Clone)]
+struct AppState {
+    speech: Option<SpeechConfig>,
+}
+
+#[derive(Debug, Serialize)]
+struct HealthResponse {
+    status: &'static str,
+    speech_configured: bool,
+}
+
+#[derive(Debug, Serialize)]
+struct PublicConfigResponse {
+    roles: Vec<String>,
+    providers: Vec<String>,
+    speech_configured: bool,
+}
+
+#[derive(Debug, Deserialize)]
+struct ChatRequest {
+    text: String,
+    #[serde(default = "default_role")]
+    role: String,
+}
+
+#[derive(Debug, Serialize)]
+struct ChatResponse {
+    text: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct TtsRequest {
+    text: String,
+}
+
+#[derive(Debug, Serialize)]
+struct TtsResponse {
+    audio_base64: String,
+    mime_type: String,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(tag = "type")]
+enum RealtimeEvent {
+    #[serde(rename = "status")]
+    Status { stage: String, message: String },
+    #[serde(rename = "vad.started")]
+    VadStarted,
+    #[serde(rename = "vad.ended")]
+    VadEnded,
+    #[serde(rename = "asr.partial")]
+    AsrPartial { text: String },
+    #[serde(rename = "asr.final")]
+    AsrFinal { text: String },
+    #[serde(rename = "llm.completed")]
+    LlmCompleted { text: String },
+    #[serde(rename = "tts.started")]
+    TtsStarted { task_id: String },
+    #[serde(rename = "tts.chunk")]
+    TtsChunk { audio_base64: String },
+    #[serde(rename = "tts.completed")]
+    TtsCompleted,
+    #[serde(rename = "error")]
+    Error { message: String },
+}
+
+#[derive(Debug)]
+struct ApiError(String);
+
+impl std::fmt::Display for ApiError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+
+impl IntoResponse for ApiError {
+    fn into_response(self) -> Response {
+        (StatusCode::INTERNAL_SERVER_ERROR, self.0).into_response()
+    }
+}
+
+#[tokio::main]
+async fn main() {
     log::set_log_level(log::LogLevel::Debug);
 
-    log::info!("main", "配置文件: {:?}", cfg::path());
-
-    match cfg::get("app.name", String::new()) {
-        Ok(name) if !name.is_empty() => log::info!("main", "应用: {}", name),
-        Ok(_) => log::info!("main", "应用: (未设置)"),
-        Err(e) => log::error!("main", "读取失败: {}", e),
+    let args = std::env::args().collect::<Vec<_>>();
+    if args.get(1).map(|s| s.as_str()) == Some("smoke") {
+        let input = args
+            .get(2)
+            .cloned()
+            .unwrap_or_else(|| "你好，请做一个简短的自我介绍。".to_string());
+        if let Err(e) = smoke_test(&input).await {
+            log::error!("smoke", "{}", e);
+            std::process::exit(1);
+        }
+        return;
     }
 
-    match cfg::get("server.port", 8080) {
-        Ok(port) => log::info!("main", "端口: {}", port),
-        Err(e) => log::error!("main", "读取失败: {}", e),
+    if let Err(e) = serve().await {
+        log::error!("backend", "{}", e);
+        std::process::exit(1);
+    }
+}
+
+async fn serve() -> Result<(), ApiError> {
+    let speech = match SpeechConfig::from_config_file() {
+        Ok(config) => Some(config),
+        Err(e) => {
+            log::error!("config", "语音配置未就绪: {}", e);
+            None
+        }
+    };
+    let state = AppState { speech };
+    let app = Router::new()
+        .route("/health", get(health))
+        .route("/api/config/public", get(public_config))
+        .route("/api/roles", get(roles))
+        .route("/api/chat", post(chat))
+        .route("/api/tts", post(tts_once))
+        .route("/api/realtime", get(realtime))
+        .layer(CorsLayer::permissive())
+        .with_state(state);
+
+    let addr = SocketAddr::from(([127, 0, 0, 1], 17860));
+    log::info!("backend", "监听 http://{}", addr);
+    let listener = tokio::net::TcpListener::bind(addr)
+        .await
+        .map_err(|e| ApiError(e.to_string()))?;
+    axum::serve(listener, app)
+        .await
+        .map_err(|e| ApiError(e.to_string()))
+}
+
+async fn health(State(state): State<AppState>) -> Json<HealthResponse> {
+    Json(HealthResponse {
+        status: "ok",
+        speech_configured: state.speech.is_some(),
+    })
+}
+
+async fn public_config(State(state): State<AppState>) -> Json<PublicConfigResponse> {
+    Json(PublicConfigResponse {
+        roles: llm::session::available_roles(),
+        providers: llm::session::available_providers(),
+        speech_configured: state.speech.is_some(),
+    })
+}
+
+async fn roles() -> Json<Vec<String>> {
+    Json(llm::session::available_roles())
+}
+
+async fn chat(Json(req): Json<ChatRequest>) -> Result<Json<ChatResponse>, ApiError> {
+    let text = run_llm(&req.role, &req.text).await?;
+    Ok(Json(ChatResponse { text }))
+}
+
+async fn tts_once(
+    State(state): State<AppState>,
+    Json(req): Json<TtsRequest>,
+) -> Result<Json<TtsResponse>, ApiError> {
+    let config = state
+        .speech
+        .ok_or_else(|| ApiError("缺少 speech 配置".to_string()))?;
+    let mut rx = tts::synthesize_stream(config, req.text)
+        .await
+        .map_err(|e| ApiError(e.to_string()))?;
+    let mut audio = Vec::new();
+
+    while let Some(event) = rx.recv().await {
+        match event.map_err(|e| ApiError(e.to_string()))? {
+            TtsEvent::Audio(bytes) => audio.extend(bytes),
+            TtsEvent::Failed { code, message } => {
+                return Err(ApiError(format!("TTS 失败 {:?}: {}", code, message)));
+            }
+            TtsEvent::Finished { .. } => break,
+            _ => {}
+        }
     }
 
-    cfg::register_with_callback("server.port", |v: &toml::Value| {
-        log::info!("回调", "端口变更: {}", v);
-        if let Some(p) = v.as_integer() {
-            if p < 1024 || p > 65535 {
-                return Err("端口必须在 1024-65535".into());
+    Ok(Json(TtsResponse {
+        audio_base64: base64::engine::general_purpose::STANDARD.encode(audio),
+        mime_type: "audio/mpeg".to_string(),
+    }))
+}
+
+async fn realtime(State(state): State<AppState>, ws: WebSocketUpgrade) -> Response {
+    ws.on_upgrade(move |socket| handle_realtime(socket, state))
+}
+
+async fn handle_realtime(socket: WebSocket, state: AppState) {
+    let Some(config) = state.speech else {
+        let (mut tx, _) = socket.split();
+        let _ = send_event(
+            &mut tx,
+            &RealtimeEvent::Error {
+                message: "缺少 speech 配置".to_string(),
+            },
+        )
+        .await;
+        return;
+    };
+
+    let (mut tx, mut rx) = socket.split();
+    let mut vad = EnergyVad::new(config.vad.clone());
+    let mut utterance = Vec::<u8>::new();
+
+    let _ = send_event(
+        &mut tx,
+        &RealtimeEvent::Status {
+            stage: "ready".to_string(),
+            message: "后端实时链路已连接".to_string(),
+        },
+    )
+    .await;
+
+    while let Some(message) = rx.next().await {
+        match message {
+            Ok(WsMessage::Binary(frame)) => {
+                let event = vad.accept_pcm16(&frame);
+                match event {
+                    Some(VadEvent::SpeechStarted) => {
+                        utterance.clear();
+                        utterance.extend(frame);
+                        let _ = send_event(&mut tx, &RealtimeEvent::VadStarted).await;
+                    }
+                    Some(VadEvent::SpeechEnded) => {
+                        let _ = process_utterance(&mut tx, config.clone(), utterance.clone()).await;
+                        utterance.clear();
+                    }
+                    None if vad.is_speaking() => utterance.extend(frame),
+                    None => {}
+                }
+            }
+            Ok(WsMessage::Text(text)) if text == "flush" => {
+                if !utterance.is_empty() {
+                    let _ = process_utterance(&mut tx, config.clone(), utterance.clone()).await;
+                    utterance.clear();
+                }
+            }
+            Ok(WsMessage::Close(_)) => return,
+            Err(e) => {
+                let _ = send_event(
+                    &mut tx,
+                    &RealtimeEvent::Error {
+                        message: e.to_string(),
+                    },
+                )
+                .await;
+                return;
+            }
+            _ => {}
+        }
+    }
+}
+
+async fn process_utterance<S>(
+    tx: &mut S,
+    config: SpeechConfig,
+    audio: Vec<u8>,
+) -> Result<(), ApiError>
+where
+    S: SinkExt<WsMessage> + Unpin,
+    <S as futures_util::Sink<WsMessage>>::Error: std::fmt::Display,
+{
+    send_event(tx, &RealtimeEvent::VadEnded).await?;
+    send_event(
+        tx,
+        &RealtimeEvent::Status {
+            stage: "asr".to_string(),
+            message: "开始识别语音".to_string(),
+        },
+    )
+    .await?;
+    let mut asr_rx = asr::recognize_stream(config.clone(), audio)
+        .await
+        .map_err(|e| ApiError(e.to_string()))?;
+    let mut user_text = String::new();
+    while let Some(event) = asr_rx.recv().await {
+        match event.map_err(|e| ApiError(e.to_string()))? {
+            AsrEvent::Partial { text } => {
+                send_event(tx, &RealtimeEvent::AsrPartial { text }).await?
+            }
+            AsrEvent::Final { text } => {
+                user_text = text.clone();
+                send_event(tx, &RealtimeEvent::AsrFinal { text }).await?;
+            }
+            AsrEvent::Failed { code, message } => {
+                return Err(ApiError(format!("ASR 失败 {:?}: {}", code, message)));
+            }
+            _ => {}
+        }
+    }
+
+    if user_text.trim().is_empty() {
+        return Err(ApiError("ASR 未返回有效文本".to_string()));
+    }
+
+    send_event(
+        tx,
+        &RealtimeEvent::Status {
+            stage: "llm".to_string(),
+            message: "开始生成回复".to_string(),
+        },
+    )
+    .await?;
+    let answer = run_llm("default", &user_text).await?;
+    send_event(
+        tx,
+        &RealtimeEvent::LlmCompleted {
+            text: answer.clone(),
+        },
+    )
+    .await?;
+
+    send_event(
+        tx,
+        &RealtimeEvent::Status {
+            stage: "tts".to_string(),
+            message: "开始语音合成".to_string(),
+        },
+    )
+    .await?;
+    let mut tts_rx = tts::synthesize_stream(config, answer)
+        .await
+        .map_err(|e| ApiError(e.to_string()))?;
+    while let Some(event) = tts_rx.recv().await {
+        match event.map_err(|e| ApiError(e.to_string()))? {
+            TtsEvent::Started { task_id } => {
+                send_event(tx, &RealtimeEvent::TtsStarted { task_id }).await?
+            }
+            TtsEvent::Audio(bytes) => {
+                send_event(
+                    tx,
+                    &RealtimeEvent::TtsChunk {
+                        audio_base64: base64::engine::general_purpose::STANDARD.encode(bytes),
+                    },
+                )
+                .await?;
+            }
+            TtsEvent::Finished { .. } => {
+                send_event(tx, &RealtimeEvent::TtsCompleted).await?;
+                break;
+            }
+            TtsEvent::Failed { code, message } => {
+                return Err(ApiError(format!("TTS 失败 {:?}: {}", code, message)));
             }
         }
-        Ok(())
-    });
-
-    cfg::register("app.name");
-
-    log::info!("main", "设置端口为 9090...");
-    let _ = cfg::set("server.port", 9090);
-
-    log::info!("main", "尝试无效端口...");
-    let _ = cfg::set("server.port", 80);
-
-    // ========== LLM 模块测试 ==========
-    log::info!("main", "开始 LLM 模块测试...");
-    test_types();
-    test_message_construction();
-    test_tool_definition();
-    test_available_roles();
-    log::info!("main", "LLM 模块测试完成");
+    }
+    Ok(())
 }
 
-fn test_types() {
-    use llm::types::*;
-
-    // 测试 Role 枚举序列化/反序列化
-    let role = Role::User;
-    let json = serde_json::to_string(&role).unwrap();
-    assert_eq!(json, "\"user\"");
-    let deserialized: Role = serde_json::from_str(&json).unwrap();
-    assert_eq!(deserialized, Role::User);
-    log::info!("test_types", "Role 序列化/反序列化: 通过");
-
-    // 测试 FunctionCall
-    let fc = FunctionCall {
-        name: "test_func".to_string(),
-        arguments: "{\"key\":\"value\"}".to_string(),
-    };
-    let json = serde_json::to_string(&fc).unwrap();
-    assert!(json.contains("test_func"));
-    log::info!("test_types", "FunctionCall 序列化: 通过");
-
-    // 测试 ToolCall
-    let tc = ToolCall {
-        id: "call_123".to_string(),
-        call_type: "function".to_string(),
-        function: fc,
-    };
-    let json = serde_json::to_string(&tc).unwrap();
-    assert!(json.contains("call_123"));
-    log::info!("test_types", "ToolCall 序列化: 通过");
-
-    // 测试 Usage 默认值
-    let usage = Usage::default();
-    assert_eq!(usage.prompt_tokens, 0);
-    assert_eq!(usage.completion_tokens, 0);
-    assert_eq!(usage.total_tokens, 0);
-    log::info!("test_types", "Usage 默认值: 通过");
-
-    // 测试 CompletionResponse
-    let resp = CompletionResponse {
-        content: Some("hello".to_string()),
-        tool_calls: None,
-        finish_reason: Some("stop".to_string()),
-        usage: Some(Usage {
-            prompt_tokens: 10,
-            completion_tokens: 5,
-            total_tokens: 15,
-        }),
-    };
-    assert_eq!(resp.content.unwrap(), "hello");
-    assert!(resp.tool_calls.is_none());
-    log::info!("test_types", "CompletionResponse 构造: 通过");
-
-    // 测试 StreamChunk
-    let chunk = StreamChunk {
-        delta: "world".to_string(),
-        finish_reason: None,
-        tool_calls_delta: None,
-    };
-    assert_eq!(chunk.delta, "world");
-    log::info!("test_types", "StreamChunk 构造: 通过");
-
-    // 测试 ToolCallDelta
-    let delta = ToolCallDelta {
-        index: 0,
-        id: Some("call_456".to_string()),
-        function_name: Some("my_func".to_string()),
-        function_arguments_delta: Some("{\"a\":".to_string()),
-    };
-    assert_eq!(delta.index, 0);
-    log::info!("test_types", "ToolCallDelta 构造: 通过");
+async fn send_event<S>(tx: &mut S, event: &RealtimeEvent) -> Result<(), ApiError>
+where
+    S: SinkExt<WsMessage> + Unpin,
+    <S as futures_util::Sink<WsMessage>>::Error: std::fmt::Display,
+{
+    let text = serde_json::to_string(event).map_err(|e| ApiError(e.to_string()))?;
+    tx.send(WsMessage::Text(text))
+        .await
+        .map_err(|e| ApiError(e.to_string()))
 }
 
-fn test_message_construction() {
-    use llm::types::*;
-
-    // 测试 system 消息
-    let msg = Message::system("你是一个助手");
-    assert_eq!(msg.role, Role::System);
-    assert_eq!(msg.content.as_deref(), Some("你是一个助手"));
-    assert!(msg.tool_calls.is_none());
-    log::info!("test_message", "Message::system: 通过");
-
-    // 测试 user 消息
-    let msg = Message::user("你好");
-    assert_eq!(msg.role, Role::User);
-    assert_eq!(msg.content.as_deref(), Some("你好"));
-    log::info!("test_message", "Message::user: 通过");
-
-    // 测试 assistant 消息
-    let msg = Message::assistant("回复内容");
-    assert_eq!(msg.role, Role::Assistant);
-    assert_eq!(msg.content.as_deref(), Some("回复内容"));
-    log::info!("test_message", "Message::assistant: 通过");
-
-    // 测试 tool 消息
-    let msg = Message::tool("call_789", "执行结果");
-    assert_eq!(msg.role, Role::Tool);
-    assert_eq!(msg.tool_call_id.as_deref(), Some("call_789"));
-    assert_eq!(msg.content.as_deref(), Some("执行结果"));
-    log::info!("test_message", "Message::tool: 通过");
-
-    // 测试 assistant_with_tool_calls
-    let tool_calls = vec![ToolCall {
-        id: "call_abc".to_string(),
-        call_type: "function".to_string(),
-        function: FunctionCall {
-            name: "get_weather".to_string(),
-            arguments: "{\"city\":\"北京\"}".to_string(),
-        },
-    }];
-    let msg = Message::assistant_with_tool_calls(Some("让我查一下".to_string()), tool_calls);
-    assert_eq!(msg.role, Role::Assistant);
-    assert_eq!(msg.content.as_deref(), Some("让我查一下"));
-    assert!(msg.tool_calls.is_some());
-    assert_eq!(msg.tool_calls.as_ref().unwrap().len(), 1);
-    assert_eq!(msg.tool_calls.as_ref().unwrap()[0].function.name, "get_weather");
-    log::info!("test_message", "Message::assistant_with_tool_calls: 通过");
-
-    // 测试 Message 序列化/反序列化
-    let msg = Message::user("测试消息");
-    let json = serde_json::to_string(&msg).unwrap();
-    let deserialized: Message = serde_json::from_str(&json).unwrap();
-    assert_eq!(deserialized.role, Role::User);
-    assert_eq!(deserialized.content.as_deref(), Some("测试消息"));
-    log::info!("test_message", "Message 序列化/反序列化: 通过");
+async fn run_llm(role: &str, text: &str) -> Result<String, ApiError> {
+    let mut session = Session::new(role).map_err(|e| ApiError(e.to_string()))?;
+    session
+        .chat(text)
+        .await
+        .map_err(|e| ApiError(e.to_string()))
 }
 
-fn test_tool_definition() {
-    use llm::types::*;
-
-    // 测试 ToolDefinition 构造
-    let tool = ToolDefinition::function(
-        "get_weather",
-        "获取指定城市的天气信息",
-        serde_json::json!({
-            "type": "object",
-            "properties": {
-                "city": {
-                    "type": "string",
-                    "description": "城市名称"
-                }
-            },
-            "required": ["city"]
-        }),
-    );
-
-    assert_eq!(tool.tool_type, "function");
-    assert_eq!(tool.function.name, "get_weather");
-    assert_eq!(tool.function.description, "获取指定城市的天气信息");
-    assert!(tool.function.parameters.is_object());
-    log::info!("test_tool", "ToolDefinition 构造: 通过");
-
-    // 测试 ToolDefinition 序列化
-    let json = serde_json::to_string(&tool).unwrap();
-    assert!(json.contains("get_weather"));
-    assert!(json.contains("获取指定城市的天气信息"));
-    log::info!("test_tool", "ToolDefinition 序列化: 通过");
+async fn smoke_test(input: &str) -> Result<(), ApiError> {
+    let speech = SpeechConfig::from_config_file().map_err(|e| ApiError(e.to_string()))?;
+    let answer = run_llm("default", input).await?;
+    log::info!("smoke", "LLM 回复: {}", answer);
+    let mut rx = tts::synthesize_stream(speech, answer)
+        .await
+        .map_err(|e| ApiError(e.to_string()))?;
+    let mut audio = Vec::new();
+    while let Some(event) = rx.recv().await {
+        match event.map_err(|e| ApiError(e.to_string()))? {
+            TtsEvent::Audio(bytes) => audio.extend(bytes),
+            TtsEvent::Failed { code, message } => {
+                return Err(ApiError(format!("TTS 失败 {:?}: {}", code, message)));
+            }
+            TtsEvent::Finished { .. } => break,
+            _ => {}
+        }
+    }
+    tokio::fs::write("smoke-output.mp3", audio)
+        .await
+        .map_err(|e| ApiError(e.to_string()))?;
+    log::info!("smoke", "已写入 smoke-output.mp3");
+    Ok(())
 }
 
-fn test_available_roles() {
-    let roles = llm::session::available_roles();
-    log::info!("test_roles", "可用角色: {:?}", roles);
-
-    let providers = llm::session::available_providers();
-    log::info!("test_roles", "可用 Provider: {:?}", providers);
+fn default_role() -> String {
+    "default".to_string()
 }

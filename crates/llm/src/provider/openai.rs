@@ -6,7 +6,7 @@ use tokio::sync::mpsc;
 
 use crate::config::ProviderConfig;
 use crate::error::{LLMError, Result};
-use crate::provider::{build_headers, Provider};
+use crate::provider::{Provider, build_headers};
 use crate::types::{
     CompletionResponse, FunctionCall, Message, Role, StreamChunk, ToolCall, ToolCallDelta,
     ToolDefinition, Usage,
@@ -14,7 +14,7 @@ use crate::types::{
 
 pub struct OpenAIProvider {
     client: Client,
-    base_url: String
+    base_url: String,
 }
 
 #[derive(Serialize)]
@@ -139,7 +139,7 @@ impl OpenAIProvider {
 
         Self {
             client,
-            base_url: config.base_url.trim_end_matches('/').to_string()
+            base_url: config.base_url.trim_end_matches('/').to_string(),
         }
     }
 
@@ -208,13 +208,15 @@ impl Provider for OpenAIProvider {
         }
 
         let body: ResponseBody = resp.json().await?;
-        let choice = body.choices.into_iter().next().ok_or_else(|| {
-            LLMError::Internal("响应中没有 choices".to_string())
-        })?;
+        let choice = body
+            .choices
+            .into_iter()
+            .next()
+            .ok_or_else(|| LLMError::Internal("响应中没有 choices".to_string()))?;
 
-        let message = choice.message.ok_or_else(|| {
-            LLMError::Internal("响应中没有 message".to_string())
-        })?;
+        let message = choice
+            .message
+            .ok_or_else(|| LLMError::Internal("响应中没有 message".to_string()))?;
 
         let tool_calls = message.tool_calls.map(|calls| {
             calls

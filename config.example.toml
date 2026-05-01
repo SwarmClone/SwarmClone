@@ -1,0 +1,42 @@
+[app]
+name = "SwarmClone"
+
+[server]
+host = "127.0.0.1"
+port = 17860
+
+[llm.providers.deepseek]
+kind = "anthropic"
+base_url = "https://api.deepseek.com/anthropic"
+api_key = "sk-your-deepseek-key"
+
+[llm.roles.default]
+provider = "deepseek"
+model = "deepseek-v4-flash"
+system_prompt = "你是 SwarmClone 的 AI 虚拟主播。请用自然、口语化、适合直播互动的中文回答，保持简洁、有情绪但不过度夸张。"
+max_tokens = 2048
+temperature = 0.8
+
+[speech.dashscope]
+websocket_url = "wss://dashscope.aliyuncs.com/api-ws/v1/inference"
+api_key = "sk-your-dashscope-key"
+
+[speech.tts]
+model = "cosyvoice-v3-flash"
+voice = "longanyang"
+format = "mp3"
+sample_rate = 22050
+volume = 50
+rate = 1.0
+pitch = 1.0
+
+[speech.asr]
+model = "fun-asr"
+format = "pcm"
+sample_rate = 16000
+
+[speech.vad]
+rms_threshold = 0.015
+start_frames = 3
+end_silence_ms = 800
+frame_ms = 20

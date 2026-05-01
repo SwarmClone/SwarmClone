@@ -1,13 +1,13 @@
 use async_trait::async_trait;
 use tokio::sync::mpsc;
 
-use crate::config::{get_provider_config, get_role_config, ProviderConfig};
+use crate::config::{ProviderConfig, get_provider_config, get_role_config};
 use crate::error::Result;
 use crate::types::{CompletionResponse, Message, StreamChunk, ToolDefinition};
 
-mod openai;
 mod anthropic;
 mod gemini;
+mod openai;
 
 #[async_trait]
 pub trait Provider: Send + Sync {
@@ -34,13 +34,14 @@ pub trait Provider: Send + Sync {
 
 pub fn create_provider(provider_name: &str) -> Result<Box<dyn Provider>> {
     let config = get_provider_config(provider_name)?;
-    match provider_name {
+    let kind = config.kind.as_deref().unwrap_or(provider_name);
+    match kind {
         "openai" => Ok(Box::new(openai::OpenAIProvider::new(config))),
         "anthropic" => Ok(Box::new(anthropic::AnthropicProvider::new(config))),
         "gemini" => Ok(Box::new(gemini::GeminiProvider::new(config))),
         _ => Err(crate::error::LLMError::Unsupported(format!(
-            "未知的 provider: {}",
-            provider_name
+            "未知的 provider 类型: {} ({})",
+            kind, provider_name
         ))),
     }
 }

@@ -9,6 +9,8 @@ use crate::error::{LLMError, Result};
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct ProviderConfig {
+    #[serde(default)]
+    pub kind: Option<String>,
     pub base_url: String,
     pub api_key: String,
     #[serde(default)]
@@ -53,12 +55,17 @@ fn load_config() -> Result<LLMConfig> {
     }
 
     let content = fs::read_to_string(&path).map_err(|e| LLMError::Config(e.to_string()))?;
-    let root: toml::Value = toml::from_str(&content).map_err(|e| LLMError::Config(e.to_string()))?;
+    let root: toml::Value =
+        toml::from_str(&content).map_err(|e| LLMError::Config(e.to_string()))?;
 
-    let llm_table = root.get("llm").cloned().unwrap_or(toml::Value::Table(toml::map::Map::new()));
+    let llm_table = root
+        .get("llm")
+        .cloned()
+        .unwrap_or(toml::Value::Table(toml::map::Map::new()));
 
-    let config: LLMConfig =
-        llm_table.try_into().map_err(|e| LLMError::Config(format!("解析 llm 配置失败: {}", e)))?;
+    let config: LLMConfig = llm_table
+        .try_into()
+        .map_err(|e| LLMError::Config(format!("解析 llm 配置失败: {}", e)))?;
 
     Ok(config)
 }
@@ -66,18 +73,22 @@ fn load_config() -> Result<LLMConfig> {
 static CONFIG: OnceLock<LLMConfig> = OnceLock::new();
 
 pub fn get_config() -> &'static LLMConfig {
-    CONFIG.get_or_init(|| load_config().unwrap_or_else(|e| {
-        eprintln!("警告: 加载 LLM 配置失败: {}", e);
-        LLMConfig {
-            providers: HashMap::new(),
-            roles: HashMap::new(),
-        }
-    }))
+    CONFIG.get_or_init(|| {
+        load_config().unwrap_or_else(|e| {
+            eprintln!("警告: 加载 LLM 配置失败: {}", e);
+            LLMConfig {
+                providers: HashMap::new(),
+                roles: HashMap::new(),
+            }
+        })
+    })
 }
 
 pub fn reload_config() -> Result<()> {
     let config = load_config()?;
-    CONFIG.set(config).map_err(|_| LLMError::Config("配置已初始化，无法重载".to_string()))?;
+    CONFIG
+        .set(config)
+        .map_err(|_| LLMError::Config("配置已初始化，无法重载".to_string()))?;
     Ok(())
 }
 

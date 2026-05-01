@@ -3,12 +3,10 @@ use std::sync::Arc;
 
 use tokio::sync::mpsc;
 
-use crate::config::{get_config, get_role_config, RoleConfig};
+use crate::config::{RoleConfig, get_config, get_role_config};
 use crate::error::{LLMError, Result};
-use crate::provider::{create_provider, Provider};
-use crate::types::{
-    CompletionResponse, Message, StreamChunk, ToolDefinition,
-};
+use crate::provider::{Provider, create_provider};
+use crate::types::{CompletionResponse, Message, StreamChunk, ToolDefinition};
 
 #[async_trait::async_trait]
 pub trait ToolExecutor: Send + Sync {
@@ -123,13 +121,14 @@ impl Session {
                     ));
 
                     for call in tool_calls {
-                        let result = executor.execute(&call.function.name, &call.function.arguments).await;
+                        let result = executor
+                            .execute(&call.function.name, &call.function.arguments)
+                            .await;
                         let result_content = match result {
                             Ok(r) => r,
                             Err(e) => format!("工具执行错误: {}", e),
                         };
-                        self.messages
-                            .push(Message::tool(&call.id, result_content));
+                        self.messages.push(Message::tool(&call.id, result_content));
                     }
 
                     continue;
