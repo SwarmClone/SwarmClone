@@ -8,7 +8,7 @@
 一个完全开源、可高度定制的AI虚拟主播系统
 <br><br>
 
-![Stars](https://img.shields.io/github/stars/SwarmClone/SwarmClone?style=flat&color=yellow&label=Stars)
+![STARS](https://img.shields.io/github/stars/SwarmClone/SwarmClone?color=yellow&label=Github%20Stars)
 [![License](https://img.shields.io/badge/License-Apache%202.0-2ea44f?style=flat)](https://github.com/SwarmClone/SwarmClone/blob/main/LICENSE)
 [![PRs](https://img.shields.io/github/issues-pr/SwarmClone/SwarmClone?state=open&style=flat&label=PRs&labelColor=444444&color=3AA558)](https://github.com/SwarmClone/SwarmClone/pulls?q=is%3Apr+is%3Aopen)
 [![Rust](https://img.shields.io/badge/Rust-2024-111111?style=flat&logo=rust&logoColor=white)](https://www.rust-lang.org)
