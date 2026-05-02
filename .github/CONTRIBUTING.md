@@ -134,7 +134,8 @@ Describe what actually happened
 
 ## Environment Information
 - Operating System:
-- Python Version:
+- Rust Version:
+- Godot Version:
 - Other relevant environment information:
 
 ## Logs/Screenshots
@@ -167,11 +168,11 @@ Refer to the "Quick Start" section in the project's [README.md](../README.md) fi
 
 ## 📚 Code Standards
 
-### Python Code
-- Follow PEP 8 standards
+### Rust Code
+- Follow the Rust API Guidelines
 - Use meaningful variable and function names
-- Add appropriate type annotations
-- Write clear docstrings
+- Leverage the type system effectively
+- Write clear doc comments (`///` and `//!`)
 
 ### Documentation
 - Use clear, accurate language

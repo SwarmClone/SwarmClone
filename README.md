@@ -8,10 +8,11 @@
 一个完全开源、可高度定制的AI虚拟主播系统
 <br><br>
 
-![STARS](https://img.shields.io/github/stars/SwarmClone/SwarmClone?color=yellow&label=Github%20Stars)
-[![License](https://img.shields.io/badge/License-Apache%202.0-2ea44f)](https://github.com/SwarmClone/SwarmClone/blob/main/LICENSE)
-[![PRs Open](https://img.shields.io/github/issues-pr/SwarmClone/SwarmClone?state=open&style=flat&label=Pull%20requests&labelColor=444444&color=3AA558)](https://github.com/SwarmClone/SwarmClone/pulls?q=is%3Apr+is%3Aopen)
-[![Python](https://img.shields.io/badge/Python-3.13-0078D4.svg)](https://www.python.org)
+![Stars](https://img.shields.io/github/stars/SwarmClone/SwarmClone?style=flat&color=yellow&label=Stars)
+[![License](https://img.shields.io/badge/License-Apache%202.0-2ea44f?style=flat)](https://github.com/SwarmClone/SwarmClone/blob/main/LICENSE)
+[![PRs](https://img.shields.io/github/issues-pr/SwarmClone/SwarmClone?state=open&style=flat&label=PRs&labelColor=444444&color=3AA558)](https://github.com/SwarmClone/SwarmClone/pulls?q=is%3Apr+is%3Aopen)
+[![Rust](https://img.shields.io/badge/Rust-2024-111111?style=flat&logo=rust&logoColor=white)](https://www.rust-lang.org)
+[![Godot](https://img.shields.io/badge/Godot-4.6.2-007dfe?style=flat&logo=godotengine&logoColor=white)](https://godotengine.org)
 [![QQ群](https://custom-icon-badges.demolab.com/badge/QQ群-1048307485-0078D4?style=flat&logo=tencent-qq)](https://qm.qq.com/q/8IUfgmDqda)
 
 
