@@ -1,9 +1,0 @@
-[workspace]
-members = [
-    "crates/core",
-    "crates/utils",
-    "crates/llm", "crates/cli",
-]
-resolver = "2"
-
-[workspace.dependencies]
